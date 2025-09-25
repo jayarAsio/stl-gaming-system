@@ -1,6 +1,6 @@
 {
   "name": "stl-system",
-  "homepage": "https://jayarAsio.github.io/stl-system",
+  "homepage": "https://jayarasio.github.io/stl-system",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist",
+    "postbuild": "cp dist/index.html dist/404.html"
   },
   "dependencies": {
     "framer-motion": "^12.23.19",
