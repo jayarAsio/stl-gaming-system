@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Scanner } from "@yudiel/react-qr-scanner";
 import "../styles/dashboard.css";
 
 // helpers
@@ -105,6 +106,10 @@ export default function Dashboard({
   schedule = createDemoSchedule(),
 }) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
 
   // Update current time every second for countdown
   useEffect(() => {
@@ -120,6 +125,125 @@ export default function Dashboard({
     document.body.classList.add("teller-bg");
     return () => document.body.classList.remove("teller-bg");
   }, []);
+
+  // QR Scanning Functions
+  const openScanModal = () => {
+    setShowScanModal(true);
+    setScanResult(null);
+    setScanError('');
+    setIsScanning(true);
+  };
+
+  const closeScanModal = () => {
+    setShowScanModal(false);
+    setScanResult(null);
+    setScanError('');
+    setIsScanning(false);
+  };
+
+  const handleQRDetected = (result) => {
+    if (result && result.text) {
+      handleQRScan(result.text);
+    }
+  };
+
+  const handleQRError = (error) => {
+    console.error('QR Scanner Error:', error);
+    setScanError('Camera access denied or QR scanner error. Please check permissions.');
+    setIsScanning(false);
+  };
+
+  const handleQRScan = async (qrData) => {
+    setIsScanning(false);
+    setScanError('');
+    
+    try {
+      // Parse QR data
+      const ticketData = JSON.parse(qrData);
+      
+      // Validate ticket structure
+      if (!ticketData.id || !ticketData.bets || !ticketData.verified) {
+        throw new Error('Invalid ticket format');
+      }
+
+      // Check authenticity
+      const isAuthentic = ticketData.verified === true;
+      
+      // Check if ticket is winning
+      const winningResults = checkWinningStatus(ticketData, schedule);
+      
+      setScanResult({
+        authentic: isAuthentic,
+        ticket: ticketData,
+        winningResults
+      });
+      
+    } catch (error) {
+      setScanError('Invalid QR code or ticket data. Please try again.');
+      setIsScanning(true); // Allow retry
+    }
+  };
+
+  const checkWinningStatus = (ticketData, gameSchedule) => {
+    const results = [];
+    
+    ticketData.bets?.forEach(bet => {
+      // Find the game in schedule
+      const game = gameSchedule.find(g => 
+        g.title.toLowerCase().includes(bet.game.toLowerCase()) ||
+        bet.game.toLowerCase().includes(g.title.toLowerCase())
+      );
+      
+      if (game) {
+        // Find completed draws for this game
+        const completedDraws = game.draws.filter(draw => 
+          draw.status === 'completed' && draw.result
+        );
+        
+        completedDraws.forEach(draw => {
+          const isWinner = checkIfWinning(bet, draw.result);
+          results.push({
+            game: bet.game,
+            combo: bet.combo,
+            amount: bet.amount,
+            drawTime: formatTime(draw.time),
+            drawResult: draw.result,
+            isWinner,
+            payout: isWinner ? calculatePayout(bet, bet.game) : 0
+          });
+        });
+      }
+    });
+    
+    return results;
+  };
+
+  const checkIfWinning = (bet, drawResult) => {
+    const betCombo = bet.combo.replace(/[.-]/g, '');
+    const result = drawResult.replace(/[.-]/g, '');
+    
+    // Simple matching logic - can be enhanced based on game rules
+    return betCombo === result;
+  };
+
+  const calculatePayout = (bet, game) => {
+    // Demo payout calculation - replace with actual game rules
+    const multipliers = {
+      'Swertres': 500,
+      'Last 2': 80,
+      'STL Pares': 700,
+      'Swer3': 500
+    };
+    
+    const multiplier = multipliers[game] || 100;
+    return bet.amount * multiplier;
+  };
+
+  const resetScanner = () => {
+    setScanResult(null);
+    setScanError('');
+    setIsScanning(true);
+  };
 
   return (
     <div className="container teller-page">
@@ -196,6 +320,131 @@ export default function Dashboard({
           </div>
         </section>
       </main>
+
+      {/* Floating Scan Button */}
+      <button 
+        className="floating-scan-btn" 
+        onClick={openScanModal}
+        aria-label="Scan ticket QR code"
+        title="Scan Ticket QR"
+      >
+        📷
+      </button>
+
+      {/* QR Scan Modal */}
+      {showScanModal && (
+        <div className="scan-modal active" role="dialog" aria-modal="true" aria-label="Scan ticket QR code">
+          <div className="scan-container">
+            <div className="scan-header">
+              <div className="scan-title">Scan Ticket QR</div>
+              <div className="scan-subtitle">Position QR code in camera view</div>
+              <button className="close-btn" onClick={closeScanModal} aria-label="Close scanner">×</button>
+            </div>
+
+            <div className="scan-body">
+              {!scanResult && (
+                <div className="camera-section">
+                  <div className="qr-scanner-container">
+                    {isScanning && (
+                      <Scanner
+                        onDecode={handleQRDetected}
+                        onError={handleQRError}
+                        constraints={{
+                          facingMode: 'environment'
+                        }}
+                        scanDelay={300}
+                        containerStyle={{
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          position: 'relative',
+                          aspectRatio: '4/3',
+                          maxHeight: '300px'
+                        }}
+                        videoStyle={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    )}
+                    
+                    {isScanning && (
+                      <div className="scan-overlay">
+                        <div className="scan-frame"></div>
+                        <div className="scan-instruction">
+                          Position QR code within the frame
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {scanError && (
+                    <div className="scan-error">
+                      {scanError}
+                      <button 
+                        className="retry-btn" 
+                        onClick={() => {
+                          setScanError('');
+                          setIsScanning(true);
+                        }}
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {scanResult && (
+                <div className="scan-result">
+                  <div className={`authenticity-badge ${scanResult.authentic ? 'authentic' : 'invalid'}`}>
+                    {scanResult.authentic ? '✅ AUTHENTIC TICKET' : '❌ INVALID TICKET'}
+                  </div>
+                  
+                  <div className="ticket-info">
+                    <div className="ticket-ref">REF: {scanResult.ticket.id}</div>
+                    <div className="ticket-date">
+                      {new Date(scanResult.ticket.timestamp).toLocaleString('en-PH')}
+                    </div>
+                    <div className="ticket-total">Total: {peso(scanResult.ticket.total)}</div>
+                  </div>
+
+                  <div className="winning-results">
+                    <h3>Winning Check Results</h3>
+                    {scanResult.winningResults.length === 0 ? (
+                      <div className="no-results">No completed draws found for this ticket</div>
+                    ) : (
+                      <div className="results-list">
+                        {scanResult.winningResults.map((result, index) => (
+                          <div key={index} className={`result-item ${result.isWinner ? 'winner' : 'non-winner'}`}>
+                            <div className="result-game">{result.game}</div>
+                            <div className="result-combo">Bet: {result.combo}</div>
+                            <div className="result-draw">Draw: {result.drawResult}</div>
+                            <div className="result-status">
+                              {result.isWinner ? (
+                                <span className="winner-badge">🏆 WINNER - {peso(result.payout)}</span>
+                              ) : (
+                                <span className="non-winner-badge">No Win</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="scan-actions">
+              <button className="scan-btn scan-btn-close" onClick={closeScanModal}>Close</button>
+              {scanResult && (
+                <button className="scan-btn scan-btn-new" onClick={resetScanner}>Scan Another</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
