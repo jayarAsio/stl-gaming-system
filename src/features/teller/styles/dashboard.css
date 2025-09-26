@@ -393,15 +393,15 @@ body.teller-bg{
 /* ==== Floating Scan Button ==== */
 .floating-scan-btn {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 60px;
-  height: 60px;
+  bottom: 10px;
+  right: 10px;
+  width: 90px;
+  height: 90px;
   background: linear-gradient(135deg, var(--ocean-medium), var(--ocean-bright));
   color: var(--white);
   border: none;
   border-radius: 50%;
-  font-size: 24px;
+  font-size: 32px;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(2, 54, 123, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -409,6 +409,13 @@ body.teller-bg{
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.scan-icon {
+  width: 40px;
+  height: 40px;
+  filter: brightness(0) invert(1);
+  transition: all 0.3s ease;
 }
 
 .floating-scan-btn:hover {

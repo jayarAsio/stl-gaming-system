@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Scanner } from "@yudiel/react-qr-scanner";
+import qrIconUrl from "/src/assets/qrcode.svg";
 import "../styles/dashboard.css";
+
 
 // helpers
 const peso = (n) => `₱${Number(n || 0).toLocaleString("en-PH", { maximumFractionDigits: 0 })}`;
@@ -328,7 +330,7 @@ export default function Dashboard({
         aria-label="Scan ticket QR code"
         title="Scan Ticket QR"
       >
-        📷
+        <img src={qrIconUrl} alt="QR" className="scan-icon" />
       </button>
 
       {/* QR Scan Modal */}
