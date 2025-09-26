@@ -1,1 +1,0 @@
-import{j as s}from"./index-BvdhF6Gf.js";function a(){return s.jsxs("div",{className:"dash-wrap",children:[s.jsx("h1",{children:"⚙️ Game Administrator"}),s.jsx("p",{children:"Game settings, schedules, draw controls, and ops tools."})]})}export{a as default};
