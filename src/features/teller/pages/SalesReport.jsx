@@ -248,12 +248,6 @@ const SalesReport = ({
     }, 1000);
   }, [fromDate, toDate, generateSampleData, showToast]);
 
-  // Export functionality - REMOVED as requested
-
-  // Generate CSV content - REMOVED as requested
-
-  // Download file helper - REMOVED as requested
-
   // Ticket search functionality
   const normalizeTicket = useCallback((input) => {
     if (!input) return '';
