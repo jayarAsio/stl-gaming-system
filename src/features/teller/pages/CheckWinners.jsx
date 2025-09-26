@@ -12,24 +12,24 @@ const drawsData = [
         winning: '12.25',
         multiplier: '1:700',
         winners: [
-          { ref: 'TKT12345678', bet: 1, claimed: false },
-          { ref: 'TKT23456789', bet: 2, claimed: true },
-          { ref: 'TKT34567890', bet: 1, claimed: false },
+          { ref: 'TKT12345678', bet: 1, claimed: false, bettedNumber: '12.25' },
+          { ref: 'TKT23456789', bet: 2, claimed: true, bettedNumber: '12.25' },
+          { ref: 'TKT34567890', bet: 1, claimed: false, bettedNumber: '12.25' },
         ],
       },
       'Last 2': {
         winning: '47',
         multiplier: '1:100',
         winners: [
-          { ref: 'TKT45678901', bet: 5, claimed: true },
-          { ref: 'TKT56789012', bet: 2, claimed: false },
+          { ref: 'TKT45678901', bet: 5, claimed: true, bettedNumber: '47' },
+          { ref: 'TKT56789012', bet: 2, claimed: false, bettedNumber: '47' },
         ],
       },
       'Last 3': {
         winning: '358',
         multiplier: '1:100',
         winners: [
-          { ref: 'TKT67890123', bet: 3, claimed: false },
+          { ref: 'TKT67890123', bet: 3, claimed: false, bettedNumber: '358' },
         ],
       },
       'Swer3': {
@@ -47,16 +47,16 @@ const drawsData = [
         winning: '03.17',
         multiplier: '1:700',
         winners: [
-          { ref: 'TKT78901234', bet: 3, claimed: false },
+          { ref: 'TKT78901234', bet: 3, claimed: false, bettedNumber: '03.17' },
         ],
       },
       'Last 2': {
         winning: '89',
         multiplier: '1:100',
         winners: [
-          { ref: 'TKT89012345', bet: 4, claimed: true },
-          { ref: 'TKT90123456', bet: 1, claimed: false },
-          { ref: 'TKT01234567', bet: 3, claimed: true },
+          { ref: 'TKT89012345', bet: 4, claimed: true, bettedNumber: '89' },
+          { ref: 'TKT90123456', bet: 1, claimed: false, bettedNumber: '89' },
+          { ref: 'TKT01234567', bet: 3, claimed: true, bettedNumber: '89' },
         ],
       },
       'Last 3': {
@@ -68,7 +68,7 @@ const drawsData = [
         winning: '967',
         multiplier: '1:100',
         winners: [
-          { ref: 'TKT12340987', bet: 2, claimed: false },
+          { ref: 'TKT12340987', bet: 2, claimed: false, bettedNumber: '967' },
         ],
       },
     },
@@ -86,15 +86,15 @@ const drawsData = [
         winning: '63',
         multiplier: '1:100',
         winners: [
-          { ref: 'TKT23451098', bet: 6, claimed: false },
+          { ref: 'TKT23451098', bet: 6, claimed: false, bettedNumber: '63' },
         ],
       },
       'Last 3': {
         winning: '507',
         multiplier: '1:100',
         winners: [
-          { ref: 'TKT34562109', bet: 5, claimed: true },
-          { ref: 'TKT45673210', bet: 2, claimed: false },
+          { ref: 'TKT34562109', bet: 5, claimed: true, bettedNumber: '507' },
+          { ref: 'TKT45673210', bet: 2, claimed: false, bettedNumber: '507' },
         ],
       },
       'Swer3': {
@@ -110,7 +110,6 @@ const CheckWinners = ({ onNavigateBack }) => {
   // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState('all');
-  const [selectedDraw, setSelectedDraw] = useState('all');
   const [claimFilter, setClaimFilter] = useState('all');
   const [highlightedTicket, setHighlightedTicket] = useState('');
   const [searchResult, setSearchResult] = useState(null);
@@ -169,11 +168,6 @@ const CheckWinners = ({ onNavigateBack }) => {
     return Array.from(games);
   }, []);
 
-  // Get unique draw times for filter
-  const drawTimes = useMemo(() => {
-    return drawsData.map(draw => ({ time: draw.time, date: draw.date }));
-  }, []);
-
   // Calculate statistics
   const statistics = useMemo(() => {
     let totalWinners = 0;
@@ -215,10 +209,7 @@ const CheckWinners = ({ onNavigateBack }) => {
 
   // Filter draws based on current filters
   const filteredDraws = useMemo(() => {
-    return drawsData.filter(draw => {
-      if (selectedDraw !== 'all' && draw.time !== selectedDraw) return false;
-      return true;
-    }).map(draw => ({
+    return drawsData.map(draw => ({
       ...draw,
       games: Object.fromEntries(
         Object.entries(draw.games).filter(([gameName]) => {
@@ -239,7 +230,7 @@ const CheckWinners = ({ onNavigateBack }) => {
         ])
       )
     })).filter(draw => Object.keys(draw.games).length > 0);
-  }, [selectedGame, selectedDraw, claimFilter]);
+  }, [selectedGame, claimFilter]);
 
   // Handle ticket search
   const handleSearch = useCallback(async (ticketRef = searchQuery) => {
@@ -282,7 +273,8 @@ const CheckWinners = ({ onNavigateBack }) => {
               amount: calculateWinnings(winner.bet, mult),
               multiplier: mult,
               claimed: winner.claimed,
-              ticketRef: normalizedTicket
+              ticketRef: normalizedTicket,
+              bettedNumber: winner.bettedNumber
             };
             break;
           }
@@ -374,7 +366,7 @@ const CheckWinners = ({ onNavigateBack }) => {
         <div className="winner-main">
           <div className="winner-ref">🎫 {winner.ref}</div>
           <div className="winner-sub">
-            Bet {peso.format(winner.bet)} × {multiplier} • {drawTime}
+            Bet {peso.format(winner.bet)} on <span className="betted-number">{winner.bettedNumber}</span> × {multiplier} • {drawTime}
           </div>
         </div>
         <div className="winner-actions">
@@ -454,8 +446,9 @@ const CheckWinners = ({ onNavigateBack }) => {
               <div><strong>Ticket:</strong> {searchResult.data.ticketRef}</div>
               <div><strong>Draw:</strong> {searchResult.data.drawTime} – {searchResult.data.drawDate}</div>
               <div><strong>Game:</strong> {searchResult.data.game}</div>
+              <div><strong>Betted Number:</strong> <span className="betted-number-result">{searchResult.data.bettedNumber}</span></div>
               <div><strong>Winning Number:</strong> {searchResult.data.winning}</div>
-              <div><strong>Bet:</strong> {peso.format(searchResult.data.bet)}</div>
+              <div><strong>Bet Amount:</strong> {peso.format(searchResult.data.bet)}</div>
               <div><strong>Winnings:</strong> {peso.format(searchResult.data.amount)}</div>
               <div><strong>Status:</strong> 
                 <span className={`claim-badge ${searchResult.data.claimed ? 'claimed' : 'pending'}`}>
@@ -532,21 +525,6 @@ const CheckWinners = ({ onNavigateBack }) => {
                 <option value="all">All Games</option>
                 {gameTypes.map(game => (
                   <option key={game} value={game}>{game}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label htmlFor="drawFilter" className="form-label">Draw Time</label>
-              <select 
-                id="drawFilter"
-                className="form-select"
-                value={selectedDraw}
-                onChange={(e) => setSelectedDraw(e.target.value)}
-              >
-                <option value="all">All Draws</option>
-                {drawTimes.map((draw, index) => (
-                  <option key={index} value={draw.time}>{draw.time}</option>
                 ))}
               </select>
             </div>

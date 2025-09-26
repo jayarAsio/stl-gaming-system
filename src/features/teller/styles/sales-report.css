@@ -162,6 +162,7 @@ body {
   box-shadow: var(--shadow-sm);
   min-height: 44px;
   width: 100%;
+  max-width: 280px;
 }
 
 .back-btn:hover {
@@ -511,54 +512,64 @@ body {
 }
 
 /* ==== Mobile-First Tabs ==== */
+/* container: no inner gray, tighter like the second card */
 .tabs-container {
-  background: transparent;
-  border-radius: 0;
-  padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  width: 100%;
-  overflow: hidden;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--gray-50), var(--white));
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
 }
 
-.tab-btn {
+/* one column stack; spacing between pills */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xs);
   background: var(--gray-100);
-  color: var(--gray-700);
-  border: 2px solid var(--gray-200);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  font-weight: 600;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  white-space: nowrap;
-  text-align: center;
-  min-height: 44px;
-  display: flex;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+}
+
+/* pill button metrics identical to your big CTA */
+.tab-btn {
+  /* box metrics (match big button) */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  height: 48px;
+  min-height: 48px;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  line-height: 2;
+  box-sizing: border-box;
   box-shadow: var(--shadow-sm);
+
+  /* inactive look (soft gray pill) */
+  background: linear-gradient(135deg, var(--gray-200), var(--gray-100));
+  color: var(--gray-600);
+  border: 2px solid var(--gray-300);
 }
 
 .tab-btn:hover {
-  background: var(--white);
-  color: var(--ocean-deep);
-  border-color: var(--ocean-light);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, var(--ocean-light), var(--ocean-pale));
+  border-color: var(--ocean-bright);
+  color: var(--ocean-deep);
 }
 
+/* active tab = same blue gradient as your primary button */
 .tab-btn[aria-selected="true"] {
   background: linear-gradient(135deg, var(--ocean-medium), var(--ocean-bright));
   color: var(--white);
-  border-color: var(--ocean-bright);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
 }
-
 /* ==== Mobile-First Meta Info ==== */
 .meta-info.enhanced {
   display: flex;
@@ -1247,7 +1258,16 @@ body {
     border-radius: var(--radius-lg);
     flex: 1;
   }
-
+  @media (min-width: 1024px) {
+    .tab-btn {
+      height: 48px;
+      min-height: 48px;
+      padding: var(--spacing-lg) var(--spacing-xl);
+      border-radius: var(--radius-lg);
+      font-size: var(--font-size-base);
+      font-weight: 700;
+    }
+  }
   .meta-info.enhanced {
     flex-direction: row;
     flex-wrap: wrap;
