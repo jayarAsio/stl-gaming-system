@@ -204,13 +204,6 @@ export default function Dashboard({
           desc="Generate remittance and combined payouts/tapal reports."
           cta="View Reports"
         />
-        <Tile
-          to="/collector/void-management"
-          icon="❌"
-          title="Void Management"
-          desc="Review and approve teller void requests within allowed time."
-          cta="Manage Voids"
-        />
 
         {/* Enhanced Schedule with Countdown */}
         <section className="bento-card large" aria-labelledby="schedule-title">

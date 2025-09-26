@@ -10,14 +10,14 @@ const Collector         = lazy(() => import("./features/collector/pages/Dashboar
 const Teller            = lazy(() => import("./features/teller/pages/Dashboard"));
 
 // Teller — pages
-const TellerVoidRequest = lazy(() => import("./features/teller/pages/VoidRequest"));
-const TellerSalesReport = lazy(() => import("./features/teller/pages/SalesReport"));
+const TellerVoidRequest  = lazy(() => import("./features/teller/pages/VoidRequest"));
+const TellerSalesReport  = lazy(() => import("./features/teller/pages/SalesReport"));
 const TellerCheckWinners = lazy(() => import("./features/teller/pages/CheckWinners"));
 const TellerCreateTicket = lazy(() => import("./features/teller/pages/CreateTicket"));
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/stl-gaming-system">
       <Suspense fallback={<div style={{ padding: 20 }}>Loading…</div>}>
         <Routes>
           {/* Home */}
@@ -31,10 +31,10 @@ export default function App() {
           <Route path="/teller"             element={<Teller />} />
 
           {/* Teller sub-pages */}
-          <Route path="/teller/void-request" element={<TellerVoidRequest />} />
-          <Route path="/teller/sales-report" element={<TellerSalesReport />} />
-          <Route path="/teller/check-winners" element={<TellerCheckWinners />} />
-          <Route path="/teller/create-ticket" element={<TellerCreateTicket />} />
+          <Route path="/teller/void-request"   element={<TellerVoidRequest />} />
+          <Route path="/teller/sales-report"   element={<TellerSalesReport />} />
+          <Route path="/teller/check-winners"  element={<TellerCheckWinners />} />
+          <Route path="/teller/create-ticket"  element={<TellerCreateTicket />} />
 
           {/* 404 */}
           <Route path="*" element={<div style={{ padding: 24 }}>Not found</div>} />
