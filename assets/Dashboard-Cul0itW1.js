@@ -1,0 +1,1 @@
+import{j as r}from"./index-D4FqcJtJ.js";function s(){return r.jsxs("div",{className:"dash-wrap",children:[r.jsx("h1",{children:"📈 Operation Support"}),r.jsx("p",{children:"Live sales monitoring, teller performance, and alerts."})]})}export{s as default};
