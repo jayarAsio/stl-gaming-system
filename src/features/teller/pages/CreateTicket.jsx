@@ -1,6 +1,7 @@
 // src/pages/CreateTicket.jsx
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from "react-router-dom";
+import QRCode from 'qrcode'
 import "../styles/create-ticket.css";
 
 /* ---------------- Draw times ---------------- */
@@ -59,14 +60,75 @@ const CreateTicket = () => {
   const [bets, setBets] = useState([]);
   const [showGameModal, setShowGameModal] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false); // New state for viewing recent tickets
   const [recentTickets, setRecentTickets] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [ticketQR, setTicketQR] = useState('');
+  const [currentTicketId, setCurrentTicketId] = useState('');
+  const [selectedRecentTicket, setSelectedRecentTicket] = useState(null); // New state for selected recent ticket
 
   // timers cleanup refs
   const toastTimerRef = useRef(null);
   const genTimerRef = useRef(null);
   const postPrintTimerRef = useRef(null);
+
+  /* ---------------- QR Code Generation ---------------- */
+  const generateQRForTicket = useCallback(async (ticketData) => {
+    try {
+      const qrData = JSON.stringify({
+        id: ticketData.id,
+        timestamp: ticketData.timestamp,
+        total: ticketData.total,
+        bets: ticketData.bets,
+        drawTime: selectedDrawTime,
+        verified: true
+      });
+
+      const qrDataURL = await QRCode.toDataURL(qrData, {
+        width: 90,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+      });
+
+      return qrDataURL;
+    } catch (error) {
+      console.error('QR Code generation failed:', error);
+      return null;
+    }
+  }, [selectedDrawTime]);
+
+  /* ---------------- Generate QR for Recent Ticket ---------------- */
+  const generateQRForRecentTicket = useCallback(async (ticketData) => {
+    try {
+      const qrData = JSON.stringify({
+        id: ticketData.id,
+        timestamp: ticketData.timestamp,
+        total: ticketData.total,
+        bets: ticketData.bets,
+        verified: true
+      });
+
+      const qrDataURL = await QRCode.toDataURL(qrData, {
+        width: 90,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+      });
+
+      return qrDataURL;
+    } catch (error) {
+      console.error('QR Code generation failed:', error);
+      return null;
+    }
+  }, []);
 
   /* ---------------- Load recent on mount (fix date parsing) ---------------- */
   useEffect(() => {
@@ -94,7 +156,7 @@ const CreateTicket = () => {
   }, []);
 
   /* ---------------- Lock scroll when any modal is open (mobile) ---------------- */
-  const anyModalOpen = showGameModal || showPrintModal;
+  const anyModalOpen = showGameModal || showPrintModal || showViewModal;
   useEffect(() => {
     if (anyModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -129,7 +191,7 @@ const CreateTicket = () => {
       const drawDt = new Date();
       drawDt.setHours(hour24, m, 0, 0);
 
-      // if draw time already passed today, mark as past (no “tomorrow” rollover here by design)
+      // if draw time already passed today, mark as past (no "tomorrow" rollover here by design)
       const isEnabled = drawDt.getTime() > buffer.getTime();
       return { ...draw, isEnabled, label: draw.label + (isEnabled ? '' : ' (Closed)') };
     });
@@ -219,6 +281,26 @@ const CreateTicket = () => {
     setAmountInput('');
   }, []);
 
+  /* ---------------- View Recent Ticket Functions ---------------- */
+  const viewRecentTicket = useCallback(async (ticket) => {
+    setSelectedRecentTicket(ticket);
+    setIsGenerating(true);
+    
+    // Generate QR code for the recent ticket
+    const qrDataURL = await generateQRForRecentTicket(ticket);
+    setTicketQR(qrDataURL || '');
+    
+    setIsGenerating(false);
+    setShowViewModal(true);
+    showToast('Loading ticket details...', 'info');
+  }, [generateQRForRecentTicket, showToast]);
+
+  const closeViewModal = useCallback(() => {
+    setShowViewModal(false);
+    setSelectedRecentTicket(null);
+    setTicketQR('');
+  }, []);
+
   /* ---------------- Bets ---------------- */
   const addBet = useCallback(() => {
     if (!isAddBetValid) {
@@ -288,7 +370,7 @@ const CreateTicket = () => {
   );
 
   /* ---------------- Generate / Print ---------------- */
-  const generateTicket = useCallback(() => {
+  const generateTicket = useCallback(async () => {
     if (bets.length === 0) {
       showToast('Please add at least one combination', 'error');
       return;
@@ -296,13 +378,20 @@ const CreateTicket = () => {
     setIsGenerating(true);
     if (genTimerRef.current) clearTimeout(genTimerRef.current);
 
-    genTimerRef.current = setTimeout(() => {
+    genTimerRef.current = setTimeout(async () => {
+      const ticketId = `TKT${Date.now().toString().slice(-8)}`;
       const ticketData = {
-        id: `TKT${Date.now().toString().slice(-8)}`,
+        id: ticketId,
         timestamp: new Date().toISOString(),
         bets: [...bets],
         total: totalAmount
       };
+
+      // Generate QR code
+      const qrDataURL = await generateQRForTicket(ticketData);
+      
+      setCurrentTicketId(ticketId);
+      setTicketQR(qrDataURL || '');
 
       const updatedRecent = [ticketData, ...recentTickets].slice(0, 5);
       setRecentTickets(updatedRecent);
@@ -311,7 +400,7 @@ const CreateTicket = () => {
       setIsGenerating(false);
       setShowPrintModal(true);
     }, 700);
-  }, [bets, totalAmount, recentTickets]);
+  }, [bets, totalAmount, recentTickets, generateQRForTicket]);
 
   const confirmPrint = useCallback(() => {
     try { window.print(); } catch (e) { console.warn('Print failed:', e); }
@@ -322,6 +411,8 @@ const CreateTicket = () => {
       closeGameModal();
       setBets([]);
       setSelectedDrawTime('');
+      setTicketQR('');
+      setCurrentTicketId('');
       showToast('Ticket sent to printer!', 'success');
     }, 200);
   }, [closeGameModal, showToast]);
@@ -382,7 +473,7 @@ const CreateTicket = () => {
         </div>
       </section>
 
-      {/* Recent Tickets (kept minimal; Favorites/Templates removed) */}
+      {/* Recent Tickets (now clickable) */}
       {recentTickets.length > 0 && (
         <section className="card history-section" aria-label="Recent tickets">
           <h2 className="section-title">
@@ -391,7 +482,20 @@ const CreateTicket = () => {
           </h2>
           <div className="history-grid">
             {recentTickets.slice(0, 3).map(t => (
-              <div key={t.id} className="history-card">
+              <div 
+                key={t.id} 
+                className="history-card"
+                onClick={() => viewRecentTicket(t)}
+                role="button"
+                tabIndex={0}
+                aria-label={`View ticket ${t.id}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    viewRecentTicket(t);
+                  }
+                }}
+              >
                 <div className="history-id">{t.id}</div>
                 <div className="history-details">
                   {t.bets?.length || 0} combinations • ₱{(t.total || 0).toLocaleString()}
@@ -519,53 +623,117 @@ const CreateTicket = () => {
               <div className="ticket" aria-label="Ticket preview">
                 <div className="ticket-brand">
                   <div className="ticket-logo">STL</div>
+                  <div className="ticket-logo">COMPANY</div>
                   <div className="ticket-logo">PCSO</div>
                 </div>
                 <div className="ticket-title">STL GAMING SYSTEM</div>
                 <div className="ticket-sub">OFFICIAL BETTING TICKET • PCSO PHILIPPINES</div>
 
+                <div className="ticket-details">
+                  <div className="detail-row">
+                    <span>TERMINAL ID:</span>
+                    <span>STL001</span>
+                  </div>
+                  <div className="detail-row">
+                    <span>OPERATOR:</span>
+                    <span>TELLER01</span>
+                  </div>
+                  <div className="detail-row">
+                    <span>SEQUENCE:</span>
+                    <span>{String(Date.now()).slice(-6)}</span>
+                  </div>
+                </div>
+
                 <div className="ticket-meta">
-                  <div>REF: TKT{Date.now().toString().slice(-8)}</div>
-                  <div>{new Date().toLocaleString('en-PH')}</div>
+                  <div>REF: {currentTicketId}</div>
+                  <div>{new Date().toLocaleString('en-PH', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit',
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true 
+                  })}</div>
                 </div>
 
                 <div className="ticket-draw-info">
                   {selectedDrawTime && `DRAW TIME: ${selectedDrawTime}`}
+                  <div className="draw-date">DRAW DATE: {new Date().toLocaleDateString('en-PH')}</div>
                 </div>
 
                 <div className="ticket-bets">
-                  {bets.map(bet => (
+                  <div className="bets-header">
+                    <span>GAME</span>
+                    <span>COMBINATION</span>
+                    <span>AMOUNT</span>
+                  </div>
+                  {bets.map((bet, index) => (
                     <div key={bet.id} className="bet-line">
                       <span className="bet-game">{bet.game.toUpperCase()}</span>
                       <span className="bet-combo">{bet.combo}</span>
-                      <span className="bet-amt">₱{bet.amount}</span>
+                      <span className="bet-amt">₱{bet.amount.toLocaleString()}</span>
                     </div>
                   ))}
+                  <div className="bets-summary">
+                    <div className="summary-row">
+                      <span>TOTAL COMBINATIONS:</span>
+                      <span>{bets.length}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span>TOTAL GAMES:</span>
+                      <span>{new Set(bets.map(b => b.game)).size}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="ticket-total">
-                  <span>TOTAL</span>
-                  <span>₱{totalAmount}</span>
+                  <span>TOTAL AMOUNT</span>
+                  <span>₱{totalAmount.toLocaleString()}</span>
+                </div>
+
+                <div className="ticket-info">
+                  <div className="info-row">
+                    <span>DRAWING SCHEDULE:</span>
+                    <span>11:00 AM, 4:00 PM, 9:00 PM</span>
+                  </div>
+                  <div className="info-row">
+                    <span>CLAIM PERIOD:</span>
+                    <span>365 DAYS FROM DRAW DATE</span>
+                  </div>
+                  <div className="info-row">
+                    <span>STATUS:</span>
+                    <span>ACTIVE</span>
+                  </div>
                 </div>
 
                 <div className="qr">
                   <div className="qr-box" aria-hidden="true">
-                    {/* Low-cost placeholder QR */}
-                    <div style={{ fontSize: '5px', lineHeight: '5px', color: 'black', fontFamily: 'monospace' }}>
-                      {'████████████████████'}<br />
-                      {'██              ██'}<br />
-                      {'██ ████ ████ ██'}<br />
-                      {'██ ████ ████ ██'}<br />
-                      {'██ ████ ████ ██'}<br />
-                      {'██              ██'}<br />
-                      {'████████████████████'}
-                    </div>
+                    {ticketQR ? (
+                      <img 
+                        src={ticketQR} 
+                        alt="Ticket QR Code" 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          imageRendering: 'pixelated',
+                          display: 'block' 
+                        }}
+                      />
+                    ) : (
+                      <div className="qr-loading">
+                        <div className="qr-placeholder">Generating QR...</div>
+                      </div>
+                    )}
                   </div>
                   <div className="qr-text">SCAN TO VERIFY</div>
                 </div>
 
                 <div className="ticket-foot">
-                  KEEP THIS TICKET SAFE • PRESENT TO CLAIM WINNINGS • VALID FOR 365 DAYS
+                  <div>KEEP THIS TICKET SAFE • PRESENT TO CLAIM WINNINGS</div>
+                  <div>THIS TICKET IS VALID FOR 365 DAYS FROM DRAW DATE</div>
+                  <div>FOR INQUIRIES: CALL PCSO HOTLINE 8-889-8889</div>
+                  <div>RESPONSIBLE GAMING: PLAY WITHIN YOUR MEANS</div>
                 </div>
               </div>
             </div>
@@ -573,6 +741,142 @@ const CreateTicket = () => {
             <div className="print-actions">
               <button className="print-btn print-btn-back" onClick={() => setShowPrintModal(false)}>← Back</button>
               <button className="print-btn print-btn-print" onClick={confirmPrint}>Print Ticket</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Recent Ticket Modal */}
+      {showViewModal && selectedRecentTicket && (
+        <div className="print-modal active" role="dialog" aria-modal="true" aria-label="View ticket details">
+          <div className="print-container">
+            <div className="print-header">
+              <div className="print-title">Ticket Details</div>
+              <div className="print-subtitle">View your saved ticket information</div>
+            </div>
+
+            <div className="print-body">
+              <div className="ticket" aria-label="Ticket details">
+                <div className="ticket-brand">
+                  <div className="ticket-logo">STL</div>
+                  <div className="ticket-logo">COMPANY</div>
+                  <div className="ticket-logo">PCSO</div>
+                </div>
+                <div className="ticket-title">STL GAMING SYSTEM</div>
+                <div className="ticket-sub">OFFICIAL BETTING TICKET • PCSO PHILIPPINES</div>
+
+                <div className="ticket-details">
+                  <div className="detail-row">
+                    <span>TERMINAL ID:</span>
+                    <span>STL001</span>
+                  </div>
+                  <div className="detail-row">
+                    <span>OPERATOR:</span>
+                    <span>TELLER01</span>
+                  </div>
+                  <div className="detail-row">
+                    <span>SEQUENCE:</span>
+                    <span>{selectedRecentTicket.id.slice(-6)}</span>
+                  </div>
+                </div>
+
+                <div className="ticket-meta">
+                  <div>REF: {selectedRecentTicket.id}</div>
+                  <div>{new Date(selectedRecentTicket.timestamp).toLocaleString('en-PH', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit',
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true 
+                  })}</div>
+                </div>
+
+                <div className="ticket-draw-info">
+                  {selectedRecentTicket.bets?.[0]?.drawTime && `DRAW TIME: ${selectedRecentTicket.bets[0].drawTime}`}
+                  <div className="draw-date">DRAW DATE: {new Date(selectedRecentTicket.timestamp).toLocaleDateString('en-PH')}</div>
+                </div>
+
+                <div className="ticket-bets">
+                  <div className="bets-header">
+                    <span>GAME</span>
+                    <span>COMBINATION</span>
+                    <span>AMOUNT</span>
+                  </div>
+                  {selectedRecentTicket.bets?.map((bet, index) => (
+                    <div key={bet.id || index} className="bet-line">
+                      <span className="bet-game">{bet.game.toUpperCase()}</span>
+                      <span className="bet-combo">{bet.combo}</span>
+                      <span className="bet-amt">₱{bet.amount.toLocaleString()}</span>
+                    </div>
+                  ))}
+                  <div className="bets-summary">
+                    <div className="summary-row">
+                      <span>TOTAL COMBINATIONS:</span>
+                      <span>{selectedRecentTicket.bets?.length || 0}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span>TOTAL GAMES:</span>
+                      <span>{selectedRecentTicket.bets ? new Set(selectedRecentTicket.bets.map(b => b.game)).size : 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ticket-total">
+                  <span>TOTAL AMOUNT</span>
+                  <span>₱{selectedRecentTicket.total.toLocaleString()}</span>
+                </div>
+
+                <div className="ticket-info">
+                  <div className="info-row">
+                    <span>DRAWING SCHEDULE:</span>
+                    <span>11:00 AM, 4:00 PM, 9:00 PM</span>
+                  </div>
+                  <div className="info-row">
+                    <span>CLAIM PERIOD:</span>
+                    <span>365 DAYS FROM DRAW DATE</span>
+                  </div>
+                  <div className="info-row">
+                    <span>STATUS:</span>
+                    <span>ACTIVE</span>
+                  </div>
+                </div>
+
+                <div className="qr">
+                  <div className="qr-box" aria-hidden="true">
+                    {ticketQR ? (
+                      <img 
+                        src={ticketQR} 
+                        alt="Ticket QR Code" 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          imageRendering: 'pixelated',
+                          display: 'block' 
+                        }}
+                      />
+                    ) : (
+                      <div className="qr-loading">
+                        <div className="qr-placeholder">Generating QR...</div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="qr-text">SCAN TO VERIFY</div>
+                </div>
+
+                <div className="ticket-foot">
+                  <div>KEEP THIS TICKET SAFE • PRESENT TO CLAIM WINNINGS</div>
+                  <div>THIS TICKET IS VALID FOR 365 DAYS FROM DRAW DATE</div>
+                  <div>FOR INQUIRIES: CALL PCSO HOTLINE 8-889-8889</div>
+                  <div>RESPONSIBLE GAMING: PLAY WITHIN YOUR MEANS</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="print-actions">
+              <button className="print-btn print-btn-back" onClick={closeViewModal}>← Close</button>
+              <button className="print-btn print-btn-print" onClick={() => window.print()}>Print Copy</button>
             </div>
           </div>
         </div>

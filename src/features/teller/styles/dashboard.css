@@ -241,10 +241,10 @@ body.teller-bg{
 }
 
 .card-title{ 
-  font-size: 16px; 
-  color: var(--ocean-deep); 
-  font-weight: 700; 
-  margin-bottom: 6px;
+  font-size:16px;
+  color:var(--carmine);
+  font-weight:700;
+  margin-bottom:6px;
   line-height: 1.3;
 }
 

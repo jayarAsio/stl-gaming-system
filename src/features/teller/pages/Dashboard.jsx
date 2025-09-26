@@ -32,7 +32,7 @@ const formatHeaderTime = (date) => date.toLocaleTimeString("en-PH", {
 const demoUser = { initials: "JD", name: "Juan Dela Cruz", role: "Teller Agent #1234", status: "ACTIVE" };
 const demoStats = { sales: 12450, tickets: 87, commission: 1245, winners: 3 };
 
-// Enhanced schedule with draw times and results
+// Enhanced schedule with draw times and results (persistent until midnight)
 const createDemoSchedule = () => {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -44,18 +44,18 @@ const createDemoSchedule = () => {
       draws: [
         { 
           time: new Date(today.getTime() + 14 * 60 * 60 * 1000), // 2:00 PM
-          result: now.getHours() >= 14 ? "1-2-3" : null,
-          status: now.getHours() >= 14 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 14 * 60 * 60 * 1000) ? "1-2-3" : null,
+          status: now >= new Date(today.getTime() + 14 * 60 * 60 * 1000) ? "completed" : "upcoming"
         },
         { 
           time: new Date(today.getTime() + 17 * 60 * 60 * 1000), // 5:00 PM
-          result: now.getHours() >= 17 ? "4-5-6" : null,
-          status: now.getHours() >= 17 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 17 * 60 * 60 * 1000) ? "4-5-6" : null,
+          status: now >= new Date(today.getTime() + 17 * 60 * 60 * 1000) ? "completed" : "upcoming"
         },
         { 
           time: new Date(today.getTime() + 21 * 60 * 60 * 1000), // 9:00 PM
-          result: now.getHours() >= 21 ? "7-8-9" : null,
-          status: now.getHours() >= 21 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 21 * 60 * 60 * 1000) ? "7-8-9" : null,
+          status: now >= new Date(today.getTime() + 21 * 60 * 60 * 1000) ? "completed" : "upcoming"
         }
       ]
     },
@@ -65,13 +65,13 @@ const createDemoSchedule = () => {
       draws: [
         { 
           time: new Date(today.getTime() + 15 * 60 * 60 * 1000), // 3:00 PM
-          result: now.getHours() >= 15 ? "12" : null,
-          status: now.getHours() >= 15 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 15 * 60 * 60 * 1000) ? "12" : null,
+          status: now >= new Date(today.getTime() + 15 * 60 * 60 * 1000) ? "completed" : "upcoming"
         },
         { 
           time: new Date(today.getTime() + 19 * 60 * 60 * 1000), // 7:00 PM
-          result: now.getHours() >= 19 ? "34" : null,
-          status: now.getHours() >= 19 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 19 * 60 * 60 * 1000) ? "34" : null,
+          status: now >= new Date(today.getTime() + 19 * 60 * 60 * 1000) ? "completed" : "upcoming"
         }
       ]
     },
@@ -81,18 +81,18 @@ const createDemoSchedule = () => {
       draws: [
         { 
           time: new Date(today.getTime() + 10.5 * 60 * 60 * 1000), // 10:30 AM
-          result: now.getHours() >= 10 && now.getMinutes() >= 30 ? "01-15" : null,
-          status: now.getHours() >= 10 && now.getMinutes() >= 30 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 10.5 * 60 * 60 * 1000) ? "01-15" : null,
+          status: now >= new Date(today.getTime() + 10.5 * 60 * 60 * 1000) ? "completed" : "upcoming"
         },
         { 
           time: new Date(today.getTime() + 16 * 60 * 60 * 1000), // 4:00 PM
-          result: now.getHours() >= 16 ? "03-21" : null,
-          status: now.getHours() >= 16 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 16 * 60 * 60 * 1000) ? "03-21" : null,
+          status: now >= new Date(today.getTime() + 16 * 60 * 60 * 1000) ? "completed" : "upcoming"
         },
         { 
           time: new Date(today.getTime() + 20 * 60 * 60 * 1000), // 8:00 PM
-          result: now.getHours() >= 20 ? "07-19" : null,
-          status: now.getHours() >= 20 ? "completed" : "upcoming"
+          result: now >= new Date(today.getTime() + 20 * 60 * 60 * 1000) ? "07-19" : null,
+          status: now >= new Date(today.getTime() + 20 * 60 * 60 * 1000) ? "completed" : "upcoming"
         }
       ]
     }
