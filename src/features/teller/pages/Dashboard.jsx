@@ -112,6 +112,7 @@ export default function Dashboard({
   const [scanResult, setScanResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanError, setScanError] = useState('');
+  const [isScanButtonVisible, setIsScanButtonVisible] = useState(true);
 
   // Update current time every second for countdown
   useEffect(() => {
@@ -120,6 +121,38 @@ export default function Dashboard({
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Handle scroll-based button visibility
+  useEffect(() => {
+    let scrollTimeout;
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Hide button when scrolling
+      setIsScanButtonVisible(false);
+      
+      // Clear existing timeout
+      clearTimeout(scrollTimeout);
+      
+      // Show button again after scroll stops (500ms delay)
+      scrollTimeout = setTimeout(() => {
+        setIsScanButtonVisible(true);
+      }, 500);
+      
+      lastScrollY = currentScrollY;
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
   }, []);
 
   // optional page bg (matches your design)
@@ -323,9 +356,9 @@ export default function Dashboard({
         </section>
       </main>
 
-      {/* Floating Scan Button */}
+      {/* Floating Scan Button with Auto-Hide */}
       <button 
-        className="floating-scan-btn" 
+        className={`floating-scan-btn ${!isScanButtonVisible ? 'hidden' : ''}`}
         onClick={openScanModal}
         aria-label="Scan ticket QR code"
         title="Scan Ticket QR"
