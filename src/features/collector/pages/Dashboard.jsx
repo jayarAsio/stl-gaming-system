@@ -198,9 +198,9 @@ export default function Dashboard({
           cta="Process Payouts"
         />
         <Tile
-          to="/collector/reports-winners"
+          to="/collector/reports"
           icon="📊"
-          title="Reports & Winners"
+          title="Reports"
           desc="Generate remittance and combined payouts/tapal reports."
           cta="View Reports"
         />

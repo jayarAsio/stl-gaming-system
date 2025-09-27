@@ -17,6 +17,11 @@ const TellerSalesReport  = lazy(() => import("./features/teller/pages/SalesRepor
 const TellerCheckWinners = lazy(() => import("./features/teller/pages/CheckWinners"));
 const TellerCreateTicket = lazy(() => import("./features/teller/pages/CreateTicket"));
 
+// Collector — pages
+const CollectorSalesCollection  = lazy(() => import("./features/collector/pages/SalesCollection"));
+const CollectorPayoutsTapal  = lazy(() => import("./features/collector/pages/PayoutsTapal"));
+const CollectorReports  = lazy(() => import("./features/collector/pages/Reports"));
+
 export default function App() {
   return (
     <BrowserRouter basename="/stl-gaming-system">
@@ -37,6 +42,11 @@ export default function App() {
           <Route path="/teller/sales-report"   element={<TellerSalesReport />} />
           <Route path="/teller/check-winners"  element={<TellerCheckWinners />} />
           <Route path="/teller/create-ticket"  element={<TellerCreateTicket />} />
+
+          {/* Collector sub-pages */}
+          <Route path="/collector/sales-collection"   element={<CollectorSalesCollection />} />
+          <Route path="/collector/payouts-tapal"   element={<CollectorPayoutsTapal />} />
+          <Route path="/collector/reports"   element={<CollectorReports />} />
 
           {/* 404 */}
           <Route path="*" element={<div style={{ padding: 24 }}>Not found</div>} />
