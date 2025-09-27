@@ -1,7 +1,6 @@
-// src/pages/CreateTicket.jsx
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from "react-router-dom";
-import QRCode from 'qrcode'
+import QRCode from 'qrcode';
 import "../styles/create-ticket.css";
 
 /* ---------------- Draw times ---------------- */
@@ -60,13 +59,13 @@ const CreateTicket = () => {
   const [bets, setBets] = useState([]);
   const [showGameModal, setShowGameModal] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false); // New state for viewing recent tickets
+  const [showViewModal, setShowViewModal] = useState(false);
   const [recentTickets, setRecentTickets] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [ticketQR, setTicketQR] = useState('');
   const [currentTicketId, setCurrentTicketId] = useState('');
-  const [selectedRecentTicket, setSelectedRecentTicket] = useState(null); // New state for selected recent ticket
+  const [selectedRecentTicket, setSelectedRecentTicket] = useState(null);
 
   // timers cleanup refs
   const toastTimerRef = useRef(null);
@@ -130,7 +129,7 @@ const CreateTicket = () => {
     }
   }, []);
 
-  /* ---------------- Load recent on mount (fix date parsing) ---------------- */
+  /* ---------------- Load recent on mount ---------------- */
   useEffect(() => {
     try {
       const savedRecent = localStorage.getItem('recentTickets');
@@ -145,17 +144,15 @@ const CreateTicket = () => {
       console.warn('Failed to load recent tickets:', e);
     }
     return () => {
-      // cleanup timers
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
       if (genTimerRef.current) clearTimeout(genTimerRef.current);
       if (postPrintTimerRef.current) clearTimeout(postPrintTimerRef.current);
-      // ensure body scroll restored
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
   }, []);
 
-  /* ---------------- Lock scroll when any modal is open (mobile) ---------------- */
+  /* ---------------- Lock scroll when modal is open ---------------- */
   const anyModalOpen = showGameModal || showPrintModal || showViewModal;
   useEffect(() => {
     if (anyModalOpen) {
@@ -191,7 +188,6 @@ const CreateTicket = () => {
       const drawDt = new Date();
       drawDt.setHours(hour24, m, 0, 0);
 
-      // if draw time already passed today, mark as past (no "tomorrow" rollover here by design)
       const isEnabled = drawDt.getTime() > buffer.getTime();
       return { ...draw, isEnabled, label: draw.label + (isEnabled ? '' : ' (Closed)') };
     });
@@ -286,7 +282,6 @@ const CreateTicket = () => {
     setSelectedRecentTicket(ticket);
     setIsGenerating(true);
     
-    // Generate QR code for the recent ticket
     const qrDataURL = await generateQRForRecentTicket(ticket);
     setTicketQR(qrDataURL || '');
     
@@ -369,6 +364,23 @@ const CreateTicket = () => {
     [bets]
   );
 
+  /* ---------------- Group bets by game and draw time ---------------- */
+  const groupedBets = useMemo(() => {
+    const groups = {};
+    bets.forEach(bet => {
+      const key = `${bet.game}_${bet.drawTime}`;
+      if (!groups[key]) {
+        groups[key] = {
+          game: bet.game,
+          drawTime: bet.drawTime,
+          bets: []
+        };
+      }
+      groups[key].bets.push(bet);
+    });
+    return Object.values(groups);
+  }, [bets]);
+
   /* ---------------- Generate / Print ---------------- */
   const generateTicket = useCallback(async () => {
     if (bets.length === 0) {
@@ -387,7 +399,6 @@ const CreateTicket = () => {
         total: totalAmount
       };
 
-      // Generate QR code
       const qrDataURL = await generateQRForTicket(ticketData);
       
       setCurrentTicketId(ticketId);
@@ -417,84 +428,47 @@ const CreateTicket = () => {
     }, 200);
   }, [closeGameModal, showToast]);
 
-  /* ---------------- Lightweight components ---------------- */
-  const GameCard = ({ game, config }) => (
-    <button
-      type="button"
-      className="game-card"
-      onClick={() => openGameModal(game)}
-      aria-label={`Play ${game}`}
-    >
-      <div className="game-icon" aria-hidden="true">{config.icon}</div>
-      <div className="game-title">{game}</div>
-      <div className="game-description">{config.description}</div>
-    </button>
-  );
-
-  const BetItem = ({ bet }) => (
-    <div className="bet-item">
-      <div className="bet-details">
-        <div className="bet-combo">{bet.game}: {bet.combo}</div>
-        <div className="bet-amount">₱{bet.amount.toLocaleString()}</div>
-        <div className="bet-draw-time">Draw: {bet.drawTime}</div>
-      </div>
-      <div className="bet-actions">
-        <button className="remove-btn" onClick={() => removeBet(bet.id)} aria-label={`Remove ${bet.game} ${bet.combo}`}>
-          Remove
-        </button>
-      </div>
-    </div>
-  );
-
-  /* ---------------- Render ---------------- */
   return (
-    <div className="container">
+    <div className="ticket-container">
       {/* Header */}
-      <header className="header">
+      <header className="ticket-header">
         <div className="header-content">
           <h1>Create New Ticket</h1>
-          <p className="header-subtitle">Select a game, add combos, and print</p>
+          <p>Select a game, add combos, and print</p>
         </div>
-        <Link to="/teller" className="back-btn" aria-label="Back to Dashboard">
-          <span aria-hidden="true">←</span> Back To Dashboard
+        <Link to="/teller" className="back-button">
+          ← Back To Dashboard
         </Link>
       </header>
 
       {/* Games */}
-      <section className="card game-section">
-        <h2 className="section-title">
-          <span className="section-icon">🎮</span>
-          Choose Your Game
-        </h2>
+      <section className="games-section">
+        <h2 className="section-title">Choose Your Game</h2>
         <div className="games-grid">
           {Object.entries(GAME_CONFIGS).map(([game, config]) => (
-            <GameCard key={game} game={game} config={config} />
+            <button
+              key={game}
+              className="game-card"
+              onClick={() => openGameModal(game)}
+            >
+              <div className="game-icon">{config.icon}</div>
+              <div className="game-title">{game}</div>
+              <div className="game-description">{config.description}</div>
+            </button>
           ))}
         </div>
       </section>
 
-      {/* Recent Tickets (now clickable) */}
+      {/* Recent Tickets */}
       {recentTickets.length > 0 && (
-        <section className="card history-section" aria-label="Recent tickets">
-          <h2 className="section-title">
-            <span className="section-icon">📚</span>
-            Recent Tickets
-          </h2>
+        <section className="history-section">
+          <h2 className="section-title">Recent Tickets</h2>
           <div className="history-grid">
             {recentTickets.slice(0, 3).map(t => (
               <div 
                 key={t.id} 
                 className="history-card"
                 onClick={() => viewRecentTicket(t)}
-                role="button"
-                tabIndex={0}
-                aria-label={`View ticket ${t.id}`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    viewRecentTicket(t);
-                  }
-                }}
               >
                 <div className="history-id">{t.id}</div>
                 <div className="history-details">
@@ -511,99 +485,93 @@ const CreateTicket = () => {
 
       {/* Game Modal */}
       {showGameModal && (
-        <div className="modal show" role="dialog" aria-modal="true" aria-label={`${selectedGame} modal`}>
+        <div className="modal">
           <div className="modal-content">
             <div className="modal-header">
-              <h2 className="modal-title">{selectedGame}</h2>
-              <button className="close-btn" onClick={closeGameModal} aria-label="Close modal">×</button>
+              <h2>{selectedGame}</h2>
+              <button className="close-btn" onClick={closeGameModal}>×</button>
             </div>
 
             <div className="modal-body">
-              {/* Left: Form + Bets (single column on mobile via CSS) */}
-              <div className="form-section">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="drawTimeSelect">Select Draw Time</label>
-                  <select
-                    id="drawTimeSelect"
-                    className="form-input"
-                    value={selectedDrawTime}
-                    onChange={(e) => setSelectedDrawTime(e.target.value)}
-                  >
-                    <option value="">Select draw time</option>
-                    {availableDrawTimes.map(draw => (
-                      <option key={draw.time} value={draw.time} disabled={!draw.isEnabled}>
-                        {draw.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="helper">30-minute cut-off before each draw.</div>
+              <div className="form-group">
+                <label>Select Draw Time</label>
+                <select
+                  value={selectedDrawTime}
+                  onChange={(e) => setSelectedDrawTime(e.target.value)}
+                >
+                  <option value="">Select draw time</option>
+                  {availableDrawTimes.map(draw => (
+                    <option key={draw.time} value={draw.time} disabled={!draw.isEnabled}>
+                      {draw.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="helper">30-minute cut-off before each draw.</div>
+              </div>
+
+              <div className="form-group">
+                <label>Enter Combination</label>
+                <input
+                  type="text"
+                  placeholder={GAME_CONFIGS[selectedGame]?.placeholder}
+                  value={comboInput}
+                  onChange={(e) => handleComboChange(e.target.value)}
+                  maxLength={GAME_CONFIGS[selectedGame]?.maxLength}
+                />
+                <div className="helper">{GAME_CONFIGS[selectedGame]?.helpText}</div>
+              </div>
+
+              <div className="form-group">
+                <label>Bet Amount (₱1 - ₱500)</label>
+                <input
+                  type="text"
+                  placeholder="Enter amount"
+                  value={amountInput}
+                  onChange={(e) => handleAmountChange(e.target.value)}
+                />
+                <div className="helper">Digits only. Max ₱500.</div>
+              </div>
+
+              <button className="add-btn" onClick={addBet} disabled={!isAddBetValid}>
+                Add Combination
+              </button>
+
+              <div className="bets-section">
+                <h3>Your Combinations</h3>
+                <div className="bets-list">
+                  {bets.length === 0 ? (
+                    <div className="empty-state">No combinations added yet</div>
+                  ) : (
+                    bets.map(bet => (
+                      <div key={bet.id} className="bet-item">
+                        <div className="bet-details">
+                          <div className="bet-combo">{bet.game}: {bet.combo}</div>
+                          <div className="bet-amount">₱{bet.amount.toLocaleString()}</div>
+                          <div className="bet-draw-time">Draw: {bet.drawTime}</div>
+                        </div>
+                        <button className="remove-btn" onClick={() => removeBet(bet.id)}>
+                          Remove
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="comboInput">Enter Combination</label>
-                  <input
-                    id="comboInput"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    type="text"
-                    className="form-input"
-                    placeholder={GAME_CONFIGS[selectedGame]?.placeholder}
-                    value={comboInput}
-                    onChange={(e) => handleComboChange(e.target.value)}
-                    maxLength={GAME_CONFIGS[selectedGame]?.maxLength}
-                  />
-                  <div className="helper">{GAME_CONFIGS[selectedGame]?.helpText}</div>
+                <div className="total-section">
+                  <div className="total-amount">₱{totalAmount.toLocaleString()}</div>
+                  <div className="total-label">Total Bet Amount</div>
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="amountInput">Bet Amount (₱1 - ₱500)</label>
-                  <input
-                    id="amountInput"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    type="text"
-                    className="form-input"
-                    placeholder="Enter amount"
-                    value={amountInput}
-                    onChange={(e) => handleAmountChange(e.target.value)}
-                  />
-                  <div className="helper">Digits only. Max ₱500.</div>
-                </div>
-
-                <button className="add-btn" onClick={addBet} disabled={!isAddBetValid}>
-                  Add Combination
+              <div className="action-buttons">
+                <button className="btn-secondary" onClick={clearAllBets}>Clear All</button>
+                <button
+                  className="btn-primary"
+                  onClick={generateTicket}
+                  disabled={bets.length === 0 || isGenerating}
+                >
+                  {isGenerating ? (<><span className="spinner"></span> Generating…</>) : 'Print Ticket'}
                 </button>
-
-                <div className="bets-section">
-                  <h3 className="bets-title">Your Combinations</h3>
-                  <div className="bets-list" aria-live="polite">
-                    {bets.length === 0 ? (
-                      <div className="empty-state">No combinations added yet</div>
-                    ) : (
-                      bets.map(bet => <BetItem key={bet.id} bet={bet} />)
-                    )}
-                  </div>
-
-                  <div className="total-section">
-                    <div className="total-amount">₱{totalAmount.toLocaleString()}</div>
-                    <div className="total-label">Total Bet Amount</div>
-                  </div>
-                </div>
-
-                <div className="action-buttons">
-                  <button className="btn btn-secondary" onClick={clearAllBets}>Clear All</button>
-                  <button
-                    className="btn btn-primary"
-                    onClick={generateTicket}
-                    disabled={bets.length === 0 || isGenerating}
-                  >
-                    {isGenerating ? (<><span className="spinner"></span> Generating…</>) : 'Print Ticket'}
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -612,7 +580,7 @@ const CreateTicket = () => {
 
       {/* Print Modal */}
       {showPrintModal && (
-        <div className="print-modal active" role="dialog" aria-modal="true" aria-label="Print ticket">
+        <div className="print-modal">
           <div className="print-container">
             <div className="print-header">
               <div className="print-title">Print Ticket</div>
@@ -620,32 +588,25 @@ const CreateTicket = () => {
             </div>
 
             <div className="print-body">
-              <div className="ticket" aria-label="Ticket preview">
+              <div className="ticket">
                 <div className="ticket-brand">
                   <div className="ticket-logo">STL</div>
                   <div className="ticket-logo">COMPANY</div>
                   <div className="ticket-logo">PCSO</div>
                 </div>
+                
                 <div className="ticket-title">STL GAMING SYSTEM</div>
                 <div className="ticket-sub">OFFICIAL BETTING TICKET • PCSO PHILIPPINES</div>
 
                 <div className="ticket-details">
                   <div className="detail-row">
-                    <span>TERMINAL ID:</span>
-                    <span>STL001</span>
-                  </div>
-                  <div className="detail-row">
                     <span>OPERATOR:</span>
                     <span>TELLER01</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>SEQUENCE:</span>
-                    <span>{String(Date.now()).slice(-6)}</span>
                   </div>
                 </div>
 
                 <div className="ticket-meta">
-                  <div>REF: {currentTicketId}</div>
+                  <div><strong>REF: {currentTicketId}</strong></div>
                   <div>{new Date().toLocaleString('en-PH', { 
                     year: 'numeric', 
                     month: '2-digit', 
@@ -657,34 +618,21 @@ const CreateTicket = () => {
                   })}</div>
                 </div>
 
-                <div className="ticket-draw-info">
-                  {selectedDrawTime && `DRAW TIME: ${selectedDrawTime}`}
-                  <div className="draw-date">DRAW DATE: {new Date().toLocaleDateString('en-PH')}</div>
-                </div>
-
                 <div className="ticket-bets">
-                  <div className="bets-header">
-                    <span>GAME</span>
-                    <span>COMBINATION</span>
-                    <span>AMOUNT</span>
-                  </div>
-                  {bets.map((bet, index) => (
-                    <div key={bet.id} className="bet-line">
-                      <span className="bet-game">{bet.game.toUpperCase()}</span>
-                      <span className="bet-combo">{bet.combo}</span>
-                      <span className="bet-amt">₱{bet.amount.toLocaleString()}</span>
+                  {groupedBets.map((group, groupIndex) => (
+                    <div key={groupIndex} className="bet-group">
+                      <div className="group-header">
+                        <div className="game-name">{group.game.toUpperCase()}</div>
+                        <div className="draw-time">DRAW: {group.drawTime}</div>
+                      </div>
+                      {group.bets.map((bet, betIndex) => (
+                        <div key={betIndex} className="bet-line">
+                          <span className="bet-combo">{bet.combo}</span>
+                          <span className="bet-amt">₱{bet.amount.toLocaleString()}</span>
+                        </div>
+                      ))}
                     </div>
                   ))}
-                  <div className="bets-summary">
-                    <div className="summary-row">
-                      <span>TOTAL COMBINATIONS:</span>
-                      <span>{bets.length}</span>
-                    </div>
-                    <div className="summary-row">
-                      <span>TOTAL GAMES:</span>
-                      <span>{new Set(bets.map(b => b.game)).size}</span>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="ticket-total">
@@ -692,23 +640,8 @@ const CreateTicket = () => {
                   <span>₱{totalAmount.toLocaleString()}</span>
                 </div>
 
-                <div className="ticket-info">
-                  <div className="info-row">
-                    <span>DRAWING SCHEDULE:</span>
-                    <span>11:00 AM, 4:00 PM, 9:00 PM</span>
-                  </div>
-                  <div className="info-row">
-                    <span>CLAIM PERIOD:</span>
-                    <span>365 DAYS FROM DRAW DATE</span>
-                  </div>
-                  <div className="info-row">
-                    <span>STATUS:</span>
-                    <span>ACTIVE</span>
-                  </div>
-                </div>
-
                 <div className="qr">
-                  <div className="qr-box" aria-hidden="true">
+                  <div className="qr-box">
                     {ticketQR ? (
                       <img 
                         src={ticketQR} 
@@ -721,9 +654,7 @@ const CreateTicket = () => {
                         }}
                       />
                     ) : (
-                      <div className="qr-loading">
-                        <div className="qr-placeholder">Generating QR...</div>
-                      </div>
+                      <div className="qr-loading">Generating QR...</div>
                     )}
                   </div>
                   <div className="qr-text">SCAN TO VERIFY</div>
@@ -739,8 +670,8 @@ const CreateTicket = () => {
             </div>
 
             <div className="print-actions">
-              <button className="print-btn print-btn-back" onClick={() => setShowPrintModal(false)}>← Back</button>
-              <button className="print-btn print-btn-print" onClick={confirmPrint}>Print Ticket</button>
+              <button className="print-btn-back" onClick={() => setShowPrintModal(false)}>← Back</button>
+              <button className="print-btn-print" onClick={confirmPrint}>Print Ticket</button>
             </div>
           </div>
         </div>
@@ -748,7 +679,7 @@ const CreateTicket = () => {
 
       {/* View Recent Ticket Modal */}
       {showViewModal && selectedRecentTicket && (
-        <div className="print-modal active" role="dialog" aria-modal="true" aria-label="View ticket details">
+        <div className="print-modal">
           <div className="print-container">
             <div className="print-header">
               <div className="print-title">Ticket Details</div>
@@ -756,32 +687,25 @@ const CreateTicket = () => {
             </div>
 
             <div className="print-body">
-              <div className="ticket" aria-label="Ticket details">
+              <div className="ticket">
                 <div className="ticket-brand">
                   <div className="ticket-logo">STL</div>
                   <div className="ticket-logo">COMPANY</div>
                   <div className="ticket-logo">PCSO</div>
                 </div>
+                
                 <div className="ticket-title">STL GAMING SYSTEM</div>
                 <div className="ticket-sub">OFFICIAL BETTING TICKET • PCSO PHILIPPINES</div>
 
                 <div className="ticket-details">
                   <div className="detail-row">
-                    <span>TERMINAL ID:</span>
-                    <span>STL001</span>
-                  </div>
-                  <div className="detail-row">
                     <span>OPERATOR:</span>
                     <span>TELLER01</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>SEQUENCE:</span>
-                    <span>{selectedRecentTicket.id.slice(-6)}</span>
                   </div>
                 </div>
 
                 <div className="ticket-meta">
-                  <div>REF: {selectedRecentTicket.id}</div>
+                  <div><strong>REF: {selectedRecentTicket.id}</strong></div>
                   <div>{new Date(selectedRecentTicket.timestamp).toLocaleString('en-PH', { 
                     year: 'numeric', 
                     month: '2-digit', 
@@ -793,34 +717,35 @@ const CreateTicket = () => {
                   })}</div>
                 </div>
 
-                <div className="ticket-draw-info">
-                  {selectedRecentTicket.bets?.[0]?.drawTime && `DRAW TIME: ${selectedRecentTicket.bets[0].drawTime}`}
-                  <div className="draw-date">DRAW DATE: {new Date(selectedRecentTicket.timestamp).toLocaleDateString('en-PH')}</div>
-                </div>
-
                 <div className="ticket-bets">
-                  <div className="bets-header">
-                    <span>GAME</span>
-                    <span>COMBINATION</span>
-                    <span>AMOUNT</span>
-                  </div>
-                  {selectedRecentTicket.bets?.map((bet, index) => (
-                    <div key={bet.id || index} className="bet-line">
-                      <span className="bet-game">{bet.game.toUpperCase()}</span>
-                      <span className="bet-combo">{bet.combo}</span>
-                      <span className="bet-amt">₱{bet.amount.toLocaleString()}</span>
+                  {/* Group recent ticket bets by game and draw time */}
+                  {selectedRecentTicket.bets && Object.values(
+                    selectedRecentTicket.bets.reduce((groups, bet) => {
+                      const key = `${bet.game}_${bet.drawTime}`;
+                      if (!groups[key]) {
+                        groups[key] = {
+                          game: bet.game,
+                          drawTime: bet.drawTime,
+                          bets: []
+                        };
+                      }
+                      groups[key].bets.push(bet);
+                      return groups;
+                    }, {})
+                  ).map((group, groupIndex) => (
+                    <div key={groupIndex} className="bet-group">
+                      <div className="group-header">
+                        <div className="game-name">{group.game.toUpperCase()}</div>
+                        <div className="draw-time">DRAW: {group.drawTime}</div>
+                      </div>
+                      {group.bets.map((bet, betIndex) => (
+                        <div key={betIndex} className="bet-line">
+                          <span className="bet-combo">{bet.combo}</span>
+                          <span className="bet-amt">₱{bet.amount.toLocaleString()}</span>
+                        </div>
+                      ))}
                     </div>
                   ))}
-                  <div className="bets-summary">
-                    <div className="summary-row">
-                      <span>TOTAL COMBINATIONS:</span>
-                      <span>{selectedRecentTicket.bets?.length || 0}</span>
-                    </div>
-                    <div className="summary-row">
-                      <span>TOTAL GAMES:</span>
-                      <span>{selectedRecentTicket.bets ? new Set(selectedRecentTicket.bets.map(b => b.game)).size : 0}</span>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="ticket-total">
@@ -828,23 +753,8 @@ const CreateTicket = () => {
                   <span>₱{selectedRecentTicket.total.toLocaleString()}</span>
                 </div>
 
-                <div className="ticket-info">
-                  <div className="info-row">
-                    <span>DRAWING SCHEDULE:</span>
-                    <span>11:00 AM, 4:00 PM, 9:00 PM</span>
-                  </div>
-                  <div className="info-row">
-                    <span>CLAIM PERIOD:</span>
-                    <span>365 DAYS FROM DRAW DATE</span>
-                  </div>
-                  <div className="info-row">
-                    <span>STATUS:</span>
-                    <span>ACTIVE</span>
-                  </div>
-                </div>
-
                 <div className="qr">
-                  <div className="qr-box" aria-hidden="true">
+                  <div className="qr-box">
                     {ticketQR ? (
                       <img 
                         src={ticketQR} 
@@ -857,9 +767,7 @@ const CreateTicket = () => {
                         }}
                       />
                     ) : (
-                      <div className="qr-loading">
-                        <div className="qr-placeholder">Generating QR...</div>
-                      </div>
+                      <div className="qr-loading">Generating QR...</div>
                     )}
                   </div>
                   <div className="qr-text">SCAN TO VERIFY</div>
@@ -875,15 +783,15 @@ const CreateTicket = () => {
             </div>
 
             <div className="print-actions">
-              <button className="print-btn print-btn-back" onClick={closeViewModal}>← Close</button>
-              <button className="print-btn print-btn-print" onClick={() => window.print()}>Print Copy</button>
+              <button className="print-btn-back" onClick={closeViewModal}>← Close</button>
+              <button className="print-btn-print" onClick={() => window.print()}>Print Copy</button>
             </div>
           </div>
         </div>
       )}
 
       {/* Toast */}
-      {toast.show && <div className={`toast show ${toast.type}`}>{toast.message}</div>}
+      {toast.show && <div className={`toast ${toast.type}`}>{toast.message}</div>}
     </div>
   );
 };
