@@ -1,1 +1,0 @@
-import{j as s}from"./index-BU7sdiXJ.js";function e(){return s.jsxs("div",{className:"dash-wrap",children:[s.jsx("h1",{children:"👑 Super Admin Dashboard"}),s.jsx("p",{children:"Users, roles, limits, audit logs—build modules here."})]})}export{e as default};
