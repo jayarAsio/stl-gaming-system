@@ -7,6 +7,13 @@
     <title>STL Gaming System</title>
   </head>
   <body>
+    <!-- Page loader shown during full page refresh / navigation until React mounts -->
+    <div id="page-loader" aria-hidden="true">
+      <div class="page-loader__inner">
+        <div class="page-loader__spinner" aria-hidden="true"></div>
+        <!-- label intentionally removed to avoid duplicate / stray text during refresh -->
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

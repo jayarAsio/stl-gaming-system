@@ -124,7 +124,6 @@ body.reports-module-bg {
 
 .back-btn:hover,
 .back-btn:focus {
-  background: var(--cambridge-blue);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(151, 5, 29, 0.15);
 }

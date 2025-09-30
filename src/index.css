@@ -12,6 +12,43 @@
   --blur: blur(16px);
 }
 
+/* Page loader (shows during full page refresh until React mounts) */
+#page-loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  z-index: 99999;
+  pointer-events: none;
+}
+.page-loader__inner{
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+.page-loader__spinner{
+  width:48px; height:48px; border-radius:50%;
+  border:4px solid rgba(99,102,241,0.12);
+  border-top-color: var(--primary);
+  animation: loader-rotate 900ms linear infinite;
+  will-change: transform;
+}
+.page-loader__label{
+  font-size:0.9rem; color:var(--text-secondary); font-weight:600; opacity:0.95;
+}
+@keyframes loader-rotate{ to{ transform: rotate(360deg); } }
+
+/* Fade out helper used by script to transition loader away */
+.page-loader--fade {
+  transition: opacity 360ms ease, visibility 360ms ease;
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader__spinner{ animation: none; }
+  .page-loader--fade{ transition: none; opacity:1; }
+}
+
 *{ margin:0; padding:0; box-sizing:border-box; }
 body{
   font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
