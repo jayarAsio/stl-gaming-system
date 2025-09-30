@@ -1,1 +1,0 @@
-import{j as e}from"./index-DMBF8M57.js";const n=()=>e.jsxs("div",{className:"ga-card",children:[e.jsx("h3",{children:"Enforcement & Security"}),e.jsx("p",{style:{color:"var(--ga-gray-500)"},children:"Security monitoring, compliance enforcement, and audit logs."})]});export{n as default};
