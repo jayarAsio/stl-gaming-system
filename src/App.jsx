@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Home from "./Home";
+import ScrollToTop from "./ScrollToTop";
 
 // Dashboards (lazy-loaded from feature folders)
 const SuperAdmin        = lazy(() => import("./features/super-admin/pages/Dashboard"));
@@ -50,7 +51,8 @@ const CollectorReports          = lazy(() => import("./features/collector/pages/
 export default function App() {
   return (
     <BrowserRouter basename="/stl-gaming-system">
-  <Suspense fallback={null}>
+      <ScrollToTop />
+      <Suspense fallback={null}>
         <Routes>
           {/* Home */}
           <Route path="/" element={<Home />} />
