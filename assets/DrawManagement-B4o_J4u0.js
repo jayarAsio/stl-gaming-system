@@ -1,1 +1,0 @@
-import{j as a}from"./index-kRWmqa_u.js";const r=()=>a.jsxs("div",{className:"ga-card",children:[a.jsx("h3",{children:"Draw Management"}),a.jsx("p",{style:{color:"var(--ga-gray-500)"},children:"Schedule, execute, and manage game draws and results."})]});export{r as default};

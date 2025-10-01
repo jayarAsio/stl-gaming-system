@@ -1,0 +1,1 @@
+import{j as r}from"./index-BV8VS4u8.js";const s=()=>r.jsxs("div",{className:"operations-card",children:[r.jsx("h3",{children:"Reports"}),r.jsx("p",{style:{color:"var(--gray-500)"},children:"Reports content goes here..."})]});export{s as default};

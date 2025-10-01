@@ -1,0 +1,1 @@
+import{j as a}from"./index-BV8VS4u8.js";const r=()=>a.jsxs("div",{className:"ga-card",children:[a.jsx("h3",{children:"Daily Operations"}),a.jsx("p",{style:{color:"var(--ga-gray-500)"},children:"Monitor and manage daily gaming operations, transactions, and activities."})]});export{r as default};
