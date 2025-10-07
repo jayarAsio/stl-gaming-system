@@ -1,7 +1,8 @@
 // ============================================
 // File: src/features/game-administrator/pages/Dashboard.jsx
+// Auto-hiding header on scroll
 // ============================================
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import '../styles/game-administrator.css';
 
@@ -27,6 +28,7 @@ const pageTitles = {
 
 const GameAdministratorLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
   const location = useLocation();
   
   const [user] = useState({
@@ -36,9 +38,52 @@ const GameAdministratorLayout = () => {
   });
 
   const currentTitle = pageTitles[location.pathname] || 'Game Dashboard';
+  
+  // Scroll tracking refs
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
 
+  // Handle scroll to show/hide header
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+          const scrollThreshold = 10; // Minimum scroll distance to trigger
+          
+          // Don't hide if near top
+          if (currentScrollY < 80) {
+            setHeaderVisible(true);
+          } 
+          // Scrolling down - hide header
+          else if (currentScrollY > lastScrollY.current + scrollThreshold) {
+            setHeaderVisible(false);
+          } 
+          // Scrolling up - show header
+          else if (currentScrollY < lastScrollY.current - scrollThreshold) {
+            setHeaderVisible(true);
+          }
+          
+          lastScrollY.current = currentScrollY;
+          ticking.current = false;
+        });
+        
+        ticking.current = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Reset header visibility on route change
   useEffect(() => {
     setSidebarOpen(false);
+    setHeaderVisible(true);
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -115,7 +160,10 @@ const GameAdministratorLayout = () => {
 
         {/* Main Content */}
         <main className="ga-main" id="gaMain">
-          <header className="ga-header" role="banner">
+          <header 
+            className={`ga-header ${headerVisible ? 'ga-header-visible' : 'ga-header-hidden'}`}
+            role="banner"
+          >
             <div className="ga-header-inner">
               <div className="ga-header-left">
                 <button

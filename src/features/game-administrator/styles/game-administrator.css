@@ -1,5 +1,6 @@
 /* ============================================
    Game Administrator - Professional Design
+   COMPLETE CSS FILE WITH AUTO-HIDE HEADER
    ============================================ */
 
 /* Base & Reset */
@@ -358,7 +359,7 @@ body {
   transition: margin 0.3s var(--ga-ease);
 }
 
-/* Header - Premium Design */
+/* Header - Premium Design with Auto-Hide */
 .ga-header {
   position: sticky;
   top: var(--ga-gutter);
@@ -372,7 +373,24 @@ body {
   border-radius: var(--ga-radius-lg);
   margin: var(--ga-gutter) 0 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.8);
-  transition: filter 0.3s ease;
+  
+  /* Auto-hide animation */
+  transform: translateY(0);
+  transition: transform 0.3s var(--ga-ease), 
+              opacity 0.3s var(--ga-ease),
+              filter 0.3s ease;
+  will-change: transform;
+}
+
+.ga-header.ga-header-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.ga-header.ga-header-hidden {
+  transform: translateY(calc(-100% - var(--ga-gutter) - 1.5rem));
+  opacity: 0;
+  pointer-events: none;
 }
 
 .ga-header-inner {
@@ -642,6 +660,10 @@ body {
   .ga-header {
     padding: 1rem 1.25rem;
   }
+  
+  .ga-header.ga-header-hidden {
+    transform: translateY(-120%);
+  }
 
   .ga-header-title {
     font-size: 1.25rem;
@@ -658,5 +680,18 @@ body {
 
   .ga-card {
     padding: 1.5rem;
+  }
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .ga-header {
+    transition: none !important;
+  }
+  
+  .ga-header.ga-header-hidden {
+    display: none;
   }
 }

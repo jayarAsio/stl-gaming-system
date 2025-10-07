@@ -1,24 +1,22 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "./index.css"; // make sure the CSS below lives here (or import your existing one)
+import "./index.css";
 
-function useStaggerIn(delayMs = 300, stepMs = 150) {
-  return (refs) => {
-    refs.forEach((ref, i) => {
-      const el = ref.current;
-      if (!el) return;
-      el.style.opacity = "0";
-      el.style.transform = "translateY(40px)";
-      setTimeout(() => {
-        el.style.transition = "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
-        el.style.opacity = "1";
-        el.style.transform = "translateY(0)";
-      }, delayMs + i * stepMs);
-    });
-  };
-}
+function AccessCard({ variant, icon, title, desc, onClick, refObj, delay }) {
+  useEffect(() => {
+    const el = refObj.current;
+    if (!el) return;
 
-function AccessCard({ variant, icon, title, desc, onClick, refObj }) {
+    // Use requestAnimationFrame for better performance
+    const timeoutId = setTimeout(() => {
+      requestAnimationFrame(() => {
+        el.classList.add('is-visible');
+      });
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
+  }, [refObj, delay]);
+
   return (
     <div
       ref={refObj}
@@ -26,7 +24,12 @@ function AccessCard({ variant, icon, title, desc, onClick, refObj }) {
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => ((e.key === "Enter" || e.key === " ") && onClick())}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       aria-label={`${title} available`}
     >
       <div className="card-header">
@@ -46,20 +49,82 @@ function AccessCard({ variant, icon, title, desc, onClick, refObj }) {
 
 export default function Home() {
   const navigate = useNavigate();
+  const headerRef = useRef(null);
+  const footerRef = useRef(null);
 
-  // refs for stagger animation
-  const refs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
-  const runStagger = useStaggerIn();
+  // Card refs
+  const cardRefs = [
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null)
+  ];
 
   useEffect(() => {
-    // header + footer entrance
-    const header = document.querySelector(".header");
-    const footer = document.querySelector(".footer");
-    header?.classList.add("fade-in");
-    setTimeout(() => footer?.classList.add("slide-up"), 300 + refs.length * 150);
-    // cards stagger
-    runStagger(refs);
-  }, []); // eslint-disable-line
+    // Use requestAnimationFrame for smooth animations
+    const timeoutIds = [];
+
+    // Animate header
+    const headerTimeout = setTimeout(() => {
+      requestAnimationFrame(() => {
+        headerRef.current?.classList.add('is-visible');
+      });
+    }, 100);
+    timeoutIds.push(headerTimeout);
+
+    // Animate footer after cards
+    const footerDelay = 300 + cardRefs.length * 150;
+    const footerTimeout = setTimeout(() => {
+      requestAnimationFrame(() => {
+        footerRef.current?.classList.add('is-visible');
+      });
+    }, footerDelay);
+    timeoutIds.push(footerTimeout);
+
+    // Cleanup
+    return () => {
+      timeoutIds.forEach(id => clearTimeout(id));
+    };
+  }, []);
+
+  const cards = [
+    {
+      variant: "super-admin",
+      icon: "👑",
+      title: "Super Admin",
+      desc: "Complete system oversight with full administrative privileges and comprehensive control.",
+      path: "/super-admin"
+    },
+    {
+      variant: "system-operator",
+      icon: "⚙️",
+      title: "Game Administrator",
+      desc: "Technical operations, system maintenance, and infrastructure management tools.",
+      path: "/game-administrator"
+    },
+    {
+      variant: "collector",
+      icon: "📊",
+      title: "Collector",
+      desc: "Revenue collection, financial reporting, and comprehensive transaction oversight.",
+      path: "/collector"
+    },
+    {
+      variant: "sales-monitoring",
+      icon: "📈",
+      title: "Operation Support",
+      desc: "Track real-time ticket sales, monitor agent performance, and view daily totals.",
+      path: "/operation-support"
+    },
+    {
+      variant: "teller",
+      icon: "🎯",
+      title: "Teller Agent",
+      desc: "Process transactions, create tickets, and manage daily operational activities.",
+      path: "/teller"
+    }
+  ];
 
   return (
     <>
@@ -67,7 +132,7 @@ export default function Home() {
 
       <div className="container">
         {/* Header */}
-        <header className="header">
+        <header ref={headerRef} className="header">
           <div className="logo-container">
             <div className="logo">STL</div>
           </div>
@@ -77,54 +142,22 @@ export default function Home() {
 
         {/* Dashboard Grid */}
         <main className="dashboard-grid">
-          <AccessCard
-            variant="super-admin"
-            icon="👑"
-            title="Super Admin"
-            desc="Complete system oversight with full administrative privileges and comprehensive control."
-            onClick={() => navigate("/super-admin")}
-            refObj={refs[0]}
-          />
-
-          <AccessCard
-            variant="system-operator"
-            icon="⚙️"
-            title="Game Administrator"
-            desc="Technical operations, system maintenance, and infrastructure management tools."
-            onClick={() => navigate("/game-administrator")}
-            refObj={refs[1]}
-          />
-
-          <AccessCard
-            variant="collector"
-            icon="📊"
-            title="Collector"
-            desc="Revenue collection, financial reporting, and comprehensive transaction oversight."
-            onClick={() => navigate("/collector")}
-            refObj={refs[2]}
-          />
-
-          <AccessCard
-            variant="sales-monitoring"
-            icon="📈"
-            title="Operation Support"
-            desc="Track real-time ticket sales, monitor agent performance, and view daily totals."
-            onClick={() => navigate("/operation-support")}
-            refObj={refs[3]}
-          />
-
-          <AccessCard
-            variant="teller"
-            icon="🎯"
-            title="Teller Agent"
-            desc="Process transactions, create tickets, and manage daily operational activities."
-            onClick={() => navigate("/teller")}
-            refObj={refs[4]}
-          />
+          {cards.map((card, index) => (
+            <AccessCard
+              key={card.variant}
+              variant={card.variant}
+              icon={card.icon}
+              title={card.title}
+              desc={card.desc}
+              onClick={() => navigate(card.path)}
+              refObj={cardRefs[index]}
+              delay={300 + index * 150}
+            />
+          ))}
         </main>
 
         {/* Footer */}
-        <footer className="footer">
+        <footer ref={footerRef} className="footer">
           <div className="footer-content">
             <p className="footer-text">STL Gaming System Dashboard</p>
             <p className="footer-subtext">Philippine Charity Sweepstakes Office • Secure Access Portal</p>
