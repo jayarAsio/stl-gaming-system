@@ -1,1 +1,0 @@
-import{j as r}from"./index-BV8VS4u8.js";const e=()=>r.jsxs("div",{className:"ga-card",children:[r.jsx("h3",{children:"Reports & Analytics"}),r.jsx("p",{style:{color:"var(--ga-gray-500)"},children:"Generate reports, view analytics, and export data."})]});export{e as default};
