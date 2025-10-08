@@ -3,22 +3,22 @@ import { createPortal } from 'react-dom';
 import '../styles/daily-operations.css';
 
 const DailyOperations = () => {
-  const getLocalDate = () => {
+  const getLocalDate = useCallback(() => {
     const d = new Date();
     const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
     return local.toISOString().split('T')[0];
-  };
+  }, []);
 
-  const [currentDate] = useState(getLocalDate());
+  const [currentDate] = useState(getLocalDate);
   const [activeTab, setActiveTab] = useState('tickets');
-  const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFilter, setDateFilter] = useState(currentDate);
   const [tellerFilter, setTellerFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [activityDateFilter, setActivityDateFilter] = useState(currentDate);
-  const [activitySearchQuery, setActivitySearchQuery] = useState('');
   const [activitySearchInput, setActivitySearchInput] = useState('');
+  const [debouncedActivitySearch, setDebouncedActivitySearch] = useState('');
   const [activitySubTab, setActivitySubTab] = useState('active');
   
   const [ticketDetailModal, setTicketDetailModal] = useState({ open: false, ticket: null });
@@ -29,20 +29,18 @@ const DailyOperations = () => {
   const [expandedTellers, setExpandedTellers] = useState(new Set());
   const [showBackToTop, setShowBackToTop] = useState(false);
 
+  // Debounce search inputs
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(searchInput);
-    }, 300);
+    const timer = setTimeout(() => setDebouncedSearch(searchInput), 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setActivitySearchQuery(activitySearchInput);
-    }, 300);
+    const timer = setTimeout(() => setDebouncedActivitySearch(activitySearchInput), 300);
     return () => clearTimeout(timer);
   }, [activitySearchInput]);
 
+  // Generate demo data (memoized)
   const generateDemoTickets = useCallback(() => {
     const tellers = [
       { id: 'AKL-00001', name: 'TEODOSIO, ROSELIE' },
@@ -66,10 +64,8 @@ const DailyOperations = () => {
       const baseDate = new Date(today);
       baseDate.setDate(baseDate.getDate() - dayOffset);
       
-      // For today, only first 5 tellers are active (3 absent)
       const availableTellers = dayOffset === 0 ? tellers.slice(0, 5) : tellers;
-      
-      const ticketsForDay = dayOffset === 0 ? 45 : dayOffset === 1 ? 38 : 30 - (dayOffset * 1.5);
+      const ticketsForDay = dayOffset === 0 ? 45 : Math.max(10, 38 - (dayOffset * 2));
       
       for (let i = 0; i < ticketsForDay; i++) {
         const numBets = Math.floor(Math.random() * 10) + 1;
@@ -92,7 +88,12 @@ const DailyOperations = () => {
             combo = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
           }
 
-          bets.push({ game, combo, amount, drawTime: drawTimes[Math.floor(Math.random() * drawTimes.length)] });
+          bets.push({ 
+            game, 
+            combo, 
+            amount, 
+            drawTime: drawTimes[Math.floor(Math.random() * drawTimes.length)] 
+          });
           total += amount;
         }
 
@@ -185,6 +186,7 @@ const DailyOperations = () => {
     return requests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   }, []);
 
+  // Initialize data
   useEffect(() => {
     try {
       const storedTickets = localStorage.getItem('DO_TICKETS_V5');
@@ -220,46 +222,58 @@ const DailyOperations = () => {
     }
   }, [generateDemoTickets, generateDemoVoidRequests]);
 
+  // Debounced localStorage saves
   useEffect(() => {
-    if (tickets.length > 0) {
+    if (tickets.length === 0) return;
+    const timer = setTimeout(() => {
       localStorage.setItem('DO_TICKETS_V5', JSON.stringify(tickets));
-    }
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [tickets]);
 
   useEffect(() => {
-    if (voidRequests.length > 0) {
+    if (voidRequests.length === 0) return;
+    const timer = setTimeout(() => {
       localStorage.setItem('DO_VOID_REQUESTS_V5', JSON.stringify(voidRequests));
-    }
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [voidRequests]);
 
+  // Body scroll lock for modals
   useEffect(() => {
     const isOpen = ticketDetailModal.open || voidReasonModal.open;
-    document.body.classList.toggle('do-lock', isOpen);
-    document.body.classList.toggle('do-blur-bg', isOpen);
+    if (isOpen) {
+      document.body.classList.add('do-lock', 'do-blur-bg');
+    } else {
+      document.body.classList.remove('do-lock', 'do-blur-bg');
+    }
     
     return () => {
       document.body.classList.remove('do-lock', 'do-blur-bg');
     };
   }, [ticketDetailModal.open, voidReasonModal.open]);
 
+  // Back to top button visibility
   useEffect(() => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 300);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Memoized unique tellers list
   const uniqueTellers = useMemo(() => {
     return [...new Set(tickets.map(t => t.teller))].sort();
   }, [tickets]);
 
+  // Memoized filtered tickets
   const filteredTickets = useMemo(() => {
     let result = tickets;
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       result = result.filter(t => 
         t.id.toLowerCase().includes(q) ||
         t.teller.toLowerCase().includes(q)
@@ -279,13 +293,14 @@ const DailyOperations = () => {
     }
 
     return result;
-  }, [tickets, searchQuery, dateFilter, tellerFilter, statusFilter]);
+  }, [tickets, debouncedSearch, dateFilter, tellerFilter, statusFilter]);
 
+  // Memoized filtered void requests
   const filteredVoidRequests = useMemo(() => {
     let result = voidRequests;
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       result = result.filter(v =>
         v.ticketId.toLowerCase().includes(q) ||
         v.teller.toLowerCase().includes(q) ||
@@ -298,8 +313,9 @@ const DailyOperations = () => {
     }
 
     return result;
-  }, [voidRequests, searchQuery, statusFilter]);
+  }, [voidRequests, debouncedSearch, statusFilter]);
 
+  // Memoized teller activity data
   const tellerActivityData = useMemo(() => {
     const allTellers = [
       { id: 'AKL-00001', name: 'TEODOSIO, ROSELIE' },
@@ -312,8 +328,7 @@ const DailyOperations = () => {
       { id: 'AKL-00008', name: 'DELA CRUZ, JOHN' }
     ];
     
-    const selectedDate = activityDateFilter;
-    const dateTickets = tickets.filter(t => t.timestamp.startsWith(selectedDate));
+    const dateTickets = tickets.filter(t => t.timestamp.startsWith(activityDateFilter));
 
     return allTellers.map((tellerInfo, index) => {
       const tellerTickets = dateTickets.filter(t => t.tellerId === tellerInfo.id);
@@ -339,16 +354,18 @@ const DailyOperations = () => {
     });
   }, [tickets, activityDateFilter]);
 
+  // Memoized filtered teller activity
   const filteredTellerActivity = useMemo(() => {
-    if (!activitySearchQuery) return tellerActivityData;
+    if (!debouncedActivitySearch) return tellerActivityData;
     
-    const q = activitySearchQuery.toLowerCase();
+    const q = debouncedActivitySearch.toLowerCase();
     return tellerActivityData.filter(teller => 
       teller.agentName.toLowerCase().includes(q) ||
       teller.agentNo.toLowerCase().includes(q)
     );
-  }, [tellerActivityData, activitySearchQuery]);
+  }, [tellerActivityData, debouncedActivitySearch]);
 
+  // Memoized stats
   const stats = useMemo(() => {
     if (activeTab === 'tickets') {
       const displayedTickets = filteredTickets;
@@ -372,8 +389,7 @@ const DailyOperations = () => {
         }
       };
     } else if (activeTab === 'activity') {
-      const selectedDate = activityDateFilter;
-      const dateTickets = tickets.filter(t => t.timestamp.startsWith(selectedDate));
+      const dateTickets = tickets.filter(t => t.timestamp.startsWith(activityDateFilter));
       const activeTellers = tellerActivityData.filter(t => t.totalTickets > 0).length;
       const absentTellers = tellerActivityData.length - activeTellers;
       
@@ -419,7 +435,8 @@ const DailyOperations = () => {
     }
   }, [activeTab, filteredTickets, filteredVoidRequests, dateFilter, activityDateFilter, currentDate, tickets, tellerActivityData]);
 
-  const toggleTellerExpand = (tellerId) => {
+  // Handlers
+  const toggleTellerExpand = useCallback((tellerId) => {
     setExpandedTellers(prev => {
       const next = new Set(prev);
       if (next.has(tellerId)) {
@@ -429,21 +446,21 @@ const DailyOperations = () => {
       }
       return next;
     });
-  };
+  }, []);
 
-  const openTicketDetail = (ticket) => {
+  const openTicketDetail = useCallback((ticket) => {
     setTicketDetailModal({ open: true, ticket });
-  };
+  }, []);
 
-  const closeTicketDetail = () => {
+  const closeTicketDetail = useCallback(() => {
     setTicketDetailModal({ open: false, ticket: null });
-  };
+  }, []);
 
-  const handleVoidAction = (request, action) => {
+  const handleVoidAction = useCallback((request, action) => {
     setVoidReasonModal({ open: true, request, action });
-  };
+  }, []);
 
-  const confirmVoidAction = () => {
+  const confirmVoidAction = useCallback(() => {
     if (!voidReasonModal.request) return;
 
     const { request, action } = voidReasonModal;
@@ -472,17 +489,17 @@ const DailyOperations = () => {
     }
 
     setVoidReasonModal({ open: false, request: null, action: null });
-  };
+  }, [voidReasonModal]);
 
-  const closeVoidReasonModal = () => {
+  const closeVoidReasonModal = useCallback(() => {
     setVoidReasonModal({ open: false, request: null, action: null });
-  };
+  }, []);
 
-  const scrollToTop = () => {
+  const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const formatTimestamp = (iso) => {
+  const formatTimestamp = useCallback((iso) => {
     return new Date(iso).toLocaleString('en-PH', {
       month: 'short',
       day: '2-digit',
@@ -492,9 +509,9 @@ const DailyOperations = () => {
       second: '2-digit',
       hour12: true
     });
-  };
+  }, []);
 
-  const groupBets = (bets) => {
+  const groupBets = useCallback((bets) => {
     const groups = {};
     bets.forEach(bet => {
       const key = `${bet.game}_${bet.drawTime}`;
@@ -504,51 +521,75 @@ const DailyOperations = () => {
       groups[key].bets.push(bet);
     });
     return Object.values(groups);
-  };
+  }, []);
 
-  const formatHourLabel = (hour) => {
+  const formatHourLabel = useCallback((hour) => {
     if (hour === 0) return '12 AM';
     if (hour < 12) return `${String(hour).padStart(2, '0')} AM`;
     if (hour === 12) return '12 PM';
     return `${String(hour - 12).padStart(2, '0')} PM`;
-  };
+  }, []);
 
   return (
     <div className="do-container">
+      {/* Header - Reports Style */}
+      <div className="do-header">
+        <div className="do-header-content">
+          <div>
+            <h2 className="do-title">Daily Operations</h2>
+            <p className="do-subtitle">
+              Monitor ticket entries, teller activity, and void requests in real-time
+            </p>
+          </div>
+          <div className="do-header-actions">
+            <button 
+              className={`do-view-btn ${activeTab === 'tickets' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tickets')}
+            >
+              <span>📋</span> Tickets
+            </button>
+            <button 
+              className={`do-view-btn ${activeTab === 'activity' ? 'active' : ''}`}
+              onClick={() => setActiveTab('activity')}
+            >
+              <span>⚡</span> Activity
+            </button>
+            <button 
+              className={`do-view-btn ${activeTab === 'voids' ? 'active' : ''}`}
+              onClick={() => setActiveTab('voids')}
+            >
+              <span>🚫</span> Voids
+              {stats.card2.value > 0 && activeTab === 'voids' && (
+                <span className="do-badge">{stats.card2.value}</span>
+              )}
+            </button>
+          </div>
+        </div>
+        <div className="do-status-bar">
+          <div className="do-stats-header">
+            <div className="do-stat-item-header">
+              <span className="do-stat-label-header">{stats.card1.label}</span>
+              <span className="do-stat-value-header">{stats.card1.value}</span>
+            </div>
+            <div className="do-stat-item-header">
+              <span className="do-stat-label-header">{stats.card2.label}</span>
+              <span className="do-stat-value-header">{stats.card2.value}</span>
+            </div>
+            <div className="do-stat-item-header">
+              <span className="do-stat-label-header">{stats.card3.label}</span>
+              <span className="do-stat-value-header">{stats.card3.value}</span>
+            </div>
+            <div className="do-stat-item-header">
+              <span className="do-stat-label-header">{stats.card4.label}</span>
+              <span className="do-stat-value-header">{stats.card4.value}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Card with Content */}
       <div className="do-card">
-        <div className="do-tabbar">
-          <button className={`do-tab ${activeTab === 'tickets' ? 'active' : ''}`} onClick={() => setActiveTab('tickets')}>
-            📋 Ticket Entries
-          </button>
-          <button className={`do-tab ${activeTab === 'activity' ? 'active' : ''}`} onClick={() => setActiveTab('activity')}>
-            ⚡ Teller Activity
-          </button>
-          <button className={`do-tab ${activeTab === 'voids' ? 'active' : ''}`} onClick={() => setActiveTab('voids')}>
-            🚫 Void Requests {stats.card2.value > 0 && activeTab === 'voids' && (
-              <span className="do-badge">{stats.card2.value}</span>
-            )}
-          </button>
-        </div>
-
-        <div className="do-stats-bar">
-          <div className="do-stat-item">
-            <div className="do-stat-value">{stats.card1.value}</div>
-            <div className="do-stat-label">{stats.card1.label}</div>
-          </div>
-          <div className="do-stat-item">
-            <div className="do-stat-value">{stats.card2.value}</div>
-            <div className="do-stat-label">{stats.card2.label}</div>
-          </div>
-          <div className="do-stat-item">
-            <div className="do-stat-value">{stats.card3.value}</div>
-            <div className="do-stat-label">{stats.card3.label}</div>
-          </div>
-          <div className="do-stat-item">
-            <div className="do-stat-value">{stats.card4.value}</div>
-            <div className="do-stat-label">{stats.card4.label}</div>
-          </div>
-        </div>
-
+        {/* Filters */}
         <div className="do-filters">
           {activeTab === 'tickets' && (
             <>
@@ -633,358 +674,430 @@ const DailyOperations = () => {
           )}
         </div>
 
+        {/* Content */}
         <div className="do-content">
           {activeTab === 'tickets' && (
-            <div className="do-list">
-              {filteredTickets.length === 0 ? (
-                <div className="do-empty">No tickets found</div>
-              ) : (
-                filteredTickets.map(ticket => (
-                  <div key={ticket.id} className="do-ticket-item">
-                    <div className="do-ticket-header">
-                      <div className="do-ticket-main">
-                        <div className="do-ticket-id">{ticket.id}</div>
-                        <div className="do-ticket-teller">{ticket.teller}</div>
-                        <div className="do-ticket-meta">
-                          {ticket.bets.length} bet{ticket.bets.length !== 1 ? 's' : ''} • ₱{ticket.total.toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="do-ticket-side">
-                        <span className={`do-status-pill ${ticket.status}`}>
-                          {ticket.status.toUpperCase()}
-                        </span>
-                        <div className="do-ticket-time">{formatTimestamp(ticket.timestamp)}</div>
-                        <button 
-                          className="do-expand-btn"
-                          onClick={() => openTicketDetail(ticket)}
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            <TicketsList 
+              tickets={filteredTickets} 
+              onOpenDetail={openTicketDetail}
+              formatTimestamp={formatTimestamp}
+            />
           )}
 
           {activeTab === 'activity' && (
-            <div className="do-list">
-              <div className="do-subtab-bar">
-                <button 
-                  className={`do-subtab ${activitySubTab === 'active' ? 'active' : ''}`}
-                  onClick={() => setActivitySubTab('active')}
-                >
-                  ✓ Active Tellers ({filteredTellerActivity.filter(t => t.totalTickets > 0).length})
-                </button>
-                <button 
-                  className={`do-subtab ${activitySubTab === 'absent' ? 'active' : ''}`}
-                  onClick={() => setActivitySubTab('absent')}
-                >
-                  ⊘ Absent Tellers ({filteredTellerActivity.filter(t => t.totalTickets === 0).length})
-                </button>
-              </div>
-
-              {activitySubTab === 'active' && (
-                <div className="do-activity-section">
-                  {filteredTellerActivity.filter(t => t.totalTickets > 0).length === 0 ? (
-                    <div className="do-empty">No active tellers found</div>
-                  ) : (
-                    <div className="do-teller-list-container">
-                      {filteredTellerActivity.filter(t => t.totalTickets > 0).map((teller) => {
-                        const isExpanded = expandedTellers.has(teller.agentNo);
-                        return (
-                          <div key={teller.agentNo} className="do-teller-list-item">
-                            <div className="do-teller-row">
-                              <div className="do-teller-main-info">
-                                <div className="do-teller-avatar-small">{teller.agentName.charAt(0)}</div>
-                                <div className="do-teller-details">
-                                  <div className="do-teller-name-row">{teller.agentName}</div>
-                                  <div className="do-teller-id-row">{teller.agentNo}</div>
-                                </div>
-                              </div>
-                              
-                              <div className="do-teller-stats-row">
-                                <div className="do-stat-mini">
-                                  <span className="do-stat-mini-icon">🎫</span>
-                                  <span className="do-stat-mini-value">{teller.totalTickets}</span>
-                                  <span className="do-stat-mini-label">tickets</span>
-                                </div>
-                                
-                                <div className="do-stat-mini">
-                                  <span className="do-stat-mini-icon">💰</span>
-                                  <span className="do-stat-mini-value">₱{teller.totalSales.toLocaleString()}</span>
-                                  <span className="do-stat-mini-label">sales</span>
-                                </div>
-                              </div>
-                              
-                              <button 
-                                className="do-view-breakdown-btn"
-                                onClick={() => toggleTellerExpand(teller.agentNo)}
-                              >
-                                {isExpanded ? '▲ Hide Details' : '▼ View Breakdown'}
-                              </button>
-                            </div>
-                            
-                            {isExpanded && (
-                              <div className="do-teller-breakdown">
-                                <div className="do-breakdown-header">
-                                  <h4>Hourly Activity Breakdown</h4>
-                                  <span className="do-breakdown-subtitle">Tickets processed per hour</span>
-                                </div>
-                                
-                                <div className="do-activity-chart-expanded">
-                                  <div className="do-chart-bars-expanded">
-                                    {teller.hourlyData.map((count, hour) => {
-                                      if (count === 0) return null;
-                                      const maxCount = Math.max(...teller.hourlyData);
-                                      const heightPercent = maxCount > 0 ? (count / maxCount) * 100 : 0;
-                                      return (
-                                        <div 
-                                          key={hour} 
-                                          className="do-bar-item-expanded"
-                                        >
-                                          <div className="do-bar-info">
-                                            <span className="do-bar-label">{formatHourLabel(hour)}</span>
-                                            <span className="do-bar-count">{count} ticket{count !== 1 ? 's' : ''}</span>
-                                          </div>
-                                          <div className="do-bar-visual">
-                                            <div 
-                                              className="do-bar-fill" 
-                                              style={{ width: `${heightPercent}%` }}
-                                            >
-                                              <span className="do-bar-percent">{count}</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                                
-                                <div className="do-breakdown-summary">
-                                  <div className="do-summary-item">
-                                    <span className="do-summary-label">Peak Hour:</span>
-                                    <span className="do-summary-value">
-                                      {formatHourLabel(teller.hourlyData.indexOf(Math.max(...teller.hourlyData)))}
-                                    </span>
-                                  </div>
-                                  <div className="do-summary-item">
-                                    <span className="do-summary-label">Total Tickets:</span>
-                                    <span className="do-summary-value">{teller.totalTickets}</span>
-                                  </div>
-                                  <div className="do-summary-item">
-                                    <span className="do-summary-label">Total Sales:</span>
-                                    <span className="do-summary-value">₱{teller.totalSales.toLocaleString()}</span>
-                                  </div>
-                                  <div className="do-summary-item">
-                                    <span className="do-summary-label">Avg per Ticket:</span>
-                                    <span className="do-summary-value">
-                                      ₱{teller.totalTickets > 0 ? Math.round(teller.totalSales / teller.totalTickets).toLocaleString() : '0'}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activitySubTab === 'absent' && (
-                <div className="do-activity-section">
-                  {filteredTellerActivity.filter(t => t.totalTickets === 0).length === 0 ? (
-                    <div className="do-empty">No absent tellers found</div>
-                  ) : (
-                    <div className="do-absent-list">
-                      {filteredTellerActivity.filter(t => t.totalTickets === 0).map((teller) => (
-                        <div key={teller.agentNo} className="do-absent-teller">
-                          <div className="do-absent-avatar">{teller.agentName.charAt(0)}</div>
-                          <div className="do-absent-details">
-                            <div className="do-absent-name">{teller.agentName}</div>
-                            <div className="do-absent-id">{teller.agentNo}</div>
-                          </div>
-                          <div className="do-absent-badge">
-                            <span className="do-absent-icon">⊘</span>
-                            No Activity
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <TellerActivity
+              tellerData={filteredTellerActivity}
+              subTab={activitySubTab}
+              onSubTabChange={setActivitySubTab}
+              expandedTellers={expandedTellers}
+              onToggleExpand={toggleTellerExpand}
+              formatHourLabel={formatHourLabel}
+            />
           )}
 
           {activeTab === 'voids' && (
-            <div className="do-list">
-              {filteredVoidRequests.length === 0 ? (
-                <div className="do-empty">No void requests found</div>
-              ) : (
-                filteredVoidRequests.map(request => (
-                  <div key={request.id} className="do-void-item">
-                    <div className="do-void-header">
-                      <div className="do-void-main">
-                        <div className="do-void-id">Request #{request.id}</div>
-                        <div className="do-void-ticket">Ticket: {request.ticketId}</div>
-                        <div className="do-void-teller">{request.teller}</div>
-                      </div>
-                      <div className="do-void-side">
-                        <span className={`do-status-pill ${request.status}`}>
-                          {request.status.toUpperCase()}
-                        </span>
-                        <div className="do-void-time">{formatTimestamp(request.timestamp)}</div>
-                      </div>
-                    </div>
-                    <div className="do-void-reason">
-                      <strong>Reason:</strong> {request.reason}
-                    </div>
-                    {request.reviewedBy && (
-                      <div className="do-void-review">
-                        Reviewed by {request.reviewedBy} on {formatTimestamp(request.reviewedAt)}
-                      </div>
-                    )}
-                    {request.status === 'pending' && (
-                      <div className="do-void-actions">
-                        <button className="do-btn-approve" onClick={() => handleVoidAction(request, 'approved')}>
-                          ✓ Approve
-                        </button>
-                        <button className="do-btn-reject" onClick={() => handleVoidAction(request, 'rejected')}>
-                          ✕ Reject
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
+            <VoidRequestsList
+              requests={filteredVoidRequests}
+              onVoidAction={handleVoidAction}
+              formatTimestamp={formatTimestamp}
+            />
           )}
         </div>
       </div>
 
+      {/* Back to Top Button */}
       {showBackToTop && (
         <button className="do-back-to-top" onClick={scrollToTop} title="Back to top">
           <span className="do-back-to-top-icon">↑</span>
         </button>
       )}
 
-      {ticketDetailModal.open && ticketDetailModal.ticket && createPortal(
-        <>
-          <div className="do-modal-overlay active" onClick={closeTicketDetail} />
-          <div className="do-modal-container active">
-            <div className="do-modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="do-modal-header">
-                <h3>Ticket Details</h3>
-                <button className="do-modal-close" onClick={closeTicketDetail}>×</button>
-              </div>
-              <div className="do-modal-body">
-                <div className="do-detail-card">
-                  <div className="do-detail-row">
-                    <span className="do-detail-label">Ticket ID:</span>
-                    <span className="do-detail-value">{ticketDetailModal.ticket.id}</span>
-                  </div>
-                  <div className="do-detail-row">
-                    <span className="do-detail-label">Teller:</span>
-                    <span className="do-detail-value">{ticketDetailModal.ticket.teller}</span>
-                  </div>
-                  <div className="do-detail-row">
-                    <span className="do-detail-label">Timestamp:</span>
-                    <span className="do-detail-value">{formatTimestamp(ticketDetailModal.ticket.timestamp)}</span>
-                  </div>
-                  <div className="do-detail-row">
-                    <span className="do-detail-label">Status:</span>
-                    <span className={`do-status-pill ${ticketDetailModal.ticket.status}`}>
-                      {ticketDetailModal.ticket.status.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="do-detail-row">
-                    <span className="do-detail-label">Total Bets:</span>
-                    <span className="do-detail-value">{ticketDetailModal.ticket.bets.length}</span>
-                  </div>
-                  <div className="do-detail-row">
-                    <span className="do-detail-label">Total Amount:</span>
-                    <span className="do-detail-value">₱{ticketDetailModal.ticket.total.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <div className="do-bets-detail">
-                  <h4>Bet Details</h4>
-                  {groupBets(ticketDetailModal.ticket.bets).map((group, idx) => (
-                    <div key={idx} className="do-bet-group-detail">
-                      <div className="do-bet-group-header-detail">
-                        <strong>{group.game}</strong> • Draw: {group.drawTime}
-                      </div>
-                      <div className="do-bet-list-detail">
-                        {group.bets.map((bet, bidx) => {
-                          const isWinning = ticketDetailModal.ticket.status === 'winning' && bidx === 0;
-                          return (
-                            <div key={bidx} className={`do-bet-line-detail ${isWinning ? 'winning' : ''}`}>
-                              <span className="do-bet-combo-detail">{bet.combo}</span>
-                              <span className="do-bet-amount-detail">₱{bet.amount.toLocaleString()}</span>
-                              {isWinning && <span className="do-win-badge-detail">WIN</span>}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {ticketDetailModal.ticket.voidReason && (
-                  <div className="do-void-reason-detail">
-                    <strong>Void Reason:</strong> {ticketDetailModal.ticket.voidReason}
-                  </div>
-                )}
-              </div>
-              <div className="do-modal-footer">
-                <button className="do-btn-secondary" onClick={closeTicketDetail}>Close</button>
-              </div>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
-
-      {voidReasonModal.open && voidReasonModal.request && createPortal(
-        <>
-          <div className="do-modal-overlay active" onClick={closeVoidReasonModal} />
-          <div className="do-modal-container active">
-            <div className="do-modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="do-modal-header">
-                <h3>Confirm {voidReasonModal.action === 'approved' ? 'Approval' : 'Rejection'}</h3>
-                <button className="do-modal-close" onClick={closeVoidReasonModal}>×</button>
-              </div>
-              <div className="do-modal-body">
-                <p>
-                  Are you sure you want to <strong>{voidReasonModal.action === 'approved' ? 'approve' : 'reject'}</strong> this void request?
-                </p>
-                <div className="do-confirm-details">
-                  <div><strong>Request ID:</strong> {voidReasonModal.request.id}</div>
-                  <div><strong>Ticket ID:</strong> {voidReasonModal.request.ticketId}</div>
-                  <div><strong>Teller:</strong> {voidReasonModal.request.teller}</div>
-                  <div><strong>Reason:</strong> {voidReasonModal.request.reason}</div>
-                </div>
-              </div>
-              <div className="do-modal-footer">
-                <button className="do-btn-secondary" onClick={closeVoidReasonModal}>Cancel</button>
-                <button
-                  className={voidReasonModal.action === 'approved' ? 'do-btn-approve' : 'do-btn-reject'}
-                  onClick={confirmVoidAction}
-                >
-                  Confirm {voidReasonModal.action === 'approved' ? 'Approval' : 'Rejection'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
+      {/* Modals */}
+      <TicketDetailModal
+        modal={ticketDetailModal}
+        onClose={closeTicketDetail}
+        formatTimestamp={formatTimestamp}
+        groupBets={groupBets}
+      />
+      <VoidReasonModal
+        modal={voidReasonModal}
+        onClose={closeVoidReasonModal}
+        onConfirm={confirmVoidAction}
+      />
     </div>
   );
 };
+
+// Separate components for better performance
+const TicketsList = React.memo(({ tickets, onOpenDetail, formatTimestamp }) => {
+  if (tickets.length === 0) {
+    return <div className="do-list"><div className="do-empty">No tickets found</div></div>;
+  }
+
+  return (
+    <div className="do-list">
+      {tickets.map(ticket => (
+        <div key={ticket.id} className="do-ticket-item">
+          <div className="do-ticket-header">
+            <div className="do-ticket-main">
+              <div className="do-ticket-id">{ticket.id}</div>
+              <div className="do-ticket-teller">{ticket.teller}</div>
+              <div className="do-ticket-meta">
+                {ticket.bets.length} bet{ticket.bets.length !== 1 ? 's' : ''} • ₱{ticket.total.toLocaleString()}
+              </div>
+            </div>
+            <div className="do-ticket-side">
+              <span className={`do-status-pill ${ticket.status}`}>
+                {ticket.status.toUpperCase()}
+              </span>
+              <div className="do-ticket-time">{formatTimestamp(ticket.timestamp)}</div>
+              <button 
+                className="do-expand-btn"
+                onClick={() => onOpenDetail(ticket)}
+              >
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+const TellerActivity = React.memo(({ tellerData, subTab, onSubTabChange, expandedTellers, onToggleExpand, formatHourLabel }) => {
+  const activeTellers = useMemo(() => tellerData.filter(t => t.totalTickets > 0), [tellerData]);
+  const absentTellers = useMemo(() => tellerData.filter(t => t.totalTickets === 0), [tellerData]);
+
+  return (
+    <div className="do-list">
+      <div className="do-subtab-bar">
+        <button 
+          className={`do-subtab ${subTab === 'active' ? 'active' : ''}`}
+          onClick={() => onSubTabChange('active')}
+        >
+          ✓ Active Tellers ({activeTellers.length})
+        </button>
+        <button 
+          className={`do-subtab ${subTab === 'absent' ? 'active' : ''}`}
+          onClick={() => onSubTabChange('absent')}
+        >
+          ⊘ Absent Tellers ({absentTellers.length})
+        </button>
+      </div>
+
+      {subTab === 'active' && (
+        <div className="do-activity-section">
+          {activeTellers.length === 0 ? (
+            <div className="do-empty">No active tellers found</div>
+          ) : (
+            <div className="do-teller-list-container">
+              {activeTellers.map((teller) => {
+                const isExpanded = expandedTellers.has(teller.agentNo);
+                return (
+                  <TellerActivityItem
+                    key={teller.agentNo}
+                    teller={teller}
+                    isExpanded={isExpanded}
+                    onToggleExpand={onToggleExpand}
+                    formatHourLabel={formatHourLabel}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {subTab === 'absent' && (
+        <div className="do-activity-section">
+          {absentTellers.length === 0 ? (
+            <div className="do-empty">No absent tellers found</div>
+          ) : (
+            <div className="do-absent-list">
+              {absentTellers.map((teller) => (
+                <div key={teller.agentNo} className="do-absent-teller">
+                  <div className="do-absent-avatar">{teller.agentName.charAt(0)}</div>
+                  <div className="do-absent-details">
+                    <div className="do-absent-name">{teller.agentName}</div>
+                    <div className="do-absent-id">{teller.agentNo}</div>
+                  </div>
+                  <div className="do-absent-badge">
+                    <span className="do-absent-icon">⊘</span>
+                    No Activity
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+});
+
+const TellerActivityItem = React.memo(({ teller, isExpanded, onToggleExpand, formatHourLabel }) => {
+  return (
+    <div className="do-teller-list-item">
+      <div className="do-teller-row">
+        <div className="do-teller-main-info">
+          <div className="do-teller-avatar-small">{teller.agentName.charAt(0)}</div>
+          <div className="do-teller-details">
+            <div className="do-teller-name-row">{teller.agentName}</div>
+            <div className="do-teller-id-row">{teller.agentNo}</div>
+          </div>
+        </div>
+        
+        <div className="do-teller-stats-row">
+          <div className="do-stat-mini">
+            <span className="do-stat-mini-icon">🎫</span>
+            <span className="do-stat-mini-value">{teller.totalTickets}</span>
+            <span className="do-stat-mini-label">tickets</span>
+          </div>
+          
+          <div className="do-stat-mini">
+            <span className="do-stat-mini-icon">💰</span>
+            <span className="do-stat-mini-value">₱{teller.totalSales.toLocaleString()}</span>
+            <span className="do-stat-mini-label">sales</span>
+          </div>
+        </div>
+        
+        <button 
+          className="do-view-breakdown-btn"
+          onClick={() => onToggleExpand(teller.agentNo)}
+        >
+          {isExpanded ? '▲ Hide Details' : '▼ View Breakdown'}
+        </button>
+      </div>
+      
+      {isExpanded && (
+        <div className="do-teller-breakdown">
+          <div className="do-breakdown-header">
+            <h4>Hourly Activity Breakdown</h4>
+            <span className="do-breakdown-subtitle">Tickets processed per hour</span>
+          </div>
+          
+          <div className="do-activity-chart-expanded">
+            <div className="do-chart-bars-expanded">
+              {teller.hourlyData.map((count, hour) => {
+                if (count === 0) return null;
+                const maxCount = Math.max(...teller.hourlyData);
+                const heightPercent = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                return (
+                  <div 
+                    key={hour} 
+                    className="do-bar-item-expanded"
+                  >
+                    <div className="do-bar-info">
+                      <span className="do-bar-label">{formatHourLabel(hour)}</span>
+                      <span className="do-bar-count">{count} ticket{count !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="do-bar-visual">
+                      <div 
+                        className="do-bar-fill" 
+                        style={{ width: `${heightPercent}%` }}
+                      >
+                        <span className="do-bar-percent">{count}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          <div className="do-breakdown-summary">
+            <div className="do-summary-item">
+              <span className="do-summary-label">Peak Hour:</span>
+              <span className="do-summary-value">
+                {formatHourLabel(teller.hourlyData.indexOf(Math.max(...teller.hourlyData)))}
+              </span>
+            </div>
+            <div className="do-summary-item">
+              <span className="do-summary-label">Total Tickets:</span>
+              <span className="do-summary-value">{teller.totalTickets}</span>
+            </div>
+            <div className="do-summary-item">
+              <span className="do-summary-label">Total Sales:</span>
+              <span className="do-summary-value">₱{teller.totalSales.toLocaleString()}</span>
+            </div>
+            <div className="do-summary-item">
+              <span className="do-summary-label">Avg per Ticket:</span>
+              <span className="do-summary-value">
+                ₱{teller.totalTickets > 0 ? Math.round(teller.totalSales / teller.totalTickets).toLocaleString() : '0'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+const VoidRequestsList = React.memo(({ requests, onVoidAction, formatTimestamp }) => {
+  if (requests.length === 0) {
+    return <div className="do-list"><div className="do-empty">No void requests found</div></div>;
+  }
+
+  return (
+    <div className="do-list">
+      {requests.map(request => (
+        <div key={request.id} className="do-void-item">
+          <div className="do-void-header">
+            <div className="do-void-main">
+              <div className="do-void-id">Request #{request.id}</div>
+              <div className="do-void-ticket">Ticket: {request.ticketId}</div>
+              <div className="do-void-teller">{request.teller}</div>
+            </div>
+            <div className="do-void-side">
+              <span className={`do-status-pill ${request.status}`}>
+                {request.status.toUpperCase()}
+              </span>
+              <div className="do-void-time">{formatTimestamp(request.timestamp)}</div>
+            </div>
+          </div>
+          <div className="do-void-reason">
+            <strong>Reason:</strong> {request.reason}
+          </div>
+          {request.reviewedBy && (
+            <div className="do-void-review">
+              Reviewed by {request.reviewedBy} on {formatTimestamp(request.reviewedAt)}
+            </div>
+          )}
+          {request.status === 'pending' && (
+            <div className="do-void-actions">
+              <button className="do-btn-approve" onClick={() => onVoidAction(request, 'approved')}>
+                ✓ Approve
+              </button>
+              <button className="do-btn-reject" onClick={() => onVoidAction(request, 'rejected')}>
+                ✕ Reject
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+});
+
+const TicketDetailModal = React.memo(({ modal, onClose, formatTimestamp, groupBets }) => {
+  if (!modal.open || !modal.ticket) return null;
+
+  return createPortal(
+    <>
+      <div className="do-modal-overlay active" onClick={onClose} />
+      <div className="do-modal-container active">
+        <div className="do-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="do-modal-header">
+            <h3>Ticket Details</h3>
+            <button className="do-modal-close" onClick={onClose}>×</button>
+          </div>
+          <div className="do-modal-body">
+            <div className="do-detail-card">
+              <div className="do-detail-row">
+                <span className="do-detail-label">Ticket ID:</span>
+                <span className="do-detail-value">{modal.ticket.id}</span>
+              </div>
+              <div className="do-detail-row">
+                <span className="do-detail-label">Teller:</span>
+                <span className="do-detail-value">{modal.ticket.teller}</span>
+              </div>
+              <div className="do-detail-row">
+                <span className="do-detail-label">Timestamp:</span>
+                <span className="do-detail-value">{formatTimestamp(modal.ticket.timestamp)}</span>
+              </div>
+              <div className="do-detail-row">
+                <span className="do-detail-label">Status:</span>
+                <span className={`do-status-pill ${modal.ticket.status}`}>
+                  {modal.ticket.status.toUpperCase()}
+                </span>
+              </div>
+              <div className="do-detail-row">
+                <span className="do-detail-label">Total Bets:</span>
+                <span className="do-detail-value">{modal.ticket.bets.length}</span>
+              </div>
+              <div className="do-detail-row">
+                <span className="do-detail-label">Total Amount:</span>
+                <span className="do-detail-value">₱{modal.ticket.total.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="do-bets-detail">
+              <h4>Bet Details</h4>
+              {groupBets(modal.ticket.bets).map((group, idx) => (
+                <div key={idx} className="do-bet-group-detail">
+                  <div className="do-bet-group-header-detail">
+                    <strong>{group.game}</strong> • Draw: {group.drawTime}
+                  </div>
+                  <div className="do-bet-list-detail">
+                    {group.bets.map((bet, bidx) => {
+                      const isWinning = modal.ticket.status === 'winning' && bidx === 0;
+                      return (
+                        <div key={bidx} className={`do-bet-line-detail ${isWinning ? 'winning' : ''}`}>
+                          <span className="do-bet-combo-detail">{bet.combo}</span>
+                          <span className="do-bet-amount-detail">₱{bet.amount.toLocaleString()}</span>
+                          {isWinning && <span className="do-win-badge-detail">WIN</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {modal.ticket.voidReason && (
+              <div className="do-void-reason-detail">
+                <strong>Void Reason:</strong> {modal.ticket.voidReason}
+              </div>
+            )}
+          </div>
+          <div className="do-modal-footer">
+            <button className="do-btn-secondary" onClick={onClose}>Close</button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+});
+
+const VoidReasonModal = React.memo(({ modal, onClose, onConfirm }) => {
+  if (!modal.open || !modal.request) return null;
+
+  return createPortal(
+    <>
+      <div className="do-modal-overlay active" onClick={onClose} />
+      <div className="do-modal-container active">
+        <div className="do-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="do-modal-header">
+            <h3>Confirm {modal.action === 'approved' ? 'Approval' : 'Rejection'}</h3>
+            <button className="do-modal-close" onClick={onClose}>×</button>
+          </div>
+          <div className="do-modal-body">
+            <p>
+              Are you sure you want to <strong>{modal.action === 'approved' ? 'approve' : 'reject'}</strong> this void request?
+            </p>
+            <div className="do-confirm-details">
+              <div><strong>Request ID:</strong> {modal.request.id}</div>
+              <div><strong>Ticket ID:</strong> {modal.request.ticketId}</div>
+              <div><strong>Teller:</strong> {modal.request.teller}</div>
+              <div><strong>Reason:</strong> {modal.request.reason}</div>
+            </div>
+          </div>
+          <div className="do-modal-footer">
+            <button className="do-btn-secondary" onClick={onClose}>Cancel</button>
+            <button
+              className={modal.action === 'approved' ? 'do-btn-approve' : 'do-btn-reject'}
+              onClick={onConfirm}
+            >
+              Confirm {modal.action === 'approved' ? 'Approval' : 'Rejection'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+});
 
 export default DailyOperations;

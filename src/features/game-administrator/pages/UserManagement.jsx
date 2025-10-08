@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import '../styles/user-management.css';
 
 const UserManagement = () => {
-  // Initial data
-  const [tellers, setTellers] = useState(() => {
+  // Initial data with memoization
+  const initialTellers = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('UM_TELLERS_V1') || '[]').length > 0
-        ? JSON.parse(localStorage.getItem('UM_TELLERS_V1'))
+      const stored = localStorage.getItem('UM_TELLERS_V1');
+      return stored && JSON.parse(stored).length > 0
+        ? JSON.parse(stored)
         : [
             { id: 'T-0001', name: 'Ana Cruz', area: 'Toril', lastActive: 'Sep 10, 2025 · 14:22', assigned: 'Joy Santos', contact: '+63 917 555 0123', address: 'Blk 5 Lot 18, Purok 4, Toril, Davao City', username: 'ana.cruz', email: 'ana.cruz@example.com', device: 'IOS-A12-9F3', twofa: 'Enabled', suspended: false },
             { id: 'T-0002', name: 'Mark Dela Peña', area: 'Buhangin', lastActive: 'Sep 09, 2025 · 09:05', assigned: 'Leo Tan', contact: '+63 998 222 0045', address: 'Blk 2 Lot 9, Buhangin, Davao City', username: 'mark.dp', email: 'mark.dp@example.com', device: 'AND-S20-2C1', twofa: 'Disabled', suspended: true },
@@ -18,12 +19,13 @@ const UserManagement = () => {
     } catch {
       return [];
     }
-  });
+  }, []);
 
-  const [collectors, setCollectors] = useState(() => {
+  const initialCollectors = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('UM_COLLECTORS_V1') || '[]').length > 0
-        ? JSON.parse(localStorage.getItem('UM_COLLECTORS_V1'))
+      const stored = localStorage.getItem('UM_COLLECTORS_V1');
+      return stored && JSON.parse(stored).length > 0
+        ? JSON.parse(stored)
         : [
             { id: 'C-0101', name: 'Joy Santos', area: 'Matina Aplaya', lastSync: 'Sep 10, 2025 · 20:44', contact: '+63 917 555 0456', address: 'Purok 2, Matina Aplaya, Davao City', username: 'joy.s', email: 'joy.s@example.com', device: 'IOS-11P-7XZ', twofa: 'Enabled', tellers: ['Ana Cruz (T-0001)', 'Carla Reyes (T-0003)'], suspended: false },
             { id: 'C-0102', name: 'Leo Tan', area: 'Agdao', lastSync: 'Sep 07, 2025 · 11:18', contact: '+63 995 123 0088', address: 'Blk 7, Agdao, Davao City', username: 'leo.t', email: 'leo.t@example.com', device: 'AND-A54-1P2', twofa: 'Disabled', tellers: ['Mark Dela Peña (T-0002)'], suspended: true },
@@ -32,41 +34,59 @@ const UserManagement = () => {
     } catch {
       return [];
     }
-  });
+  }, []);
 
+  const [tellers, setTellers] = useState(initialTellers);
+  const [collectors, setCollectors] = useState(initialCollectors);
   const [activeTab, setActiveTab] = useState('tellers');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   // Modal states
   const [viewModal, setViewModal] = useState({ open: false, data: null, type: null });
   const [createModal, setCreateModal] = useState({ open: false, type: null });
   const [editModal, setEditModal] = useState({ open: false, data: null, type: null });
-
-  // Form data
   const [formData, setFormData] = useState({});
 
-  // Persist to localStorage
+  // Debounce search input
   useEffect(() => {
-    localStorage.setItem('UM_TELLERS_V1', JSON.stringify(tellers));
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Persist to localStorage (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      localStorage.setItem('UM_TELLERS_V1', JSON.stringify(tellers));
+    }, 500);
+    return () => clearTimeout(timer);
   }, [tellers]);
 
   useEffect(() => {
-    localStorage.setItem('UM_COLLECTORS_V1', JSON.stringify(collectors));
+    const timer = setTimeout(() => {
+      localStorage.setItem('UM_COLLECTORS_V1', JSON.stringify(collectors));
+    }, 500);
+    return () => clearTimeout(timer);
   }, [collectors]);
 
   // Body scroll lock
   useEffect(() => {
     const isOpen = viewModal.open || createModal.open || editModal.open;
-    document.body.classList.toggle('um-lock', isOpen);
-    document.body.classList.toggle('um-blur-bg', isOpen);
+    if (isOpen) {
+      document.body.classList.add('um-lock', 'um-blur-bg');
+    } else {
+      document.body.classList.remove('um-lock', 'um-blur-bg');
+    }
     return () => {
       document.body.classList.remove('um-lock', 'um-blur-bg');
     };
   }, [viewModal.open, createModal.open, editModal.open]);
 
-  // Helpers
-  const getInitials = (name) => {
+  // Helper functions
+  const getInitials = useCallback((name) => {
     return (name || 'NA')
       .trim()
       .split(/\s+/)
@@ -75,101 +95,125 @@ const UserManagement = () => {
       .join('')
       .slice(0, 2)
       .toUpperCase();
-  };
+  }, []);
 
-  const parseDateTime = (str) => {
+  const parseDateTime = useCallback((str) => {
     const match = str.match(/([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})\s*[·•]\s*(\d{1,2}):(\d{2})/);
     if (!match) return 0;
     const months = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
     const [_, mon, d, y, hh, mm] = match;
     return new Date(Number(y), months[mon], Number(d), Number(hh), Number(mm)).getTime();
-  };
+  }, []);
 
-  const formatDateTime = () => {
+  const formatDateTime = useCallback(() => {
     const now = new Date();
     const month = now.toLocaleString('en-US', { month: 'short' });
     return `${month} ${String(now.getDate()).padStart(2, '0')}, ${now.getFullYear()} · ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  };
+  }, []);
 
-  // Statistics
-  const stats = {
+  // Statistics (memoized)
+  const stats = useMemo(() => ({
     tellersActive: tellers.filter(t => !t.suspended).length,
     tellersSuspended: tellers.filter(t => t.suspended).length,
     tellersTotal: tellers.length,
     collectorsActive: collectors.filter(c => !c.suspended).length,
     collectorsSuspended: collectors.filter(c => c.suspended).length,
     collectorsTotal: collectors.length,
-  };
+  }), [tellers, collectors]);
 
   // Sorting
-  const handleSort = (key) => {
+  const handleSort = useCallback((key) => {
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
-  };
+  }, []);
 
-  const sortData = (data) => {
-    if (!sortConfig.key) return data;
+  // Filtered and sorted data (memoized)
+  const displayedTellers = useMemo(() => {
+    let filtered = tellers;
 
-    return [...data].sort((a, b) => {
-      let aVal = a[sortConfig.key];
-      let bVal = b[sortConfig.key];
-
-      // Handle status sorting
-      if (sortConfig.key === 'suspended') {
-        aVal = a.suspended ? 0 : 1;
-        bVal = b.suspended ? 0 : 1;
-      }
-
-      // Handle date sorting
-      if (sortConfig.key === 'lastActive' || sortConfig.key === 'lastSync') {
-        aVal = parseDateTime(aVal || '');
-        bVal = parseDateTime(bVal || '');
-      }
-
-      // String sorting
-      if (typeof aVal === 'string') {
-        aVal = aVal.toLowerCase();
-        bVal = (bVal || '').toLowerCase();
-      }
-
-      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-  };
-
-  // Filtering
-  const filterData = (data) => {
-    if (!searchQuery) return data;
-    const q = searchQuery.toLowerCase();
-    return data.filter(item =>
-      Object.values(item).some(val =>
-        String(val).toLowerCase().includes(q)
-      )
-    );
-  };
-
-  const getFilteredAndSorted = (data) => sortData(filterData(data));
-
-  const displayedTellers = getFilteredAndSorted(tellers);
-  const displayedCollectors = getFilteredAndSorted(collectors);
-
-  // CRUD Operations
-  const handleToggleSuspend = (id, type) => {
-    if (type === 'teller') {
-      setTellers(prev =>
-        prev.map(t => t.id === id ? { ...t, suspended: !t.suspended } : t)
-      );
-    } else {
-      setCollectors(prev =>
-        prev.map(c => c.id === id ? { ...c, suspended: !c.suspended } : c)
+    // Filter
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      filtered = filtered.filter(item =>
+        Object.values(item).some(val => String(val).toLowerCase().includes(q))
       );
     }
-  };
 
-  const handleCreate = (e) => {
+    // Sort
+    if (sortConfig.key) {
+      filtered = [...filtered].sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        if (sortConfig.key === 'suspended') {
+          aVal = a.suspended ? 0 : 1;
+          bVal = b.suspended ? 0 : 1;
+        } else if (sortConfig.key === 'lastActive') {
+          aVal = parseDateTime(aVal || '');
+          bVal = parseDateTime(bVal || '');
+        } else if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase();
+          bVal = (bVal || '').toLowerCase();
+        }
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [tellers, debouncedSearch, sortConfig, parseDateTime]);
+
+  const displayedCollectors = useMemo(() => {
+    let filtered = collectors;
+
+    // Filter
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      filtered = filtered.filter(item =>
+        Object.values(item).some(val => String(val).toLowerCase().includes(q))
+      );
+    }
+
+    // Sort
+    if (sortConfig.key) {
+      filtered = [...filtered].sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        if (sortConfig.key === 'suspended') {
+          aVal = a.suspended ? 0 : 1;
+          bVal = b.suspended ? 0 : 1;
+        } else if (sortConfig.key === 'lastSync') {
+          aVal = parseDateTime(aVal || '');
+          bVal = parseDateTime(bVal || '');
+        } else if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase();
+          bVal = (bVal || '').toLowerCase();
+        }
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [collectors, debouncedSearch, sortConfig, parseDateTime]);
+
+  // CRUD Operations
+  const handleToggleSuspend = useCallback((id, type) => {
+    if (type === 'teller') {
+      setTellers(prev => prev.map(t => t.id === id ? { ...t, suspended: !t.suspended } : t));
+    } else {
+      setCollectors(prev => prev.map(c => c.id === id ? { ...c, suspended: !c.suspended } : c));
+    }
+  }, []);
+
+  const handleCreate = useCallback((e) => {
     e.preventDefault();
     const type = createModal.type;
 
@@ -219,9 +263,9 @@ const UserManagement = () => {
 
     setCreateModal({ open: false, type: null });
     setFormData({});
-  };
+  }, [createModal.type, formData, tellers, collectors, formatDateTime]);
 
-  const handleEdit = (e) => {
+  const handleEdit = useCallback((e) => {
     e.preventDefault();
     const { id, type } = editModal.data;
     const name = `${formData.firstName} ${formData.lastName}`.trim();
@@ -263,19 +307,19 @@ const UserManagement = () => {
 
     setEditModal({ open: false, data: null, type: null });
     setFormData({});
-  };
+  }, [editModal.data, formData]);
 
   // Modal handlers
-  const openViewModal = (item, type) => {
+  const openViewModal = useCallback((item, type) => {
     setViewModal({ open: true, data: item, type });
-  };
+  }, []);
 
-  const openCreateModal = (type) => {
+  const openCreateModal = useCallback((type) => {
     setFormData({});
     setCreateModal({ open: true, type });
-  };
+  }, []);
 
-  const openEditModal = (item, type) => {
+  const openEditModal = useCallback((item, type) => {
     const [firstName, ...lastNameParts] = item.name.split(' ');
     setFormData({
       firstName: firstName || '',
@@ -286,14 +330,14 @@ const UserManagement = () => {
       assigned: item.assigned || ''
     });
     setEditModal({ open: true, data: { ...item, type }, type });
-  };
+  }, []);
 
-  const closeModals = () => {
+  const closeModals = useCallback(() => {
     setViewModal({ open: false, data: null, type: null });
     setCreateModal({ open: false, type: null });
     setEditModal({ open: false, data: null, type: null });
     setFormData({});
-  };
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -302,39 +346,78 @@ const UserManagement = () => {
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, []);
+  }, [closeModals]);
 
   return (
     <div className="um-container">
-      <div className="um-card">
-        {/* Tabs */}
-        <div className="um-tabbar">
-          <button
-            className={`um-tab ${activeTab === 'tellers' ? 'active' : ''}`}
-            onClick={() => setActiveTab('tellers')}
-          >
-            👥 Tellers
-          </button>
-          <button
-            className={`um-tab ${activeTab === 'collectors' ? 'active' : ''}`}
-            onClick={() => setActiveTab('collectors')}
-          >
-            📋 Collectors
-          </button>
-          <div className="um-grow" />
-          {activeTab === 'tellers' && (
-            <button className="um-btn um-btn-primary" onClick={() => openCreateModal('teller')}>
-              + Create Teller
+      {/* Header - Reports Style */}
+      <div className="um-header">
+        <div className="um-header-content">
+          <div>
+            <h2 className="um-title">User Management</h2>
+            <p className="um-subtitle">
+              Manage tellers and collectors across all locations
+            </p>
+          </div>
+          <div className="um-header-actions">
+            <button 
+              className={`um-view-btn ${activeTab === 'tellers' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tellers')}
+            >
+              <span>👥</span> Tellers
             </button>
-          )}
-          {activeTab === 'collectors' && (
-            <button className="um-btn um-btn-primary" onClick={() => openCreateModal('collector')}>
-              + Create Collector
+            <button 
+              className={`um-view-btn ${activeTab === 'collectors' ? 'active' : ''}`}
+              onClick={() => setActiveTab('collectors')}
+            >
+              <span>📋</span> Collectors
             </button>
-          )}
+          </div>
         </div>
+        <div className="um-status-bar">
+          <div className="um-stats-header">
+            {activeTab === 'tellers' ? (
+              <>
+                <span className="um-stat-item um-stat-success">
+                  <span className="stat-dot"></span>
+                  Active: <strong>{stats.tellersActive}</strong>
+                </span>
+                <span className="um-stat-item um-stat-danger">
+                  <span className="stat-dot"></span>
+                  Suspended: <strong>{stats.tellersSuspended}</strong>
+                </span>
+                <span className="um-stat-item">
+                  Total: <strong>{stats.tellersTotal}</strong>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="um-stat-item um-stat-success">
+                  <span className="stat-dot"></span>
+                  Active: <strong>{stats.collectorsActive}</strong>
+                </span>
+                <span className="um-stat-item um-stat-danger">
+                  <span className="stat-dot"></span>
+                  Suspended: <strong>{stats.collectorsSuspended}</strong>
+                </span>
+                <span className="um-stat-item">
+                  Total: <strong>{stats.collectorsTotal}</strong>
+                </span>
+              </>
+            )}
+          </div>
+          <button 
+            className="um-create-btn" 
+            onClick={() => openCreateModal(activeTab === 'tellers' ? 'teller' : 'collector')}
+          >
+            <span>+</span> Create {activeTab === 'tellers' ? 'Teller' : 'Collector'}
+          </button>
+        </div>
+      </div>
 
-        {/* Tools & Stats */}
+      {/* Card with Table */}
+      <div className="um-card">
+        {/* Search Bar */}
         <div className="um-tools">
           <div className="um-search">
             <span className="um-search-icon">🔍</span>
@@ -345,21 +428,6 @@ const UserManagement = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
-          <div className="um-stats">
-            {activeTab === 'tellers' ? (
-              <>
-                <span className="um-stat um-stat-success">Active <strong>{stats.tellersActive}</strong></span>
-                <span className="um-stat um-stat-danger">Suspended <strong>{stats.tellersSuspended}</strong></span>
-                <span className="um-stat">Total <strong>{stats.tellersTotal}</strong></span>
-              </>
-            ) : (
-              <>
-                <span className="um-stat um-stat-success">Active <strong>{stats.collectorsActive}</strong></span>
-                <span className="um-stat um-stat-danger">Suspended <strong>{stats.collectorsSuspended}</strong></span>
-                <span className="um-stat">Total <strong>{stats.collectorsTotal}</strong></span>
-              </>
-            )}
           </div>
         </div>
 
@@ -385,7 +453,7 @@ const UserManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {displayedTellers.map((teller, idx) => (
+                {displayedTellers.map((teller) => (
                   <tr key={teller.id}>
                     <td>
                       <div className="um-person">
@@ -437,7 +505,7 @@ const UserManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {displayedCollectors.map((collector, idx) => (
+                {displayedCollectors.map((collector) => (
                   <tr key={collector.id}>
                     <td>
                       <div className="um-person">
@@ -473,263 +541,296 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* View Modal */}
-      {viewModal.open && viewModal.data && createPortal(
-        <>
-          <div className="um-modal-overlay active" onClick={closeModals} />
-          <div className="um-modal-container active">
-            <div className="um-modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="um-modal-header">
-                <h3>{viewModal.type === 'teller' ? 'Teller' : 'Collector'} Details</h3>
-                <button className="um-modal-close" onClick={closeModals}>×</button>
-              </div>
-              <div className="um-modal-body">
-                <div className="um-profile">
-                  <span className="um-avatar-lg">{getInitials(viewModal.data.name)}</span>
-                  <div>
-                    <h4>{viewModal.data.name}</h4>
-                    <p>{viewModal.data.id} · {viewModal.data.area}</p>
-                  </div>
-                  <span className={`um-pill ${viewModal.data.suspended ? 'um-pill-danger' : 'um-pill-success'}`}>
-                    {viewModal.data.suspended ? 'Suspended' : 'Active'}
-                  </span>
-                </div>
-                <div className="um-details">
-                  <div className="um-detail-grid">
-                    <div>
-                      <label>Contact</label>
-                      <p>{viewModal.data.contact}</p>
-                    </div>
-                    <div>
-                      <label>Address</label>
-                      <p>{viewModal.data.address}</p>
-                    </div>
-                    <div>
-                      <label>Username</label>
-                      <p>{viewModal.data.username}</p>
-                    </div>
-                    <div>
-                      <label>Email</label>
-                      <p>{viewModal.data.email}</p>
-                    </div>
-                    <div>
-                      <label>Device</label>
-                      <p>{viewModal.data.device}</p>
-                    </div>
-                    <div>
-                      <label>2FA</label>
-                      <p>{viewModal.data.twofa}</p>
-                    </div>
-                    {viewModal.type === 'teller' && (
-                      <div>
-                        <label>Assigned To</label>
-                        <p>{viewModal.data.assigned || '—'}</p>
-                      </div>
-                    )}
-                  </div>
-                  {viewModal.type === 'collector' && viewModal.data.tellers && (
-                    <div className="um-tellers-list">
-                      <label>Assigned Tellers</label>
-                      <ul>
-                        {viewModal.data.tellers.length ? viewModal.data.tellers.map((t, i) => <li key={i}>{t}</li>) : <li>—</li>}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="um-modal-footer">
-                <button className="um-btn-secondary" onClick={closeModals}>Close</button>
-              </div>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
-
-      {/* Create Modal */}
-      {createModal.open && createPortal(
-        <>
-          <div className="um-modal-overlay active" onClick={closeModals} />
-          <div className="um-modal-container active">
-            <form className="um-modal-content" onSubmit={handleCreate} onClick={(e) => e.stopPropagation()}>
-              <div className="um-modal-header">
-                <h3>Create {createModal.type === 'teller' ? 'Teller' : 'Collector'}</h3>
-                <button type="button" className="um-modal-close" onClick={closeModals}>×</button>
-              </div>
-              <div className="um-modal-body">
-                <div className="um-form-row">
-                  <div className="um-form-field">
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      value={formData.firstName || ''}
-                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    />
-                  </div>
-                  <div className="um-form-field">
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      value={formData.lastName || ''}
-                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="um-form-row">
-                  <div className="um-form-field">
-                    <label>Area</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      value={formData.area || ''}
-                      onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                    />
-                  </div>
-                  <div className="um-form-field">
-                    <label>Contact</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      placeholder="+63 ..."
-                      value={formData.contact || ''}
-                      onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="um-form-field">
-                  <label>Address</label>
-                  <input
-                    type="text"
-                    className="um-control"
-                    required
-                    value={formData.address || ''}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  />
-                </div>
-                {createModal.type === 'teller' && (
-                  <div className="um-form-field">
-                    <label>Assigned Collector</label>
-                    <select
-                      className="um-control"
-                      value={formData.assigned || ''}
-                      onChange={(e) => setFormData({ ...formData, assigned: e.target.value })}
-                    >
-                      <option value="">No collector assigned</option>
-                      {collectors.map(c => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-              <div className="um-modal-footer">
-                <button type="button" className="um-btn-secondary" onClick={closeModals}>Cancel</button>
-                <button type="submit" className="um-btn-primary">Create</button>
-              </div>
-            </form>
-          </div>
-        </>,
-        document.body
-      )}
-
-      {/* Edit Modal */}
-      {editModal.open && editModal.data && createPortal(
-        <>
-          <div className="um-modal-overlay active" onClick={closeModals} />
-          <div className="um-modal-container active">
-            <form className="um-modal-content" onSubmit={handleEdit} onClick={(e) => e.stopPropagation()}>
-              <div className="um-modal-header">
-                <h3>Edit {editModal.type === 'teller' ? 'Teller' : 'Collector'}</h3>
-                <button type="button" className="um-modal-close" onClick={closeModals}>×</button>
-              </div>
-              <div className="um-modal-body">
-                <div className="um-form-row">
-                  <div className="um-form-field">
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      value={formData.firstName || ''}
-                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    />
-                  </div>
-                  <div className="um-form-field">
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      value={formData.lastName || ''}
-                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="um-form-row">
-                  <div className="um-form-field">
-                    <label>Area</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      value={formData.area || ''}
-                      onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                    />
-                  </div>
-                  <div className="um-form-field">
-                    <label>Contact</label>
-                    <input
-                      type="text"
-                      className="um-control"
-                      required
-                      value={formData.contact || ''}
-                      onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="um-form-field">
-                  <label>Address</label>
-                  <input
-                    type="text"
-                    className="um-control"
-                    required
-                    value={formData.address || ''}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  />
-                </div>
-                {editModal.type === 'teller' && (
-                  <div className="um-form-field">
-                    <label>Assigned Collector</label>
-                    <select
-                      className="um-control"
-                      value={formData.assigned || ''}
-                      onChange={(e) => setFormData({ ...formData, assigned: e.target.value })}
-                    >
-                      <option value="">No collector assigned</option>
-                      {collectors.map(c => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-              <div className="um-modal-footer">
-                <button type="button" className="um-btn-secondary" onClick={closeModals}>Cancel</button>
-                <button type="submit" className="um-btn-primary">Save Changes</button>
-              </div>
-            </form>
-          </div>
-        </>,
-        document.body
-      )}
+      {/* Modals */}
+      <ViewModal 
+        modal={viewModal} 
+        onClose={closeModals} 
+        getInitials={getInitials} 
+      />
+      <CreateModal 
+        modal={createModal} 
+        formData={formData} 
+        setFormData={setFormData} 
+        collectors={collectors} 
+        onSubmit={handleCreate} 
+        onClose={closeModals} 
+      />
+      <EditModal 
+        modal={editModal} 
+        formData={formData} 
+        setFormData={setFormData} 
+        collectors={collectors} 
+        onSubmit={handleEdit} 
+        onClose={closeModals} 
+      />
     </div>
   );
 };
+
+// Separate Modal Components for better performance
+const ViewModal = React.memo(({ modal, onClose, getInitials }) => {
+  if (!modal.open || !modal.data) return null;
+
+  return createPortal(
+    <>
+      <div className="um-modal-overlay active" onClick={onClose} />
+      <div className="um-modal-container active">
+        <div className="um-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="um-modal-header">
+            <h3>{modal.type === 'teller' ? 'Teller' : 'Collector'} Details</h3>
+            <button className="um-modal-close" onClick={onClose}>×</button>
+          </div>
+          <div className="um-modal-body">
+            <div className="um-profile">
+              <span className="um-avatar-lg">{getInitials(modal.data.name)}</span>
+              <div>
+                <h4>{modal.data.name}</h4>
+                <p>{modal.data.id} · {modal.data.area}</p>
+              </div>
+              <span className={`um-pill ${modal.data.suspended ? 'um-pill-danger' : 'um-pill-success'}`}>
+                {modal.data.suspended ? 'Suspended' : 'Active'}
+              </span>
+            </div>
+            <div className="um-details">
+              <div className="um-detail-grid">
+                <div>
+                  <label>Contact</label>
+                  <p>{modal.data.contact}</p>
+                </div>
+                <div>
+                  <label>Address</label>
+                  <p>{modal.data.address}</p>
+                </div>
+                <div>
+                  <label>Username</label>
+                  <p>{modal.data.username}</p>
+                </div>
+                <div>
+                  <label>Email</label>
+                  <p>{modal.data.email}</p>
+                </div>
+                <div>
+                  <label>Device</label>
+                  <p>{modal.data.device}</p>
+                </div>
+                <div>
+                  <label>2FA</label>
+                  <p>{modal.data.twofa}</p>
+                </div>
+                {modal.type === 'teller' && (
+                  <div>
+                    <label>Assigned To</label>
+                    <p>{modal.data.assigned || '—'}</p>
+                  </div>
+                )}
+              </div>
+              {modal.type === 'collector' && modal.data.tellers && (
+                <div className="um-tellers-list">
+                  <label>Assigned Tellers</label>
+                  <ul>
+                    {modal.data.tellers.length ? modal.data.tellers.map((t, i) => <li key={i}>{t}</li>) : <li>—</li>}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="um-modal-footer">
+            <button className="um-btn-secondary" onClick={onClose}>Close</button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+});
+
+const CreateModal = React.memo(({ modal, formData, setFormData, collectors, onSubmit, onClose }) => {
+  if (!modal.open) return null;
+
+  return createPortal(
+    <>
+      <div className="um-modal-overlay active" onClick={onClose} />
+      <div className="um-modal-container active">
+        <form className="um-modal-content" onSubmit={onSubmit} onClick={(e) => e.stopPropagation()}>
+          <div className="um-modal-header">
+            <h3>Create {modal.type === 'teller' ? 'Teller' : 'Collector'}</h3>
+            <button type="button" className="um-modal-close" onClick={onClose}>×</button>
+          </div>
+          <div className="um-modal-body">
+            <div className="um-form-row">
+              <div className="um-form-field">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  value={formData.firstName || ''}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                />
+              </div>
+              <div className="um-form-field">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  value={formData.lastName || ''}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="um-form-row">
+              <div className="um-form-field">
+                <label>Area</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  value={formData.area || ''}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                />
+              </div>
+              <div className="um-form-field">
+                <label>Contact</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  placeholder="+63 ..."
+                  value={formData.contact || ''}
+                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="um-form-field">
+              <label>Address</label>
+              <input
+                type="text"
+                className="um-control"
+                required
+                value={formData.address || ''}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+            {modal.type === 'teller' && (
+              <div className="um-form-field">
+                <label>Assigned Collector</label>
+                <select
+                  className="um-control"
+                  value={formData.assigned || ''}
+                  onChange={(e) => setFormData({ ...formData, assigned: e.target.value })}
+                >
+                  <option value="">No collector assigned</option>
+                  {collectors.map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+          <div className="um-modal-footer">
+            <button type="button" className="um-btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="um-btn-primary">Create</button>
+          </div>
+        </form>
+      </div>
+    </>,
+    document.body
+  );
+});
+
+const EditModal = React.memo(({ modal, formData, setFormData, collectors, onSubmit, onClose }) => {
+  if (!modal.open || !modal.data) return null;
+
+  return createPortal(
+    <>
+      <div className="um-modal-overlay active" onClick={onClose} />
+      <div className="um-modal-container active">
+        <form className="um-modal-content" onSubmit={onSubmit} onClick={(e) => e.stopPropagation()}>
+          <div className="um-modal-header">
+            <h3>Edit {modal.type === 'teller' ? 'Teller' : 'Collector'}</h3>
+            <button type="button" className="um-modal-close" onClick={onClose}>×</button>
+          </div>
+          <div className="um-modal-body">
+            <div className="um-form-row">
+              <div className="um-form-field">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  value={formData.firstName || ''}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                />
+              </div>
+              <div className="um-form-field">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  value={formData.lastName || ''}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="um-form-row">
+              <div className="um-form-field">
+                <label>Area</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  value={formData.area || ''}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                />
+              </div>
+              <div className="um-form-field">
+                <label>Contact</label>
+                <input
+                  type="text"
+                  className="um-control"
+                  required
+                  value={formData.contact || ''}
+                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="um-form-field">
+              <label>Address</label>
+              <input
+                type="text"
+                className="um-control"
+                required
+                value={formData.address || ''}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+            {modal.type === 'teller' && (
+              <div className="um-form-field">
+                <label>Assigned Collector</label>
+                <select
+                  className="um-control"
+                  value={formData.assigned || ''}
+                  onChange={(e) => setFormData({ ...formData, assigned: e.target.value })}
+                >
+                  <option value="">No collector assigned</option>
+                  {collectors.map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+          <div className="um-modal-footer">
+            <button type="button" className="um-btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="um-btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </>,
+    document.body
+  );
+});
 
 export default UserManagement;
