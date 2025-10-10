@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import '../styles/enforcement.css';
+import { useOutletContext } from 'react-router-dom';
 
 const Enforcement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -224,14 +225,35 @@ const Enforcement = () => {
     setSelectedLog(null);
   };
 
+  const { toggleSidebar, sidebarOpen } = useOutletContext() || {};
+  const showMenuButton = typeof toggleSidebar === 'function';
+
   return (
     <div className="enf-container">
       {/* Header - Same as Reports Module */}
       <div className="enf-header">
         <div className="enf-header-content">
-          <div>
-            <h1 className="enf-title">Enforcement & Security</h1>
-            <p className="enf-subtitle">System audit logs and security monitoring</p>
+          <div className="enf-header-main">
+            {showMenuButton && (
+              <button
+                type="button"
+                className="ga-mobile-menu-btn ga-mobile-menu-btn--inline"
+                onClick={toggleSidebar}
+                aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={sidebarOpen ?? false}
+                aria-controls="gaSidebar"
+              >
+                <span className="ga-menu-icon">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            )}
+            <div className="enf-header-text">
+              <h1 className="enf-title">Enforcement & Security</h1>
+              <p className="enf-subtitle">System audit logs and security monitoring</p>
+            </div>
           </div>
           <div className="enf-header-actions">
             <button className="enf-export-btn-header" onClick={exportToCSV}>

@@ -180,23 +180,8 @@ const GameAdministratorLayout = () => {
 
         {/* Main Content */}
         <main className="ga-main" id="gaMain">
-          {/* Mobile Menu Button */}
-          <button
-            className="ga-mobile-menu-btn"
-            onClick={toggleSidebar}
-            aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={sidebarOpen}
-            aria-controls="gaSidebar"
-          >
-            <span className="ga-menu-icon">
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-          </button>
-
           <section className="ga-content" role="region">
-            <Outlet />
+            <Outlet context={{ toggleSidebar, sidebarOpen }} />
           </section>
         </main>
       </div>

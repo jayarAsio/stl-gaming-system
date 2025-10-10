@@ -5,11 +5,13 @@
 // ============================================
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import '../styles/dashboard.css';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { toggleSidebar, sidebarOpen } = useOutletContext() || {};
+  const showMenuButton = typeof toggleSidebar === 'function';
   
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -122,15 +124,33 @@ const DashboardPage = () => {
       {/* Dashboard Header - Reports Style */}
       <div className="dashboard-header">
         <div className="dashboard-header-content">
-          <div>
-            <h2 className="dashboard-title">Game Administrator Dashboard</h2>
-            <p className="dashboard-subtitle">
-              Real-time system monitoring and operational control center
-            </p>
+          <div className="dashboard-header-main">
+            {showMenuButton && (
+              <button
+                type="button"
+                className="ga-mobile-menu-btn ga-mobile-menu-btn--inline"
+                onClick={toggleSidebar}
+                aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={sidebarOpen ?? false}
+                aria-controls="gaSidebar"
+              >
+                <span className="ga-menu-icon">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            )}
+            <div className="dashboard-header-text">
+              <h2 className="dashboard-title">Game Administrator Dashboard</h2>
+              <p className="dashboard-subtitle">
+                Real-time system monitoring and operational control center
+              </p>
+            </div>
           </div>
           <div className="dashboard-header-actions">
-            <button 
-              className="dashboard-action-btn" 
+            <button
+              className="dashboard-action-btn"
               onClick={handleRefresh}
               disabled={refreshing}
               aria-label="Refresh dashboard"

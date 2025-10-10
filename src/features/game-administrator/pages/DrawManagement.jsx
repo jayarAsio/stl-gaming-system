@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
 import '../styles/draw-management.css';
 
 const DrawManagement = () => {
@@ -498,16 +499,37 @@ const DrawManagement = () => {
   const dateStatus = currentDate === localToday ? 'today' : currentDate < localToday ? 'archive' : 'future';
   const dateStatusText = dateStatus === 'today' ? 'Today' : dateStatus === 'archive' ? 'Archive' : 'Future';
 
+  const { toggleSidebar, sidebarOpen } = useOutletContext() || {};
+  const showMenuButton = typeof toggleSidebar === 'function';
+
   return (
     <div className="dmx">
       {/* Header - Reports Style */}
       <div className="dmx-header">
         <div className="dmx-header-content">
-          <div>
-            <h2 className="dmx-title">Draw Management</h2>
-            <p className="dmx-subtitle">
-              Manage lottery draws, results, and winner payouts
-            </p>
+          <div className="dmx-header-main">
+            {showMenuButton && (
+              <button
+                type="button"
+                className="ga-mobile-menu-btn ga-mobile-menu-btn--inline"
+                onClick={toggleSidebar}
+                aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={sidebarOpen ?? false}
+                aria-controls="gaSidebar"
+              >
+                <span className="ga-menu-icon">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            )}
+            <div className="dmx-header-text">
+              <h2 className="dmx-title">Draw Management</h2>
+              <p className="dmx-subtitle">
+                Manage lottery draws, results, and winner payouts
+              </p>
+            </div>
           </div>
           <div className="dmx-header-actions">
             <input

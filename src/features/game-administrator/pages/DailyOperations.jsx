@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
 import '../styles/daily-operations.css';
 
 const DailyOperations = () => {
@@ -530,19 +531,40 @@ const DailyOperations = () => {
     return `${String(hour - 12).padStart(2, '0')} PM`;
   }, []);
 
+  const { toggleSidebar, sidebarOpen } = useOutletContext() || {};
+  const showMenuButton = typeof toggleSidebar === 'function';
+
   return (
     <div className="do-container">
       {/* Header - Reports Style */}
       <div className="do-header">
         <div className="do-header-content">
-          <div>
-            <h2 className="do-title">Daily Operations</h2>
-            <p className="do-subtitle">
-              Monitor ticket entries, teller activity, and void requests in real-time
-            </p>
+          <div className="do-header-main">
+            {showMenuButton && (
+              <button
+                type="button"
+                className="ga-mobile-menu-btn ga-mobile-menu-btn--inline"
+                onClick={toggleSidebar}
+                aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={sidebarOpen ?? false}
+                aria-controls="gaSidebar"
+              >
+                <span className="ga-menu-icon">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            )}
+            <div className="do-header-text">
+              <h2 className="do-title">Daily Operations</h2>
+              <p className="do-subtitle">
+                Monitor ticket entries, teller activity, and void requests in real-time
+              </p>
+            </div>
           </div>
           <div className="do-header-actions">
-            <button 
+            <button
               className={`do-view-btn ${activeTab === 'tickets' ? 'active' : ''}`}
               onClick={() => setActiveTab('tickets')}
             >

@@ -87,6 +87,18 @@
   align-items: center;
 }
 
+.enf-header-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.enf-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .enf-title {
   font-size: 1.75rem;
   font-weight: 700;
@@ -590,15 +602,34 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+    text-align: left;
+    width: 100%;
+  }
+
+  .enf-header-main {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.75rem;
+  }
+
+  .enf-header-main .ga-mobile-menu-btn--inline {
+    order: -1;
+  }
+
+  .enf-header-text {
+    gap: 0.25rem;
+    align-items: flex-start;
+    text-align: left;
   }
 
   .enf-header-actions {
     width: 100%;
+    justify-content: flex-start;
   }
 
   .enf-export-btn-header {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .enf-filters {

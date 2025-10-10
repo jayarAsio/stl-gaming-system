@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import '../styles/reports.css';
+import { useOutletContext } from 'react-router-dom';
 
 // Generate mock data
 const generateMockData = () => {
@@ -56,6 +57,9 @@ const generateMockData = () => {
 };
 
 const Reports = () => {
+  const { toggleSidebar, sidebarOpen } = useOutletContext() || {};
+  const showMenuButton = typeof toggleSidebar === 'function';
+
   // State management
   const [rawData] = useState(() => generateMockData());
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
@@ -792,13 +796,31 @@ const Reports = () => {
       {/* Header Section */}
       <div className="gar-header">
         <div className="gar-header-content">
-          <div>
-            <h2 className="gar-title">Reports & Analytics</h2>
-            <p className="gar-subtitle">Comprehensive operational insights and compliance monitoring</p>
+          <div className="gar-header-main">
+            {showMenuButton && (
+              <button
+                type="button"
+                className="ga-mobile-menu-btn ga-mobile-menu-btn--inline"
+                onClick={toggleSidebar}
+                aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={sidebarOpen ?? false}
+                aria-controls="gaSidebar"
+              >
+                <span className="ga-menu-icon">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            )}
+            <div className="gar-header-text">
+              <h2 className="gar-title">Reports & Analytics</h2>
+              <p className="gar-subtitle">Comprehensive operational insights and compliance monitoring</p>
+            </div>
           </div>
           <div className="gar-header-actions">
-            <button 
-              onClick={() => setViewMode('summary')} 
+            <button
+              onClick={() => setViewMode('summary')}
               className={`gar-view-btn ${viewMode === 'summary' ? 'active' : ''}`}
             >
               <span>📊</span> Summary
