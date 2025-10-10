@@ -52,6 +52,18 @@
   align-items: center;
 }
 
+.gar-header-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gar-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .gar-title {
   font-size: 1.75rem;
   font-weight: 700;
@@ -863,7 +875,29 @@
   .gar-header-content {
     flex-direction: column;
     gap: 1rem;
-    text-align: center;
+    text-align: left;
+    align-items: stretch;
+  }
+
+  .gar-header-main {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.75rem;
+  }
+
+  .gar-header-main .ga-mobile-menu-btn--inline {
+    order: -1;
+  }
+
+  .gar-header-text {
+    gap: 0.25rem;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .gar-header-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
   
   .gar-kpi-grid {

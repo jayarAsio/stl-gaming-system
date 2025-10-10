@@ -241,6 +241,9 @@ const GameAdministratorLayout = () => {
 
         {/* Main Content */}
         <main className="ga-main" id="gaMain">
+          <section className="ga-content" role="region">
+            <Outlet context={{ toggleSidebar, sidebarOpen }} />
+          </section>
           <div className="ga-content">
             <Outlet />
           </div>

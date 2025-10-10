@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
 import '../styles/user-management.css';
 
 const UserManagement = () => {
+  const { toggleSidebar, sidebarOpen } = useOutletContext() || {};
+  const showMenuButton = typeof toggleSidebar === 'function';
+
   // Initial data with memoization
   const initialTellers = useMemo(() => {
     try {
@@ -353,14 +357,32 @@ const UserManagement = () => {
       {/* Header - Reports Style */}
       <div className="um-header">
         <div className="um-header-content">
-          <div>
-            <h2 className="um-title">User Management</h2>
-            <p className="um-subtitle">
-              Manage tellers and collectors across all locations
-            </p>
+          <div className="um-header-main">
+            {showMenuButton && (
+              <button
+                type="button"
+                className="ga-mobile-menu-btn ga-mobile-menu-btn--inline"
+                onClick={toggleSidebar}
+                aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={sidebarOpen ?? false}
+                aria-controls="gaSidebar"
+              >
+                <span className="ga-menu-icon">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            )}
+            <div className="um-header-text">
+              <h2 className="um-title">User Management</h2>
+              <p className="um-subtitle">
+                Manage tellers and collectors across all locations
+              </p>
+            </div>
           </div>
           <div className="um-header-actions">
-            <button 
+            <button
               className={`um-view-btn ${activeTab === 'tellers' ? 'active' : ''}`}
               onClick={() => setActiveTab('tellers')}
             >

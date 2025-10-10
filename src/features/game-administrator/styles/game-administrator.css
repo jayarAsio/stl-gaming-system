@@ -416,6 +416,29 @@ body {
   touch-action: manipulation;
 }
 
+.ga-mobile-menu-btn--inline {
+  position: relative;
+  top: auto;
+  left: auto;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: none;
+  display: none;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.ga-mobile-menu-btn--inline .ga-menu-icon span {
+  background: var(--ga-white);
+}
+
+.ga-mobile-menu-btn.ga-mobile-menu-btn--inline:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: none;
+  box-shadow: none;
+}
+
 .ga-mobile-menu-btn:hover {
   background: var(--ga-gray-50);
   transform: translateY(-2px);
@@ -425,6 +448,11 @@ body {
 
 .ga-mobile-menu-btn:active {
   transform: translateY(0) scale(0.96);
+}
+
+.ga-mobile-menu-btn:focus-visible {
+  outline: 3px solid var(--ga-accent-light);
+  outline-offset: 2px;
 }
 
 /* Animated Hamburger Icon */
@@ -589,6 +617,10 @@ body {
 
   .ga-content {
     padding-top: 80px; /* Space for mobile menu button */
+  }
+
+  .ga-mobile-menu-btn--inline {
+    display: inline-flex;
   }
 
   .ga-card {
