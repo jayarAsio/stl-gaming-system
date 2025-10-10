@@ -39,10 +39,18 @@ createRoot(document.getElementById('root')).render(
 ;(function ensureHeadersVisible() {
   try {
     // Run on next paint so any server-rendered markup exists
-    requestAnimationFrame(() => {
-      const headers = document.querySelectorAll('.header');
-      headers.forEach(h => h.classList.add('is-visible'));
-    });
+    const addVisible = () => {
+      document.querySelectorAll('.header:not(.is-visible)').forEach(h => h.classList.add('is-visible'));
+    };
+
+    requestAnimationFrame(addVisible);
+
+    // Observe DOM mutations so headers added later (route changes / lazy mount) also get the class
+    const observer = new MutationObserver(() => addVisible());
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Clean up on unload
+    window.addEventListener('beforeunload', () => observer.disconnect());
   } catch (err) {
     // non-critical — log for diagnostics
     // console.error('ensureHeadersVisible failed', err)
