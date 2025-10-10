@@ -34,3 +34,17 @@ createRoot(document.getElementById('root')).render(
     console.error('Page loader removal failed:', err)
   }
 })()
+
+// Ensure headers that rely on JS-applied animation classes are visible
+;(function ensureHeadersVisible() {
+  try {
+    // Run on next paint so any server-rendered markup exists
+    requestAnimationFrame(() => {
+      const headers = document.querySelectorAll('.header');
+      headers.forEach(h => h.classList.add('is-visible'));
+    });
+  } catch (err) {
+    // non-critical — log for diagnostics
+    // console.error('ensureHeadersVisible failed', err)
+  }
+})();
