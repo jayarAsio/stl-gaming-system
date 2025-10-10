@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from "react-router-dom";
 import "../styles/sales-report.css";
 
 const SalesReport = ({ 
   commissionRate = 0.05, 
-  games = ['STL Pares', 'Last 2', 'Last 3', 'Swer3'],
-  onNavigateBack 
+  games = ['STL Pares', 'Last 2', 'Last 3', 'Swer3']
 }) => {
   // State management
   const [activeTab, setActiveTab] = useState('pending');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [viewMode, setViewMode] = useState('table'); // 'table', 'chart'
+  // viewMode removed - unused
   const [reportData, setReportData] = useState({
     totalSales: 0,
     totalTickets: 0,
@@ -112,7 +111,6 @@ const SalesReport = ({
     };
     
     const todayStr = formatDate(today);
-    const lastWeekStr = formatDate(lastWeek);
     
     setFromDate(todayStr);
     setToDate(todayStr);
@@ -317,7 +315,7 @@ const SalesReport = ({
     setActiveTab(tabId);
   };
 
-  const handleTabKeyDown = (e, tabId) => {
+  const handleTabKeyDown = (e) => {
     const tabs = ['pending', 'approved', 'ticket'];
     const currentIndex = tabs.indexOf(activeTab);
     let newIndex = currentIndex;
@@ -632,7 +630,7 @@ const SalesReport = ({
                 aria-selected={activeTab === 'pending'}
                 tabIndex={activeTab === 'pending' ? 0 : -1}
                 onClick={() => handleTabChange('pending')}
-                onKeyDown={(e) => handleTabKeyDown(e, 'pending')}
+                onKeyDown={handleTabKeyDown}
               >
                 By Game Type
               </button>
@@ -644,7 +642,7 @@ const SalesReport = ({
                 aria-selected={activeTab === 'approved'}
                 tabIndex={activeTab === 'approved' ? 0 : -1}
                 onClick={() => handleTabChange('approved')}
-                onKeyDown={(e) => handleTabKeyDown(e, 'approved')}
+                onKeyDown={handleTabKeyDown}
               >
                 By Date Range
               </button>
@@ -656,7 +654,7 @@ const SalesReport = ({
                 aria-selected={activeTab === 'ticket'}
                 tabIndex={activeTab === 'ticket' ? 0 : -1}
                 onClick={() => handleTabChange('ticket')}
-                onKeyDown={(e) => handleTabKeyDown(e, 'ticket')}
+                onKeyDown={handleTabKeyDown}
               >
                 Search Ticket
               </button>

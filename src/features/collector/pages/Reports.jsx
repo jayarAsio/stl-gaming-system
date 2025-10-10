@@ -107,7 +107,6 @@ const ReportsModule = () => {
   const [generatedReport, setGeneratedReport] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Initialize date range to today
   useEffect(() => {
@@ -115,13 +114,7 @@ const ReportsModule = () => {
     setDateRange({ from: today, to: today });
   }, []);
 
-  // Update current time every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  // (removed realtime clock) - currentTime state was unused
 
   // Apply body class for background
   useEffect(() => {

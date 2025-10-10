@@ -347,7 +347,9 @@ const DrawManagement = () => {
           const totalTickets = Math.floor(Math.random() * (max - min + 1)) + min;
           localStorage.setItem(statsKey(currentDate, game, time), JSON.stringify({ totalTickets }));
         }
-      } catch {}
+      } catch (e) {
+        console.error('Error during demo seed:', e);
+      }
     } else {
       localStorage.setItem(winnersKey(currentDate, game, time), '[]');
     }
@@ -377,7 +379,9 @@ const DrawManagement = () => {
       let stats = null;
       try {
         stats = JSON.parse(localStorage.getItem(statsKey(currentDate, game, time)) || 'null');
-      } catch {}
+      } catch (e) {
+        console.error('Failed to parse stats from localStorage:', e);
+      }
 
       if (!stats) {
         const min = Math.max(winners.length, 120);

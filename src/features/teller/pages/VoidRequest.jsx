@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Link } from "react-router-dom";
 import "../styles/void-request.css";
 
@@ -110,7 +110,7 @@ const mockVoidRequests = {
   ],
 };
 
-const VoidRequest = ({ onNavigateBack }) => {
+const VoidRequest = () => {
   // State management
   const [activeTab, setActiveTab] = useState('create');
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,12 +123,12 @@ const VoidRequest = ({ onNavigateBack }) => {
   const [voidRequests, setVoidRequests] = useState(mockVoidRequests);
   const [searchHistory, setSearchHistory] = useState([]);
 
-  // Format currency
-  const peso = new Intl.NumberFormat('en-PH', {
+  // Format currency (memoized)
+  const peso = useMemo(() => new Intl.NumberFormat('en-PH', {
     style: 'currency',
     currency: 'PHP',
     maximumFractionDigits: 0
-  });
+  }), []);
 
   // Toast notification system
   const showToast = useCallback((message, type = 'success') => {
@@ -286,7 +286,7 @@ const VoidRequest = ({ onNavigateBack }) => {
   };
 
   // Keyboard navigation for tabs
-  const handleTabKeyDown = (e, tabId) => {
+  const handleTabKeyDown = (e) => {
     const tabs = ['create', 'pending', 'approved', 'rejected'];
     const currentIndex = tabs.indexOf(activeTab);
     let newIndex = currentIndex;
@@ -509,7 +509,7 @@ const VoidRequest = ({ onNavigateBack }) => {
             aria-selected={activeTab === 'create'}
             tabIndex={activeTab === 'create' ? 0 : -1}
             onClick={() => handleTabChange('create')}
-            onKeyDown={(e) => handleTabKeyDown(e, 'create')}
+            onKeyDown={handleTabKeyDown}
           >
             Create New Request
           </button>
@@ -521,7 +521,7 @@ const VoidRequest = ({ onNavigateBack }) => {
             aria-selected={activeTab === 'pending'}
             tabIndex={activeTab === 'pending' ? 0 : -1}
             onClick={() => handleTabChange('pending')}
-            onKeyDown={(e) => handleTabKeyDown(e, 'pending')}
+            onKeyDown={handleTabKeyDown}
           >
             Pending ({voidRequests.pending.length})
           </button>
@@ -533,7 +533,7 @@ const VoidRequest = ({ onNavigateBack }) => {
             aria-selected={activeTab === 'approved'}
             tabIndex={activeTab === 'approved' ? 0 : -1}
             onClick={() => handleTabChange('approved')}
-            onKeyDown={(e) => handleTabKeyDown(e, 'approved')}
+            onKeyDown={handleTabKeyDown}
           >
             Approved ({voidRequests.approved.length})
           </button>
@@ -545,7 +545,7 @@ const VoidRequest = ({ onNavigateBack }) => {
             aria-selected={activeTab === 'rejected'}
             tabIndex={activeTab === 'rejected' ? 0 : -1}
             onClick={() => handleTabChange('rejected')}
-            onKeyDown={(e) => handleTabKeyDown(e, 'rejected')}
+            onKeyDown={handleTabKeyDown}
           >
             Rejected ({voidRequests.rejected.length})
           </button>

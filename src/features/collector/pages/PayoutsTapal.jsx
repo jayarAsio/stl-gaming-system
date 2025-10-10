@@ -116,15 +116,8 @@ const PayoutTapal = () => {
   const [payoutReason, setPayoutReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Update current time every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  // (removed realtime clock) - currentTime state was unused
 
   // Apply body class for background
   useEffect(() => {
@@ -132,12 +125,12 @@ const PayoutTapal = () => {
     return () => document.body.classList.remove("payout-tapal-bg");
   }, []);
 
-  // Format currency
-  const peso = new Intl.NumberFormat('en-PH', {
+  // Format currency (memoized)
+  const peso = useMemo(() => new Intl.NumberFormat('en-PH', {
     style: 'currency',
     currency: 'PHP',
     maximumFractionDigits: 2
-  });
+  }), []);
 
   // Toast notification system
   const showToast = useCallback((message, type = 'success') => {

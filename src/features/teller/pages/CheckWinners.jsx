@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Link } from "react-router-dom";
 import "../styles/check-winners.css";
 
@@ -106,7 +106,7 @@ const drawsData = [
   },
 ];
 
-const CheckWinners = ({ onNavigateBack }) => {
+const CheckWinners = () => {
   // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState('all');
@@ -117,11 +117,11 @@ const CheckWinners = ({ onNavigateBack }) => {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   // Helper functions
-  const peso = new Intl.NumberFormat('en-PH', { 
+  const peso = useMemo(() => new Intl.NumberFormat('en-PH', { 
     style: 'currency', 
     currency: 'PHP', 
     maximumFractionDigits: 0 
-  });
+  }), []);
 
   const normalizeTicket = useCallback((raw) => {
     if (!raw) return '';

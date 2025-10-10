@@ -125,24 +125,19 @@ export default function Dashboard({
 
   // Handle scroll-based button visibility
   useEffect(() => {
-    let scrollTimeout;
-    let lastScrollY = window.scrollY;
+  let scrollTimeout;
     
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
       // Hide button when scrolling
       setIsScanButtonVisible(false);
-      
+
       // Clear existing timeout
       clearTimeout(scrollTimeout);
-      
+
       // Show button again after scroll stops (500ms delay)
       scrollTimeout = setTimeout(() => {
         setIsScanButtonVisible(true);
       }, 500);
-      
-      lastScrollY = currentScrollY;
     };
 
     // Add scroll event listener
@@ -214,6 +209,7 @@ export default function Dashboard({
       });
       
     } catch (error) {
+      console.error('QR scan parse error:', error);
       setScanError('Invalid QR code or ticket data. Please try again.');
       setIsScanning(true); // Allow retry
     }
