@@ -1,100 +1,56 @@
 /* ============================================
-   Game Administrator - Professional Design
-   COMPLETE CSS FILE - NO HEADER VERSION
+   Game Administrator Dashboard - Enhanced Mobile
    ============================================ */
 
-/* Base & Reset */
+:root {
+  /* Colors */
+  --ga-navy: #0a1628;
+  --ga-blue-dark: #1e3a5f;
+  --ga-accent: #3b82f6;
+  --ga-accent-light: #60a5fa;
+  --ga-accent-dark: #2563eb;
+  --ga-accent-glow: rgba(59, 130, 246, 0.3);
+  --ga-white: #ffffff;
+  --ga-gray-50: #f9fafb;
+  --ga-gray-100: #f3f4f6;
+  --ga-gray-200: #e5e7eb;
+  --ga-gray-300: #d1d5db;
+  --ga-gray-700: #374151;
+  --ga-gray-900: #111827;
+  
+  /* Spacing */
+  --ga-gutter: 24px;
+  --ga-sidebar-w: 280px;
+  
+  /* Radius */
+  --ga-radius: 12px;
+  --ga-radius-lg: 24px;
+  
+  /* Shadows */
+  --ga-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --ga-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --ga-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --ga-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.15);
+  
+  /* Animation */
+  --ga-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ga-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ga-ease-in-out: cubic-bezier(0.4, 0, 0.6, 1);
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-:root {
-  /* Professional Color Palette */
-  --ga-navy: #0A1628;
-  --ga-blue-dark: #0F2744;
-  --ga-blue-medium: #1A3A5C;
-  --ga-blue-light: #2B5278;
-  --ga-accent: #3B82F6;
-  --ga-accent-light: #60A5FA;
-  --ga-accent-glow: rgba(59, 130, 246, 0.2);
-  --ga-purple: #8B5CF6;
-  --ga-teal: #14B8A6;
-  
-  /* Neutrals */
-  --ga-white: #FFFFFF;
-  --ga-gray-50: #F8FAFC;
-  --ga-gray-100: #F1F5F9;
-  --ga-gray-200: #E2E8F0;
-  --ga-gray-300: #CBD5E1;
-  --ga-gray-400: #94A3B8;
-  --ga-gray-500: #64748B;
-  --ga-gray-600: #475569;
-  --ga-gray-700: #334155;
-  --ga-gray-800: #1E293B;
-  --ga-gray-900: #0F172A;
-  
-  /* Status Colors */
-  --ga-success: #10B981;
-  --ga-success-bg: rgba(16, 185, 129, 0.1);
-  --ga-warning: #F59E0B;
-  --ga-warning-bg: rgba(245, 158, 11, 0.1);
-  --ga-danger: #EF4444;
-  --ga-danger-bg: rgba(239, 68, 68, 0.1);
-  --ga-info: #3B82F6;
-  --ga-info-bg: rgba(59, 130, 246, 0.1);
-  
-  /* Layout */
-  --ga-gutter: 20px;
-  --ga-radius-sm: 10px;
-  --ga-radius: 16px;
-  --ga-radius-lg: 24px;
-  --ga-sidebar-w: 280px;
-  
-  /* Shadows - More dramatic for pro look */
-  --ga-shadow-sm: 0 2px 4px rgba(10, 22, 40, 0.08);
-  --ga-shadow: 0 4px 12px rgba(10, 22, 40, 0.12);
-  --ga-shadow-md: 0 8px 24px rgba(10, 22, 40, 0.15);
-  --ga-shadow-lg: 0 16px 48px rgba(10, 22, 40, 0.2);
-  --ga-shadow-xl: 0 24px 64px rgba(10, 22, 40, 0.25);
-  
-  /* Animations */
-  --ga-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --ga-ease-out: cubic-bezier(0, 0, 0.2, 1);
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #f8fafc 100%);
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
   color: var(--ga-gray-700);
-  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #f8fafc 100%);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-attachment: fixed;
 }
 
 /* ============================================
@@ -120,7 +76,7 @@ body {
   box-shadow: var(--ga-shadow-xl), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   padding: 1.25rem 0;
   overflow: hidden;
-  z-index: 2000;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(20px);
@@ -186,36 +142,19 @@ body {
   background-clip: text;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  text-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.3);
-  animation: textGlow 2s ease-in-out infinite;
-}
-
-@keyframes textGlow {
-  0%, 100% { 
-    filter: brightness(1) drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
-  }
-  50% { 
-    filter: brightness(1.2) drop-shadow(0 0 30px rgba(59, 130, 246, 0.6));
-  }
 }
 
 /* Navigation */
 .ga-nav {
   flex: 1;
-  padding: 0 1rem;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem;
   position: relative;
   z-index: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
 .ga-nav::-webkit-scrollbar {
   width: 4px;
-}
-
-.ga-nav::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 2px;
 }
 
 .ga-nav::-webkit-scrollbar-thumb {
@@ -223,32 +162,25 @@ body {
   border-radius: 2px;
 }
 
-.ga-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
 .ga-nav-menu {
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
 }
 
 .ga-nav-item {
-  position: relative;
+  margin-bottom: 0.25rem;
 }
 
 .ga-nav-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 1rem;
+  padding: 0.875rem 1rem;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   border-radius: var(--ga-radius);
   font-weight: 600;
   font-size: 0.875rem;
-  transition: all 0.25s var(--ga-ease);
+  transition: all 0.2s var(--ga-ease);
   position: relative;
   overflow: hidden;
 }
@@ -256,151 +188,126 @@ body {
 .ga-nav-link::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
-  opacity: 0;
-  transition: opacity 0.25s var(--ga-ease);
-  border-radius: var(--ga-radius);
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--ga-accent);
+  transform: translateX(-100%);
+  transition: transform 0.2s var(--ga-ease);
 }
 
 .ga-nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
   color: var(--ga-white);
-  transform: translateX(4px);
-}
-
-.ga-nav-link:hover::before {
-  opacity: 1;
 }
 
 .ga-nav-link.active {
+  background: rgba(59, 130, 246, 0.15);
   color: var(--ga-white);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .ga-nav-link.active::before {
-  opacity: 0;
+  transform: translateX(0);
 }
 
 .ga-nav-icon {
-  font-size: 1rem;
+  font-size: 1.125rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  position: relative;
-  z-index: 1;
+  flex-shrink: 0;
 }
 
 .ga-nav-label {
-  position: relative;
-  z-index: 1;
+  flex: 1;
 }
 
 .ga-nav-indicator {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
   width: 6px;
   height: 6px;
+  background: var(--ga-accent);
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--ga-accent-light) 0%, var(--ga-purple) 100%);
-  box-shadow: 0 0 12px var(--ga-accent);
-  z-index: 1;
+  flex-shrink: 0;
 }
 
-/* ============================================
-   Sidebar Footer - Profile Section
-   ============================================ */
+/* Sidebar Footer - Profile */
 .ga-sidebar-footer {
-  padding: 1rem 1.5rem 0;
+  padding: 0.75rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   z-index: 1;
 }
 
 .ga-sidebar-profile {
-  position: relative;
   cursor: pointer;
+  border-radius: var(--ga-radius);
+  transition: all 0.2s var(--ga-ease);
   user-select: none;
+}
+
+.ga-sidebar-profile:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .ga-profile-main {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--ga-radius);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s var(--ga-ease);
-}
-
-.ga-profile-main:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.ga-sidebar-profile.menu-open .ga-profile-main {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem;
 }
 
 .ga-profile-avatar {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  background: var(--ga-accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--ga-accent) 0%, var(--ga-purple) 100%);
-  color: var(--ga-white);
   font-weight: 700;
-  font-size: 0.8125rem;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  color: var(--ga-white);
+  font-size: 0.875rem;
   flex-shrink: 0;
 }
 
 .ga-avatar-ring {
   position: absolute;
   inset: -3px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
   border-radius: 50%;
-  border: 2px solid transparent;
-  background: linear-gradient(135deg, var(--ga-accent-light), var(--ga-purple)) border-box;
-  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: rotate 3s linear infinite;
+  animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes rotate {
-  to { transform: rotate(360deg); }
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
 }
 
 .ga-profile-info {
-  display: flex;
-  flex-direction: column;
   flex: 1;
   min-width: 0;
 }
 
 .ga-profile-name {
-  font-weight: 600;
-  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--ga-white);
-  line-height: 1.2;
+  font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .ga-profile-role {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.6);
-  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -458,10 +365,6 @@ body {
   background: rgba(239, 68, 68, 0.15);
 }
 
-.ga-logout-btn {
-  color: rgba(255, 255, 255, 0.9);
-}
-
 .ga-logout-icon {
   font-size: 1rem;
   display: flex;
@@ -480,54 +383,6 @@ body {
   position: relative;
 }
 
-/* Mobile Menu Button */
-.ga-mobile-menu-btn {
-  display: none;
-  position: fixed;
-  top: var(--ga-gutter);
-  left: var(--ga-gutter);
-  z-index: 1900;
-  background: var(--ga-white);
-  border: 1px solid var(--ga-gray-200);
-  width: 48px;
-  height: 48px;
-  border-radius: var(--ga-radius);
-  box-shadow: var(--ga-shadow-md);
-  cursor: pointer;
-  padding: 0;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s var(--ga-ease);
-}
-
-.ga-mobile-menu-btn:hover {
-  background: var(--ga-gray-50);
-  transform: translateY(-1px);
-  box-shadow: var(--ga-shadow-lg);
-}
-
-.ga-mobile-menu-btn:active {
-  transform: translateY(0);
-}
-
-.ga-menu-icon {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 20px;
-}
-
-.ga-menu-icon span {
-  display: block;
-  height: 2px;
-  background: var(--ga-gray-700);
-  border-radius: 2px;
-  transition: all 0.3s var(--ga-ease);
-}
-
-/* ============================================
-   Content Area
-   ============================================ */
 .ga-content {
   padding-top: 0.5rem;
   min-height: 50vh;
@@ -535,7 +390,134 @@ body {
   z-index: 1;
 }
 
-/* Game Admin Cards - Premium Style */
+/* ============================================
+   Enhanced Mobile Menu Button
+   ============================================ */
+.ga-mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: var(--ga-gutter);
+  left: var(--ga-gutter);
+  z-index: 2100;
+  background: var(--ga-white);
+  border: 2px solid transparent;
+  min-width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  box-shadow: var(--ga-shadow-lg);
+  cursor: pointer;
+  padding: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.3s var(--ga-ease-out);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.ga-mobile-menu-btn:hover {
+  background: var(--ga-gray-50);
+  transform: translateY(-2px);
+  box-shadow: var(--ga-shadow-xl);
+  border-color: var(--ga-accent);
+}
+
+.ga-mobile-menu-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+/* Animated Hamburger Icon */
+.ga-menu-icon {
+  width: 24px;
+  height: 18px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ga-menu-line {
+  display: block;
+  width: 100%;
+  height: 2.5px;
+  background: var(--ga-gray-900);
+  border-radius: 2px;
+  transition: all 0.3s var(--ga-ease-out);
+  transform-origin: center;
+}
+
+/* Hamburger to X animation */
+.ga-mobile-menu-btn.is-active .ga-menu-line-1 {
+  transform: translateY(7.75px) rotate(45deg);
+}
+
+.ga-mobile-menu-btn.is-active .ga-menu-line-2 {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.ga-mobile-menu-btn.is-active .ga-menu-line-3 {
+  transform: translateY(-7.75px) rotate(-45deg);
+}
+
+/* Active state styling */
+.ga-mobile-menu-btn.is-active {
+  background: var(--ga-accent);
+  border-color: var(--ga-accent-dark);
+}
+
+.ga-mobile-menu-btn.is-active .ga-menu-line {
+  background: var(--ga-white);
+}
+
+.ga-mobile-menu-btn.is-active:hover {
+  background: var(--ga-accent-dark);
+}
+
+/* Menu text label */
+.ga-menu-text {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--ga-gray-700);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  transition: color 0.3s var(--ga-ease);
+}
+
+.ga-mobile-menu-btn.is-active .ga-menu-text {
+  color: var(--ga-white);
+}
+
+/* ============================================
+   Scrim (Backdrop)
+   ============================================ */
+.ga-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 22, 40, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1900;
+  animation: fadeIn 0.25s var(--ga-ease-out);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0;
+  }
+  to { 
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   Cards
+   ============================================ */
 .ga-card {
   background: var(--ga-white);
   border: 1px solid var(--ga-gray-200);
@@ -559,71 +541,144 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Scrim */
-.ga-scrim {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 22, 40, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 1500;
-  animation: fadeIn 0.2s var(--ga-ease);
-  cursor: pointer;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 /* ============================================
-   Blur Effect for Draw Management Modals
-   ============================================ */
-.ga-sidebar.ga-blur {
-  filter: blur(8px);
-  -webkit-filter: blur(8px);
-  z-index: 1000 !important;
-}
-
-/* ============================================
-   Mobile Responsive
+   Mobile Responsive (768px and below)
    ============================================ */
 @media (max-width: 768px) {
   :root {
-    --ga-gutter: 12px;
+    --ga-gutter: 16px;
     --ga-radius-lg: 20px;
   }
 
+  /* Show mobile menu button */
+  .ga-mobile-menu-btn {
+    display: flex;
+  }
+
+  /* Mobile Sidebar */
   .ga-sidebar {
     position: fixed;
     left: 0;
     right: auto;
-    width: min(85vw, 320px);
+    width: min(85vw, 340px);
+    max-width: 340px;
     top: 0;
     bottom: 0;
     border-radius: 0;
     transform: translateX(-100%);
-    transition: transform 0.3s var(--ga-ease);
+    transition: transform 0.35s var(--ga-ease-out);
+    z-index: 2000;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
+  /* Sidebar open state */
+  .ga-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  /* Alternative - using container class */
   .ga-container.sidebar-open .ga-sidebar {
     transform: translateX(0);
   }
 
+  /* Main content adjustments */
   .ga-main {
     margin-left: 0;
     padding: 0 var(--ga-gutter) 2rem;
   }
 
-  .ga-mobile-menu-btn {
-    display: flex;
+  .ga-content {
+    padding-top: 80px; /* Space for mobile menu button */
   }
 
   .ga-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .ga-card h3 {
+    font-size: 1.125rem;
+  }
+
+  /* Adjust navigation for mobile */
+  .ga-nav {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .ga-nav-link {
+    padding: 1rem 0.875rem;
+    font-size: 0.9375rem;
+  }
+
+  .ga-nav-icon {
+    font-size: 1.25rem;
+  }
+
+  /* Profile section adjustments */
+  .ga-sidebar-footer {
+    padding: 0.875rem;
+  }
+
+  .ga-profile-avatar {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ============================================
+   Small Mobile (max-width: 375px)
+   ============================================ */
+@media (max-width: 375px) {
+  .ga-sidebar {
+    width: min(90vw, 300px);
+  }
+
+  .ga-mobile-menu-btn {
+    min-width: 52px;
+    height: 52px;
   }
 
   .ga-content {
-    padding-top: 64px;
+    padding-top: 76px;
+  }
+}
+
+/* ============================================
+   Tablet Responsive (769px - 1024px)
+   ============================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --ga-sidebar-w: 260px;
+    --ga-gutter: 20px;
+  }
+
+  .ga-nav-link {
+    font-size: 0.8125rem;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .ga-card {
+    padding: 1.75rem;
+  }
+}
+
+/* ============================================
+   Touch Device Optimizations
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+  .ga-mobile-menu-btn {
+    min-width: 60px;
+    height: 60px;
+  }
+
+  .ga-nav-link {
+    padding: 1.125rem 1rem;
+    min-height: 52px;
+  }
+
+  .ga-profile-main {
+    padding: 1rem 0.75rem;
+    min-height: 60px;
   }
 }
 
@@ -631,9 +686,59 @@ body {
    Accessibility
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.ga-nav-link:focus-visible,
+.ga-mobile-menu-btn:focus-visible,
+.ga-sidebar-profile:focus-visible {
+  outline: 3px solid var(--ga-accent);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ga-sidebar {
+    border: 2px solid var(--ga-white);
+  }
+  
+  .ga-nav-link {
+    border: 1px solid transparent;
+  }
+  
+  .ga-nav-link:hover,
+  .ga-nav-link.active {
+    border-color: var(--ga-accent);
+  }
+
+  .ga-mobile-menu-btn {
+    border-width: 3px;
+  }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .ga-mobile-menu-btn {
+    background: var(--ga-gray-900);
+    border-color: var(--ga-gray-700);
+  }
+
+  .ga-menu-line {
+    background: var(--ga-white);
+  }
+
+  .ga-menu-text {
+    color: var(--ga-gray-300);
+  }
+
+  .ga-mobile-menu-btn:hover {
+    background: var(--ga-gray-800);
   }
 }
