@@ -1,1 +1,0 @@
-import{j as n}from"./index-C0RggB8b.js";const e=()=>n.jsxs("div",{className:"operations-card",children:[n.jsx("h3",{children:"Discrepancy Handling"}),n.jsx("p",{style:{color:"var(--gray-500)"},children:"Discrepancy handling content goes here..."})]});export{e as default};
