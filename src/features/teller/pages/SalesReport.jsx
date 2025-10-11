@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from "react-router-dom";
+import "../styles/common.css";
 import "../styles/sales-report.css";
 
 const SalesReport = ({ 
@@ -513,11 +514,11 @@ const SalesReport = ({
   return (
     <div className="container">
       <header className="header">
-        <div className="header-content">
+        <div className="content">
           <h1>Sales Report</h1>
-          <p className="header-subtitle">Advanced analytics and ticket management</p>
+          <p>Advanced analytics and ticket management</p>
         </div>
-        <Link to="/teller" className="back-btn" aria-label="Back to Dashboard">
+        <Link to="/teller" className="back-button" aria-label="Back to Dashboard">
             <span aria-hidden="true">←</span> Back To Dashboard
         </Link>
       </header>

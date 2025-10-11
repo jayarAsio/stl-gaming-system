@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Link } from "react-router-dom";
+import "../styles/common.css";
 import "../styles/void-request.css";
 
 // Mock data - replace with actual API calls
@@ -480,11 +481,11 @@ const VoidRequest = () => {
     <div className="container">
       {/* Enhanced Header */}
       <header className="header">
-        <div className="header-content">
+        <div className="content">
           <h1>Void Request Management</h1>
-          <p className="header-subtitle">Manage ticket void requests and track their status</p>
+          <p>Manage ticket void requests and track their status</p>
         </div>
-        <Link to="/teller" className="back-btn" aria-label="Back to Dashboard">
+        <Link to="/teller" className="back-button" aria-label="Back to Dashboard">
             <span aria-hidden="true">←</span> Back To Dashboard
         </Link>
       </header>

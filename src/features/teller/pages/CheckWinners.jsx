@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Link } from "react-router-dom";
+import "../styles/common.css";
 import "../styles/check-winners.css";
 
 // Mock data - replace with actual API calls
@@ -344,10 +345,6 @@ const CheckWinners = () => {
         <div className="stat-value">{statistics.totalUnclaimed}</div>
         <div className="stat-label">Pending Claims</div>
       </div>
-      <div className="stat-card rate">
-        <div className="stat-value">{statistics.claimRate}%</div>
-        <div className="stat-label">Claim Rate</div>
-      </div>
     </div>
   );
 
@@ -468,11 +465,11 @@ const CheckWinners = () => {
     <div className="container">
       {/* Enhanced Header */}
       <header className="header">
-        <div className="header-content">
+        <div className="content">
           <h1>Check Winners</h1>
-          <p className="header-subtitle">Search tickets and view winning results</p>
+          <p>Search tickets and view winning results</p>
         </div>
-        <Link to="/teller" className="back-btn" aria-label="Back to Dashboard">
+        <Link to="/teller" className="back-button" aria-label="Back to Dashboard">
           <span aria-hidden="true">←</span> Back To Dashboard
         </Link>
       </header>

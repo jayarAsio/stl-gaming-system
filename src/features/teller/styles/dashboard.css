@@ -55,10 +55,6 @@ body.teller-bg{
   align-items: center;
   text-align: center;
   gap: 12px;
-  /* Override global .header animation which hides headers by default.
-     Ensure teller headers are visible even if no JS animation class is applied. */
-  opacity: 1;
-  transform: none;
 }
 
 .header.teller-header h1{

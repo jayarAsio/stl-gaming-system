@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from "react-router-dom";
 import QRCode from 'qrcode';
+import "../styles/common.css";
 import "../styles/create-ticket.css";
 
 /* ---------------- Draw times ---------------- */
@@ -429,10 +430,10 @@ const CreateTicket = () => {
   }, [closeGameModal, showToast]);
 
   return (
-    <div className="ticket-container">
+    <div className="container">
       {/* Header */}
-      <header className="ticket-header">
-        <div className="header-content">
+      <header className="header">
+        <div className="content">
           <h1>Create New Ticket</h1>
           <p>Select a game, add combos, and print</p>
         </div>
