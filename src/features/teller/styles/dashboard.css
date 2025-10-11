@@ -1,22 +1,6 @@
 /* ---------- Reset + Tokens ---------- */
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
-  /* Ocean Blue palette */
-  --ocean-deep:#02367B; --ocean-medium:#006CA5; --ocean-bright:#0496C7;
-  --ocean-light:#04BADE; --ocean-pale:#55E2E9;
 
-  /* mapped design tokens */
-  --primary:var(--ocean-deep);
-  --secondary:var(--ocean-medium);
-  --accent:var(--ocean-bright);
-  --light:var(--ocean-pale);
-
-  --white:#fff; --gray-200:#e0e0e0; --gray-600:#666; --ink:#1a1a1a;
-  --success:#4caf50;
-  --shadow:0 8px 28px rgba(2,54,123,.1);
-  --shadow-card:0 8px 28px rgba(2,54,123,.08);
-  --shadow-card-hover:0 12px 36px rgba(2,54,123,.13);
-}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
@@ -285,29 +269,6 @@ body.teller-bg{
   color: var(--gray-600);
 }
 
-.card-action{
-  display:inline-block;
-  margin-top:8px;
-  padding:10px 16px;
-  background:linear-gradient(135deg,var(--secondary),var(--accent));
-  color:#fff;
-  border-radius:999px;
-  font-weight:700;
-  font-size:13px;
-  text-decoration:none;
-  transition: transform .18s ease, box-shadow .18s ease;
-  cursor: pointer;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-action:hover, .card-action:focus{
-  transform: scale(1.02);
-  box-shadow: 0 4px 16px rgba(2,54,123,.25);
-}
-
 /* ---------- Enhanced Schedule with Countdown ---------- */
 .schedule-grid{
   display:grid;
@@ -394,6 +355,7 @@ body.teller-bg{
 
 .draw-time {
   font-weight: 600;
+  font-size: 14px;
 }
 
 .draw-result {
@@ -403,6 +365,7 @@ body.teller-bg{
 }
 
 .result-label {
+  color: var(--white);
   opacity: 0.8;
   font-size: 11px;
 }
@@ -511,7 +474,6 @@ body.teller-bg{
 
 .close-btn {
   position: absolute;
-  top: 20px;
   right: 24px;
   background: none;
   border: none;

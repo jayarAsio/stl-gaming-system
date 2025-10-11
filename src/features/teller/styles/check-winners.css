@@ -433,6 +433,7 @@ body {
 }
 
 .draw-time {
+  color: var(--white);
   font-size: var(--text-lg);
   font-weight: 800;
 }

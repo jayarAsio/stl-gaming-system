@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import qrIconUrl from "/src/assets/qrcode.svg";
+import "../styles/common.css";
 import "../styles/dashboard.css";
 
 

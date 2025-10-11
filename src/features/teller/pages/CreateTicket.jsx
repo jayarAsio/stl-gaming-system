@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from "react-router-dom";
 import QRCode from 'qrcode';
+import { createPortal } from 'react-dom';
 import "../styles/common.css";
 import "../styles/create-ticket.css";
 
@@ -8,7 +9,7 @@ import "../styles/create-ticket.css";
 const DRAW_TIMES = [
   { time: '11:00 AM', label: '11:00 AM', enabled: true },
   { time: '4:00 PM',  label: '4:00 PM',  enabled: true },
-  { time: '9:00 PM',  label: '9:00 PM',  enabled: true },
+  { time: '10:00 PM',  label: '9:00 PM',  enabled: true },
 ];
 
 /* ---------------- Game configs ---------------- */
@@ -150,20 +151,72 @@ const CreateTicket = () => {
       if (postPrintTimerRef.current) clearTimeout(postPrintTimerRef.current);
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
     };
   }, []);
 
-  /* ---------------- Lock scroll when modal is open ---------------- */
+  /* ---------------- Lock scroll when modal is open (robust) ---------------- */
   const anyModalOpen = showGameModal || showPrintModal || showViewModal;
   useEffect(() => {
+    let scrollY = 0;
     if (anyModalOpen) {
+      scrollY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
     } else {
+      const top = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
+      if (top) {
+        const y = Math.abs(parseInt(top, 10)) || 0;
+        window.scrollTo(0, y);
+      }
     }
+    return () => {
+      if (anyModalOpen) {
+        const top = document.body.style.top;
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        if (top) {
+          const y = Math.abs(parseInt(top, 10)) || 0;
+          window.scrollTo(0, y);
+        }
+      }
+    };
   }, [anyModalOpen]);
+
+  /* ---------------- Close on ESC ---------------- */
+  useEffect(() => {
+    if (!anyModalOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        if (showPrintModal) setShowPrintModal(false);
+        else if (showViewModal) setShowViewModal(false);
+        else if (showGameModal) setShowGameModal(false);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [anyModalOpen, showGameModal, showPrintModal, showViewModal]);
 
   /* ---------------- Toast ---------------- */
   const showToast = useCallback((message, type = 'success') => {
@@ -278,18 +331,19 @@ const CreateTicket = () => {
     setAmountInput('');
   }, []);
 
-  /* ---------------- View Recent Ticket Functions ---------------- */
+  /* ---------------- View Recent Ticket ---------------- */
+  const generateQRForRecentTicketMemo = generateQRForRecentTicket;
   const viewRecentTicket = useCallback(async (ticket) => {
     setSelectedRecentTicket(ticket);
     setIsGenerating(true);
     
-    const qrDataURL = await generateQRForRecentTicket(ticket);
+    const qrDataURL = await generateQRForRecentTicketMemo(ticket);
     setTicketQR(qrDataURL || '');
     
     setIsGenerating(false);
     setShowViewModal(true);
     showToast('Loading ticket details...', 'info');
-  }, [generateQRForRecentTicket, showToast]);
+  }, [generateQRForRecentTicketMemo, showToast]);
 
   const closeViewModal = useCallback(() => {
     setShowViewModal(false);
@@ -414,21 +468,48 @@ const CreateTicket = () => {
     }, 700);
   }, [bets, totalAmount, recentTickets, generateQRForTicket]);
 
-  const confirmPrint = useCallback(() => {
-    try { window.print(); } catch (e) { console.warn('Print failed:', e); }
-
-    if (postPrintTimerRef.current) clearTimeout(postPrintTimerRef.current);
-    postPrintTimerRef.current = setTimeout(() => {
-      setShowPrintModal(false);
-      closeGameModal();
-      setBets([]);
-      setSelectedDrawTime('');
-      setTicketQR('');
-      setCurrentTicketId('');
-      showToast('Ticket sent to printer!', 'success');
-    }, 200);
+  /* ===== Print only the .ticket (CSS handles isolation) + reset after print ===== */
+  const afterPrintCleanup = useCallback(() => {
+    setShowPrintModal(false);
+    closeGameModal();            // this already clears selectedGame, draw time, inputs
+    setBets([]);
+    setSelectedDrawTime('');
+    setTicketQR('');
+    setCurrentTicketId('');
+    showToast('Ticket sent to printer!', 'success');
   }, [closeGameModal, showToast]);
 
+  const printTicketOnly = useCallback(() => {
+    // attach robust cleanup handlers for all browsers
+    const safeCleanup = () => {
+      window.removeEventListener('afterprint', onAfterPrint);
+      if (mql && mql.removeEventListener) mql.removeEventListener('change', onMqlChange);
+      afterPrintCleanup();
+    };
+
+    const onAfterPrint = () => safeCleanup();
+
+    const mql = window.matchMedia ? window.matchMedia('print') : null;
+    const onMqlChange = (e) => {
+      if (!e.matches) safeCleanup(); // transitioned back to screen
+    };
+    if (mql && mql.addEventListener) mql.addEventListener('change', onMqlChange);
+
+    window.addEventListener('afterprint', onAfterPrint);
+
+    // Let layout/QR settle then print
+    requestAnimationFrame(() => {
+      window.print();
+
+      // final fallback in case no events fire
+      window.clearTimeout(printTicketOnly._fallback);
+      printTicketOnly._fallback = window.setTimeout(() => {
+        safeCleanup();
+      }, 3000);
+    });
+  }, [afterPrintCleanup]);
+
+  /* ---------------- Render ---------------- */
   return (
     <div className="container">
       {/* Header */}
@@ -485,8 +566,8 @@ const CreateTicket = () => {
       )}
 
       {/* Game Modal */}
-      {showGameModal && (
-        <div className="modal">
+      {showGameModal && createPortal(
+        <div className="modal" onClick={(e) => e.target === e.currentTarget && closeGameModal()}>
           <div className="modal-content">
             <div className="modal-header">
               <h2>{selectedGame}</h2>
@@ -533,7 +614,7 @@ const CreateTicket = () => {
                 <div className="helper">Digits only. Max ₱500.</div>
               </div>
 
-              <button className="add-btn" onClick={addBet} disabled={!isAddBetValid}>
+              <button className="btn add-btn" onClick={addBet} disabled={!isAddBetValid}>
                 Add Combination
               </button>
 
@@ -565,9 +646,9 @@ const CreateTicket = () => {
               </div>
 
               <div className="action-buttons">
-                <button className="btn-secondary" onClick={clearAllBets}>Clear All</button>
+                <button className="btn btn-secondary" onClick={clearAllBets}>Clear All</button>
                 <button
-                  className="btn-primary"
+                  className="btn btn-primary"
                   onClick={generateTicket}
                   disabled={bets.length === 0 || isGenerating}
                 >
@@ -576,12 +657,13 @@ const CreateTicket = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Print Modal */}
-      {showPrintModal && (
-        <div className="print-modal">
+      {showPrintModal && createPortal(
+        <div className="print-modal" onClick={(e) => e.target === e.currentTarget && setShowPrintModal(false)}>
           <div className="print-container">
             <div className="print-header">
               <div className="print-title">Print Ticket</div>
@@ -671,16 +753,18 @@ const CreateTicket = () => {
             </div>
 
             <div className="print-actions">
-              <button className="print-btn-back" onClick={() => setShowPrintModal(false)}>← Back</button>
-              <button className="print-btn-print" onClick={confirmPrint}>Print Ticket</button>
+              <button className="print-btn-back" onClick={() => { setShowPrintModal(false); }}>← Back</button>
+              {/* ✅ Print only the .ticket & reset afterwards */}
+              <button className="print-btn-print" onClick={printTicketOnly}>Print Ticket</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* View Recent Ticket Modal */}
-      {showViewModal && selectedRecentTicket && (
-        <div className="print-modal">
+      {showViewModal && selectedRecentTicket && createPortal(
+        <div className="print-modal" onClick={(e) => e.target === e.currentTarget && closeViewModal()}>
           <div className="print-container">
             <div className="print-header">
               <div className="print-title">Ticket Details</div>
@@ -719,7 +803,6 @@ const CreateTicket = () => {
                 </div>
 
                 <div className="ticket-bets">
-                  {/* Group recent ticket bets by game and draw time */}
                   {selectedRecentTicket.bets && Object.values(
                     selectedRecentTicket.bets.reduce((groups, bet) => {
                       const key = `${bet.game}_${bet.drawTime}`;
@@ -785,10 +868,12 @@ const CreateTicket = () => {
 
             <div className="print-actions">
               <button className="print-btn-back" onClick={closeViewModal}>← Close</button>
-              <button className="print-btn-print" onClick={() => window.print()}>Print Copy</button>
+              {/* ✅ Print only the .ticket & reset afterwards */}
+              <button className="print-btn-print" onClick={printTicketOnly}>Print Copy</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Toast */}
