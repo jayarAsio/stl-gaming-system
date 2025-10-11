@@ -1,3 +1,8 @@
+/* ============================================
+   Payouts & Tapal Module - Complete CSS
+   STL Gaming System - Collector Feature
+   ============================================ */
+
 /* ---------- Reset + Root Colors ---------- */
 * {
   margin: 0;
@@ -458,6 +463,59 @@ body.payout-tapal-bg {
   color: var(--carmine);
 }
 
+/* ---------- Payout & Shortage Rows ---------- */
+
+/* Paid Amount Row */
+.paid-row {
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* General Payout Row */
+.payout-row {
+  background: rgba(225, 29, 46, 0.05);
+  border: 1px solid var(--cambridge-blue);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Payout Label */
+.payout-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--carmine);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Payout Amount */
+.payout-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--carmine);
+}
+
+.payout-amount.paid {
+  color: var(--success);
+}
+
+/* Paid Highlight in Modal */
+.paid-highlight {
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* Shortage and Surplus Rows */
 .shortage-row,
 .surplus-row {
   background: rgba(239, 68, 68, 0.05);
@@ -631,6 +689,46 @@ body.payout-tapal-bg {
   padding: 8px;
   border-radius: 6px;
   border-left: 3px solid var(--cambridge-blue);
+}
+
+/* History Actions - Edit Button */
+.history-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+}
+
+.btn-edit:hover,
+.btn-edit:focus {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.btn-edit:active {
+  transform: scale(0.98);
+}
+
+.btn-edit span {
+  font-size: 14px;
 }
 
 /* ---------- Modal ---------- */
@@ -928,6 +1026,74 @@ body.payout-tapal-bg {
 .empty-text {
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* ===========================================
+   MOBILE MODAL FIX (max-width: 767px)
+   =========================================== */
+
+@media (max-width: 767px) {
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+  }
+
+  .modal {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(151, 5, 29, 0.15);
+    width: 100%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    position: relative;
+  }
+
+  .modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .teller-summary {
+    margin-bottom: 16px;
+  }
+
+  .summary-grid {
+    gap: 8px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .modal-footer {
+    padding: 16px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--beige);
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
 }
 
 /* ===========================================

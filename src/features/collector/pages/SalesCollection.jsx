@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from "react-router-dom";
 import "../styles/sales-collection.css";
 
@@ -11,9 +12,11 @@ const mockTellers = [
     location: 'Booth A1',
     totalSales: 25420,
     totalWinners: 8650,
-    surplus: 16770, // totalSales - totalWinners
+    surplus: 16770,
     commission: 1271,
-    netCollection: 15499, // surplus - commission
+    netCollection: 15499,
+    originalNetCollection: 15499,
+    collectedAmount: 0, // Track collected amount
     ticketsSold: 87,
     winningTickets: 5,
     status: 'ready_collection',
@@ -30,6 +33,8 @@ const mockTellers = [
     surplus: 5950,
     commission: 907.5,
     netCollection: 5042.5,
+    originalNetCollection: 5042.5,
+    collectedAmount: 5042.5,
     ticketsSold: 134,
     winningTickets: 8,
     status: 'collected',
@@ -46,6 +51,8 @@ const mockTellers = [
     surplus: 13850,
     commission: 1637.5,
     netCollection: 12212.5,
+    originalNetCollection: 12212.5,
+    collectedAmount: 0,
     ticketsSold: 92,
     winningTickets: 12,
     status: 'ready_collection',
@@ -62,6 +69,8 @@ const mockTellers = [
     surplus: 12600,
     commission: 1410,
     netCollection: 11190,
+    originalNetCollection: 11190,
+    collectedAmount: 0,
     ticketsSold: 156,
     winningTickets: 18,
     status: 'ready_collection',
@@ -78,23 +87,26 @@ const mockTellers = [
     surplus: 18640,
     commission: 1144.5,
     netCollection: 17495.5,
+    originalNetCollection: 17495.5,
+    collectedAmount: 17495.5,
     ticketsSold: 73,
     winningTickets: 3,
     status: 'collected',
     lastCollection: '2025-01-15 11:00 AM',
     contactNumber: '09511234567'
   },
-  // Tellers with no surplus scenarios
   {
     id: 'T006',
     name: 'Rosa Martinez',
     code: 'TLR006',
     location: 'Booth F6',
     totalSales: 15600,
-    totalWinners: 15600, // Exactly balanced
+    totalWinners: 15600,
     surplus: 0,
     commission: 780,
-    netCollection: 0, // No surplus to collect after commission
+    netCollection: 0,
+    originalNetCollection: 0,
+    collectedAmount: 0,
     ticketsSold: 45,
     winningTickets: 12,
     status: 'balanced',
@@ -107,10 +119,12 @@ const mockTellers = [
     code: 'TLR007',
     location: 'Booth G7',
     totalSales: 2850,
-    totalWinners: 0, // No winners today
+    totalWinners: 0,
     surplus: 2850,
     commission: 142.5,
-    netCollection: 2707.5, // Small collection amount
+    netCollection: 2707.5,
+    originalNetCollection: 2707.5,
+    collectedAmount: 0,
     ticketsSold: 12,
     winningTickets: 0,
     status: 'ready_collection',
@@ -122,11 +136,13 @@ const mockTellers = [
     name: 'Elena Gonzalez',
     code: 'TLR008',
     location: 'Booth H8',
-    totalSales: 0, // No sales today
+    totalSales: 0,
     totalWinners: 0,
     surplus: 0,
     commission: 0,
     netCollection: 0,
+    originalNetCollection: 0,
+    collectedAmount: 0,
     ticketsSold: 0,
     winningTickets: 0,
     status: 'no_activity',
@@ -142,7 +158,9 @@ const mockTellers = [
     totalWinners: 850,
     surplus: 400,
     commission: 62.5,
-    netCollection: 337.5, // Very small collection
+    netCollection: 337.5,
+    originalNetCollection: 337.5,
+    collectedAmount: 0,
     ticketsSold: 8,
     winningTickets: 2,
     status: 'ready_collection',
@@ -188,14 +206,30 @@ const SalesCollection = () => {
   const [collectionNotes, setCollectionNotes] = useState('');
   const [isCollecting, setIsCollecting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-
-  // (removed realtime clock) - currentTime state was unused
+  
+  // New states for edit functionality
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingCollection, setEditingCollection] = useState(null);
 
   // Apply body class for background
   useEffect(() => {
     document.body.classList.add("sales-collection-bg");
     return () => document.body.classList.remove("sales-collection-bg");
   }, []);
+
+  // 🔒 Lock page scroll when modal is open (no style/function changes)
+  useEffect(() => {
+    if (showCollectionModal) {
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      const prevBodyOverflow = document.body.style.overflow;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.documentElement.style.overflow = prevHtmlOverflow;
+        document.body.style.overflow = prevBodyOverflow;
+      };
+    }
+  }, [showCollectionModal]);
 
   // Format currency (memoized)
   const peso = useMemo(() => new Intl.NumberFormat('en-PH', {
@@ -219,8 +253,8 @@ const SalesCollection = () => {
 
     const totalSurplus = tellers.reduce((sum, t) => sum + t.surplus, 0);
     const totalCommission = tellers.reduce((sum, t) => sum + t.commission, 0);
-    const totalNetCollection = tellers.reduce((sum, t) => sum + t.netCollection, 0);
-    const collectedAmount = collectedTellers.reduce((sum, t) => sum + t.netCollection, 0);
+    const totalNetCollection = tellers.reduce((sum, t) => sum + t.originalNetCollection, 0);
+    const collectedAmount = tellers.reduce((sum, t) => sum + t.collectedAmount, 0);
     const pendingAmount = readyTellers.reduce((sum, t) => sum + t.netCollection, 0);
 
     return {
@@ -234,7 +268,8 @@ const SalesCollection = () => {
       totalNetCollection,
       collectedAmount,
       pendingAmount,
-      collectionRate: tellers.length > 0 ? (collectedTellers.length / tellers.length * 100).toFixed(1) : 0
+      collectionRate: tellers.length > 0 ?
+        (collectedTellers.length / tellers.length * 100).toFixed(1) : 0
     };
   }, [tellers]);
 
@@ -252,22 +287,39 @@ const SalesCollection = () => {
     });
   }, [tellers, searchQuery, statusFilter]);
 
-  // Handle collection modal
+  // Handle collection modal for new collection
   const openCollectionModal = useCallback((teller) => {
     setSelectedTeller(teller);
     setCollectionAmount(teller.netCollection.toString());
     setCollectionNotes('');
+    setIsEditMode(false);
+    setEditingCollection(null);
     setShowCollectionModal(true);
   }, []);
+
+  // Handle edit collection modal
+  const openEditModal = useCallback((collection) => {
+    const teller = tellers.find(t => t.id === collection.tellerId);
+    if (!teller) return;
+
+    setSelectedTeller(teller);
+    setCollectionAmount(collection.netCollected.toString());
+    setCollectionNotes(collection.notes || '');
+    setIsEditMode(true);
+    setEditingCollection(collection);
+    setShowCollectionModal(true);
+  }, [tellers]);
 
   const closeCollectionModal = useCallback(() => {
     setShowCollectionModal(false);
     setSelectedTeller(null);
     setCollectionAmount('');
     setCollectionNotes('');
+    setIsEditMode(false);
+    setEditingCollection(null);
   }, []);
 
-  // Handle collection submission
+  // Handle collection submission (new or edit)
   const handleCollectSurplus = useCallback(async () => {
     if (!selectedTeller || !collectionAmount) return;
 
@@ -277,44 +329,125 @@ const SalesCollection = () => {
       return;
     }
 
+    if (amount > selectedTeller.netCollection) {
+      showToast('Collection amount cannot exceed net collection', 'error');
+      return;
+    }
+
     setIsCollecting(true);
 
     // Simulate API call
     setTimeout(() => {
-      const newCollection = {
-        id: `COL${Date.now().toString().slice(-6)}`,
-        tellerId: selectedTeller.id,
-        tellerName: selectedTeller.name,
-        surplusAmount: selectedTeller.surplus,
-        commissionDeducted: selectedTeller.commission,
-        netCollected: amount,
-        collectedAt: new Date().toLocaleString('en-PH', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        }),
-        collectedBy: 'Collector C001',
-        notes: collectionNotes || 'Surplus collection after winner payouts'
-      };
+      if (isEditMode && editingCollection) {
+        // EDIT MODE: Update existing collection
+        const oldAmount = editingCollection.netCollected;
+        const amountDifference = amount - oldAmount;
 
-      // Update teller status
-      setTellers(prev => prev.map(t => 
-        t.id === selectedTeller.id 
-          ? { ...t, status: 'collected', lastCollection: newCollection.collectedAt }
-          : t
-      ));
+        // Update collection history
+        setCollectionHistory(prev => prev.map(c => 
+          c.id === editingCollection.id
+            ? {
+                ...c,
+                netCollected: amount,
+                notes: collectionNotes || c.notes,
+                collectedAt: new Date().toLocaleString('en-PH', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                }) + ' (Edited)'
+              }
+            : c
+        ));
 
-      // Add to collection history
-      setCollectionHistory(prev => [newCollection, ...prev]);
+        // Update teller status based on new amount
+        setTellers(prev => prev.map(t => {
+          if (t.id === selectedTeller.id) {
+            const newNetCollection = t.netCollection - amountDifference;
+            const newCollectedAmount = t.collectedAmount + amountDifference;
+            const newStatus = newNetCollection <= 0 ? 'collected' : 'ready_collection';
+            
+            return {
+              ...t,
+              netCollection: newNetCollection,
+              collectedAmount: newCollectedAmount,
+              status: newStatus,
+              lastCollection: new Date().toLocaleString('en-PH', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              })
+            };
+          }
+          return t;
+        }));
+
+        showToast(`Collection updated: ${peso.format(amount)} from ${selectedTeller.name}`, 'success');
+      } else {
+        // NEW COLLECTION MODE
+        const newCollection = {
+          id: `COL${Date.now().toString().slice(-6)}`,
+          tellerId: selectedTeller.id,
+          tellerName: selectedTeller.name,
+          surplusAmount: selectedTeller.surplus,
+          commissionDeducted: selectedTeller.commission,
+          netCollected: amount,
+          collectedAt: new Date().toLocaleString('en-PH', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          }),
+          collectedBy: 'Collector C001',
+          notes: collectionNotes || 'Surplus collection after winner payouts'
+        };
+
+        // Add to collection history
+        setCollectionHistory(prev => [newCollection, ...prev]);
+
+        // Update teller status
+        setTellers(prev => prev.map(t => {
+          if (t.id === selectedTeller.id) {
+            const remainingBalance = t.netCollection - amount;
+            const newCollectedAmount = t.collectedAmount + amount;
+            
+            // If full amount collected, mark as collected
+            // If partial amount collected, keep as ready_collection with remaining balance
+            const newStatus = remainingBalance <= 0 ? 'collected' : 'ready_collection';
+            
+            return {
+              ...t,
+              netCollection: remainingBalance,
+              collectedAmount: newCollectedAmount,
+              status: newStatus,
+              lastCollection: newCollection.collectedAt
+            };
+          }
+          return t;
+        }));
+
+        if (amount < selectedTeller.netCollection) {
+          const remaining = selectedTeller.netCollection - amount;
+          showToast(
+            `Partial collection: ${peso.format(amount)} collected. Remaining balance: ${peso.format(remaining)}`,
+            'success'
+          );
+        } else {
+          showToast(`Full surplus collected: ${peso.format(amount)} from ${selectedTeller.name}`, 'success');
+        }
+      }
 
       setIsCollecting(false);
       closeCollectionModal();
-      showToast(`Surplus collected: ${peso.format(amount)} from ${selectedTeller.name}`, 'success');
     }, 1200);
-  }, [selectedTeller, collectionAmount, collectionNotes, peso, showToast, closeCollectionModal]);
+  }, [selectedTeller, collectionAmount, collectionNotes, peso, showToast, closeCollectionModal, isEditMode, editingCollection]);
 
   // Get status badge class and text
   const getStatusBadge = (status) => {
@@ -352,8 +485,9 @@ const SalesCollection = () => {
   // Teller Item Component
   const TellerItem = ({ teller }) => {
     const statusBadge = getStatusBadge(teller.status);
-    const canCollect = teller.status === 'ready_collection';
+    const canCollect = teller.status === 'ready_collection' && teller.netCollection > 0;
     const hasLargeSurplus = teller.surplus > 20000;
+    const hasPartialCollection = teller.collectedAmount > 0 && teller.netCollection > 0;
 
     return (
       <article className={`teller-item ${teller.status} ${hasLargeSurplus ? 'high-value' : ''}`}>
@@ -394,7 +528,7 @@ const SalesCollection = () => {
             </div>
           </div>
 
-          {(canCollect || teller.status === 'collected') && (
+          {(canCollect || teller.status === 'collected' || hasPartialCollection) && (
             <>
               <div className="stat-row">
                 <div className="stat">
@@ -406,10 +540,24 @@ const SalesCollection = () => {
                   <div className="stat-value commission">{peso.format(teller.commission)}</div>
                 </div>
               </div>
-              <div className="collection-row">
-                <div className="collection-label">Net Collection Amount</div>
-                <div className="collection-amount">{peso.format(teller.netCollection)}</div>
-              </div>
+              
+              {/* Show collected amount if there's a partial or full collection */}
+              {teller.collectedAmount > 0 && (
+                <div className="collection-row collected-row">
+                  <div className="collection-label">Amount Collected</div>
+                  <div className="collection-amount collected">{peso.format(teller.collectedAmount)}</div>
+                </div>
+              )}
+              
+              {/* Show remaining balance if there's still amount to collect */}
+              {teller.netCollection > 0 && (
+                <div className="collection-row">
+                  <div className="collection-label">
+                    {hasPartialCollection ? 'Remaining Balance' : 'Net Collection Amount'}
+                  </div>
+                  <div className="collection-amount">{peso.format(teller.netCollection)}</div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -424,7 +572,7 @@ const SalesCollection = () => {
               onClick={() => openCollectionModal(teller)}
             >
               <span className="btn-icon">💰</span>
-              Collect Surplus
+              {hasPartialCollection ? 'Collect Remaining' : 'Collect Surplus'}
             </button>
           )}
         </div>
@@ -463,8 +611,23 @@ const SalesCollection = () => {
       {collection.notes && (
         <div className="history-notes">{collection.notes}</div>
       )}
+      <div className="history-actions">
+        <button
+          className="btn btn-edit"
+          onClick={() => openEditModal(collection)}
+        >
+          <span>✏️</span>
+          Edit Collection
+        </button>
+      </div>
     </article>
   );
+
+  // ---------- Modal Portal ----------
+  const ModalPortal = ({ children }) => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(children, document.body);
+  };
 
   return (
     <div className="container">
@@ -472,9 +635,13 @@ const SalesCollection = () => {
       <header className="header">
         <div className="header-content">
           <h1>Sales Collection</h1>
-          <p className="header-subtitle">Collect surplus amounts from tellers after winner payouts</p>
+          <p className="header-subtitle">Collect remittances from tellers and update ledger records</p>
         </div>
-        <Link to="/collector" className="back-btn" aria-label="Back to Dashboard">
+        <Link 
+          to="/collector"
+          className="back-btn" 
+          aria-label="Back to Dashboard"
+        >
           <span aria-hidden="true">←</span> Back To Dashboard
         </Link>
       </header>
@@ -486,29 +653,6 @@ const SalesCollection = () => {
           Collection Summary
         </h2>
         <StatisticsCards />
-        
-        <div className="summary-details">
-          <div className="summary-row">
-            <span>Total Gross Surplus</span>
-            <span className="amount">{peso.format(statistics.totalSurplus)}</span>
-          </div>
-          <div className="summary-row">
-            <span>Total Commission</span>
-            <span className="amount commission">{peso.format(statistics.totalCommission)}</span>
-          </div>
-          <div className="summary-row">
-            <span>Net Collection Due</span>
-            <span className="amount">{peso.format(statistics.totalNetCollection)}</span>
-          </div>
-          <div className="summary-row">
-            <span>Amount Collected</span>
-            <span className="amount collected">{peso.format(statistics.collectedAmount)}</span>
-          </div>
-          <div className="summary-row">
-            <span>Amount Pending</span>
-            <span className="amount pending">{peso.format(statistics.pendingAmount)}</span>
-          </div>
-        </div>
       </section>
 
       {/* Search and Filter Controls */}
@@ -597,112 +741,130 @@ const SalesCollection = () => {
         )}
       </section>
 
-      {/* Collection Modal */}
+      {/* Collection Modal (Portal for perfect centering) */}
       {showCollectionModal && selectedTeller && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Collect Surplus</h3>
-              <button 
-                className="modal-close" 
-                onClick={closeCollectionModal}
-                aria-label="Close modal"
-              >
-                ×
-              </button>
-            </div>
+        <ModalPortal>
+          <div
+            className="modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="collection-modal-title"
+            onClick={closeCollectionModal}
+          >
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 id="collection-modal-title">{isEditMode ? 'Edit Collection' : 'Collect Surplus'}</h3>
+                <button 
+                  className="modal-close" 
+                  onClick={closeCollectionModal}
+                  aria-label="Close modal"
+                >
+                  ×
+                </button>
+              </div>
 
-            <div className="modal-body">
-              <div className="teller-summary">
-                <h4>{selectedTeller.name} ({selectedTeller.code})</h4>
-                <div className="summary-grid">
-                  <div className="summary-item">
-                    <span>Total Sales</span>
-                    <span>{peso.format(selectedTeller.totalSales)}</span>
+              <div className="modal-body">
+                <div className="teller-summary">
+                  <h4>{selectedTeller.name} ({selectedTeller.code})</h4>
+                  <div className="summary-grid">
+                    <div className="summary-item">
+                      <span>Total Sales</span>
+                      <span>{peso.format(selectedTeller.totalSales)}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Winner Payouts</span>
+                      <span>{peso.format(selectedTeller.totalWinners)}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Gross Surplus</span>
+                      <span className="surplus">{peso.format(selectedTeller.surplus)}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Commission (5%)</span>
+                      <span className="commission">-{peso.format(selectedTeller.commission)}</span>
+                    </div>
+                    {selectedTeller.collectedAmount > 0 && (
+                      <div className="summary-item">
+                        <span>Already Collected</span>
+                        <span className="collected-highlight">{peso.format(selectedTeller.collectedAmount)}</span>
+                      </div>
+                    )}
+                    <div className="summary-item">
+                      <span>{isEditMode ? 'Current Balance' : selectedTeller.collectedAmount > 0 ? 'Remaining Balance' : 'Net Collection'}</span>
+                      <span className="highlight">{peso.format(selectedTeller.netCollection)}</span>
+                    </div>
                   </div>
-                  <div className="summary-item">
-                    <span>Winner Payouts</span>
-                    <span>{peso.format(selectedTeller.totalWinners)}</span>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="collection-amount" className="form-label">
+                    Collection Amount
+                  </label>
+                  <input
+                    id="collection-amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={selectedTeller.netCollection}
+                    className="form-input"
+                    value={collectionAmount}
+                    onChange={(e) => setCollectionAmount(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="form-help">
+                    {isEditMode 
+                      ? 'Update the collection amount. This will adjust the teller\'s balance accordingly.' 
+                      : 'Enter the actual surplus amount collected. Can be partial or full amount.'}
                   </div>
-                  <div className="summary-item">
-                    <span>Gross Surplus</span>
-                    <span className="surplus">{peso.format(selectedTeller.surplus)}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span>Commission (5%)</span>
-                    <span className="commission">-{peso.format(selectedTeller.commission)}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span>Net Collection</span>
-                    <span className="highlight">{peso.format(selectedTeller.netCollection)}</span>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="collection-notes" className="form-label">
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    id="collection-notes"
+                    className="form-textarea"
+                    placeholder="Add any notes about this collection..."
+                    value={collectionNotes}
+                    onChange={(e) => setCollectionNotes(e.target.value)}
+                    maxLength={500}
+                  />
+                  <div className="form-help">
+                    {collectionNotes.length}/500 characters
                   </div>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="collection-amount" className="form-label">
-                  Collection Amount
-                </label>
-                <input
-                  id="collection-amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="form-input"
-                  value={collectionAmount}
-                  onChange={(e) => setCollectionAmount(e.target.value)}
-                />
-                <div className="form-help">
-                  Enter the actual surplus amount collected from the teller.
-                </div>
+              <div className="modal-footer">
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={closeCollectionModal}
+                  disabled={isCollecting}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleCollectSurplus}
+                  disabled={isCollecting || !collectionAmount}
+                >
+                  {isCollecting ? (
+                    <>
+                      <span className="spinner"></span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <span>{isEditMode ? '✏️' : '💰'}</span>
+                      {isEditMode ? 'Update Collection' : 'Complete Collection'}
+                    </>
+                  )}
+                </button>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="collection-notes" className="form-label">
-                  Notes (Optional)
-                </label>
-                <textarea
-                  id="collection-notes"
-                  className="form-textarea"
-                  placeholder="Add any notes about this collection..."
-                  value={collectionNotes}
-                  onChange={(e) => setCollectionNotes(e.target.value)}
-                  maxLength={500}
-                />
-                <div className="form-help">
-                  {collectionNotes.length}/500 characters
-                </div>
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button 
-                className="btn btn-secondary" 
-                onClick={closeCollectionModal}
-                disabled={isCollecting}
-              >
-                Cancel
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={handleCollectSurplus}
-                disabled={isCollecting || !collectionAmount}
-              >
-                {isCollecting ? (
-                  <>
-                    <span className="spinner"></span>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <span>💰</span>
-                    Complete Collection
-                  </>
-                )}
-              </button>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* Toast Notification */}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from "react-router-dom";
 import "../styles/payout-tapal.css";
 
@@ -11,7 +12,9 @@ const mockTellers = [
     location: 'Booth A1',
     totalSales: 8420,
     totalWinners: 15650,
-    shortage: 7230, // totalWinners - totalSales
+    shortage: 7230,
+    originalShortage: 7230,
+    paidAmount: 0,
     ticketsSold: 87,
     winningTickets: 12,
     status: 'needs_payout',
@@ -25,7 +28,9 @@ const mockTellers = [
     location: 'Booth B2',
     totalSales: 22150,
     totalWinners: 18200,
-    shortage: 0, // No shortage, has surplus
+    shortage: 0,
+    originalShortage: 0,
+    paidAmount: 0,
     surplus: 3950,
     ticketsSold: 134,
     winningTickets: 8,
@@ -41,6 +46,8 @@ const mockTellers = [
     totalSales: 12750,
     totalWinners: 28900,
     shortage: 16150,
+    originalShortage: 16150,
+    paidAmount: 0,
     ticketsSold: 92,
     winningTickets: 18,
     status: 'needs_payout',
@@ -55,6 +62,8 @@ const mockTellers = [
     totalSales: 31200,
     totalWinners: 45600,
     shortage: 14400,
+    originalShortage: 14400,
+    paidAmount: 0,
     ticketsSold: 156,
     winningTickets: 22,
     status: 'needs_payout',
@@ -69,6 +78,8 @@ const mockTellers = [
     totalSales: 18890,
     totalWinners: 4250,
     shortage: 0,
+    originalShortage: 0,
+    paidAmount: 0,
     surplus: 14640,
     ticketsSold: 73,
     winningTickets: 3,
@@ -88,7 +99,7 @@ const mockPayoutHistory = [
     processedAt: '2025-01-15 01:30 PM',
     processedBy: 'Collector C001',
     notes: 'Emergency payout for major winner - jackpot prize',
-    reason: 'insufficient_funds'
+    reason: 'insufficient_funds' // legacy display only
   },
   {
     id: 'PAY002',
@@ -99,12 +110,12 @@ const mockPayoutHistory = [
     processedAt: '2025-01-15 10:45 AM',
     processedBy: 'Collector C001',
     notes: 'Multiple winners exceeded daily sales',
-    reason: 'multiple_winners'
+    reason: 'multiple_winners' // legacy display only
   }
 ];
 
 const PayoutTapal = () => {
-  // State management
+  // State
   const [tellers, setTellers] = useState(mockTellers);
   const [payoutHistory, setPayoutHistory] = useState(mockPayoutHistory);
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,39 +124,88 @@ const PayoutTapal = () => {
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState('');
   const [payoutNotes, setPayoutNotes] = useState('');
-  const [payoutReason, setPayoutReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [fieldError, setFieldError] = useState('');
 
-  // (removed realtime clock) - currentTime state was unused
+  // Edit
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingPayout, setEditingPayout] = useState(null);
 
-  // Apply body class for background
+  // 👉 Ref for the amount field (to keep/restore focus)
+  const amountInputRef = useRef(null);
+
+  // Body bg class
   useEffect(() => {
     document.body.classList.add("payout-tapal-bg");
     return () => document.body.classList.remove("payout-tapal-bg");
   }, []);
 
-  // Format currency (memoized)
+  // Lock scroll behind modal
+  useEffect(() => {
+    if (showPayoutModal) {
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      const prevBodyOverflow = document.body.style.overflow;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.documentElement.style.overflow = prevHtmlOverflow;
+        document.body.style.overflow = prevBodyOverflow;
+      };
+    }
+  }, [showPayoutModal]);
+
+  // Mobile 100vh fix
+  useEffect(() => {
+    if (!showPayoutModal) return;
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--app-vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+    return () => {
+      window.removeEventListener('resize', setVh);
+      window.removeEventListener('orientationchange', setVh);
+      document.documentElement.style.removeProperty('--app-vh');
+    };
+  }, [showPayoutModal]);
+
+  // ✅ Focus amount field whenever modal opens
+  useEffect(() => {
+    if (!showPayoutModal) return;
+    const t = setTimeout(() => {
+      const el = amountInputRef.current;
+      if (el) {
+        el.focus({ preventScroll: true });
+        const v = el.value || '';
+        el.setSelectionRange(v.length, v.length);
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [showPayoutModal]);
+
+  // Helpers
   const peso = useMemo(() => new Intl.NumberFormat('en-PH', {
     style: 'currency',
     currency: 'PHP',
     maximumFractionDigits: 2
   }), []);
 
-  // Toast notification system
   const showToast = useCallback((message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
   }, []);
 
-  // Calculate statistics
+  // Stats
   const statistics = useMemo(() => {
     const needsPayout = tellers.filter(t => t.status === 'needs_payout');
     const surplusTellers = tellers.filter(t => t.status === 'surplus');
 
     const totalShortage = needsPayout.reduce((sum, t) => sum + t.shortage, 0);
     const totalSurplus = surplusTellers.reduce((sum, t) => sum + (t.surplus || 0), 0);
-    const totalPayoutsToday = payoutHistory.reduce((sum, p) => sum + p.amount, 0);
+    const totalPayoutsToday = tellers.reduce((sum, t) => sum + t.paidAmount, 0);
 
     return {
       tellersNeedingPayout: needsPayout.length,
@@ -153,96 +213,210 @@ const PayoutTapal = () => {
       totalShortage,
       totalSurplus,
       totalPayoutsToday,
-      netPosition: totalSurplus - totalShortage // Positive = company has net gain
+      netPosition: totalSurplus - totalShortage
     };
-  }, [tellers, payoutHistory]);
+  }, [tellers]);
 
-  // Filter tellers based on search and status
+  // Filters
   const filteredTellers = useMemo(() => {
     return tellers.filter(teller => {
-      const matchesSearch = searchQuery === '' || 
-        teller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        teller.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        teller.location.toLowerCase().includes(searchQuery.toLowerCase());
-
+      const q = searchQuery.trim().toLowerCase();
+      const matchesSearch = q === '' ||
+        teller.name.toLowerCase().includes(q) ||
+        teller.code.toLowerCase().includes(q) ||
+        teller.location.toLowerCase().includes(q);
       const matchesStatus = statusFilter === 'all' || teller.status === statusFilter;
-
       return matchesSearch && matchesStatus;
     });
   }, [tellers, searchQuery, statusFilter]);
 
-  // Handle payout modal
+  // Max amount allowed
+  const maxAllowedAmount = useMemo(() => {
+    if (!selectedTeller) return 0;
+    if (isEditMode && editingPayout) {
+      return (editingPayout.amount || 0) + (selectedTeller.shortage || 0);
+    }
+    return selectedTeller.shortage || 0;
+  }, [selectedTeller, isEditMode, editingPayout]);
+
+  // Sanitize & clamp (keeps only digits + one '.')
+  const sanitizeAmount = useCallback((raw, max) => {
+    let v = String(raw).replace(/[^\d.]/g, '');
+    const firstDot = v.indexOf('.');
+    if (firstDot !== -1) v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
+    if (v.includes('.')) {
+      const [a, b] = v.split('.');
+      v = a + '.' + b.slice(0, 2);
+    }
+    if (v.startsWith('.')) v = '0' + v;
+    if (v === '') return '';
+    let n = parseFloat(v);
+    if (isNaN(n)) return '';
+    if (n < 0) n = 0;
+    if (typeof max === 'number' && n > max) n = max;
+    return n.toString();
+  }, []);
+
+  // Keep focus + caret while typing
+  const onAmountChange = useCallback((e) => {
+    const next = sanitizeAmount(e.target.value, maxAllowedAmount);
+    setPayoutAmount(next);
+    setFieldError('');
+    // keep caret at the end after React re-render
+    requestAnimationFrame(() => {
+      const el = amountInputRef.current;
+      if (el) {
+        const v = el.value || '';
+        el.setSelectionRange(v.length, v.length);
+        el.focus({ preventScroll: true }); // ensure it stays focused
+      }
+    });
+  }, [sanitizeAmount, maxAllowedAmount]);
+
+  // Open modals
   const openPayoutModal = useCallback((teller) => {
     setSelectedTeller(teller);
-    setPayoutAmount(teller.shortage.toString());
+    setPayoutAmount((teller.shortage ?? 0).toString());
     setPayoutNotes('');
-    setPayoutReason('insufficient_funds');
+    setIsEditMode(false);
+    setEditingPayout(null);
+    setFieldError('');
     setShowPayoutModal(true);
   }, []);
+
+  const openEditModal = useCallback((payout) => {
+    const teller = tellers.find(t => t.id === payout.tellerId);
+    if (!teller) return;
+    setSelectedTeller(teller);
+    setPayoutAmount((payout.amount ?? 0).toString());
+    setPayoutNotes(payout.notes || '');
+    setIsEditMode(true);
+    setEditingPayout(payout);
+    setFieldError('');
+    setShowPayoutModal(true);
+  }, [tellers]);
 
   const closePayoutModal = useCallback(() => {
     setShowPayoutModal(false);
     setSelectedTeller(null);
     setPayoutAmount('');
     setPayoutNotes('');
-    setPayoutReason('');
+    setIsEditMode(false);
+    setEditingPayout(null);
+    setFieldError('');
   }, []);
 
-  // Handle payout processing
+  // Process payout
   const handleProcessPayout = useCallback(async () => {
-    if (!selectedTeller || !payoutAmount || !payoutReason) return;
+    if (!selectedTeller || !payoutAmount) return;
 
     const amount = parseFloat(payoutAmount);
     if (isNaN(amount) || amount <= 0) {
+      setFieldError('Please enter a valid payout amount.');
       showToast('Please enter a valid payout amount', 'error');
+      // refocus on error
+      requestAnimationFrame(() => amountInputRef.current?.focus({ preventScroll: true }));
+      return;
+    }
+
+    if (amount > maxAllowedAmount) {
+      setFieldError(`Amount cannot exceed ${peso.format(maxAllowedAmount)}.`);
+      showToast('Payout amount exceeds allowed amount', 'error');
+      requestAnimationFrame(() => amountInputRef.current?.focus({ preventScroll: true }));
       return;
     }
 
     setIsProcessing(true);
 
-    // Simulate API call
     setTimeout(() => {
-      const newPayout = {
-        id: `PAY${Date.now().toString().slice(-6)}`,
-        tellerId: selectedTeller.id,
-        tellerName: selectedTeller.name,
-        amount: amount,
-        type: 'tapal',
-        processedAt: new Date().toLocaleString('en-PH', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        }),
-        processedBy: 'Collector C001',
-        notes: payoutNotes || 'Standard payout processing',
-        reason: payoutReason
-      };
+      if (isEditMode && editingPayout) {
+        const oldAmount = editingPayout.amount;
+        const diff = amount - oldAmount;
 
-      // Update teller status - if full shortage covered, mark as balanced
-      setTellers(prev => prev.map(t => 
-        t.id === selectedTeller.id 
-          ? { 
-              ...t, 
-              status: amount >= t.shortage ? 'balanced' : 'needs_payout',
-              shortage: Math.max(0, t.shortage - amount),
-              lastPayout: newPayout.processedAt
-            }
-          : t
-      ));
+        setPayoutHistory(prev => prev.map(p =>
+          p.id === editingPayout.id
+            ? {
+                ...p,
+                amount,
+                notes: payoutNotes || p.notes,
+                processedAt: new Date().toLocaleString('en-PH', {
+                  year: 'numeric', month: '2-digit', day: '2-digit',
+                  hour: '2-digit', minute: '2-digit', hour12: true
+                }) + ' (Edited)'
+              }
+            : p
+        ));
 
-      // Add to payout history
-      setPayoutHistory(prev => [newPayout, ...prev]);
+        setTellers(prev => prev.map(t => {
+          if (t.id !== selectedTeller.id) return t;
+          const newShortage = t.shortage - diff;
+          const newPaidAmount = t.paidAmount + diff;
+          const newStatus = newShortage <= 0 ? 'balanced' : 'needs_payout';
+          return {
+            ...t,
+            shortage: newShortage,
+            paidAmount: newPaidAmount,
+            status: newStatus,
+            lastPayout: new Date().toLocaleString('en-PH', {
+              year: 'numeric', month: '2-digit', day: '2-digit',
+              hour: '2-digit', minute: '2-digit', hour12: true
+            })
+          };
+        }));
+
+        showToast(`Payout updated: ${peso.format(amount)} to ${selectedTeller.name}`, 'success');
+      } else {
+        const newPayout = {
+          id: `PAY${Date.now().toString().slice(-6)}`,
+          tellerId: selectedTeller.id,
+          tellerName: selectedTeller.name,
+          amount,
+          type: 'tapal',
+          processedAt: new Date().toLocaleString('en-PH', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          }),
+          processedBy: 'Collector C001',
+          notes: payoutNotes || 'Standard payout processing'
+        };
+
+        setPayoutHistory(prev => [newPayout, ...prev]);
+
+        setTellers(prev => prev.map(t => {
+          if (t.id !== selectedTeller.id) return t;
+          const remainingShortage = t.shortage - amount;
+          const newPaidAmount = t.paidAmount + amount;
+          const newStatus = remainingShortage <= 0 ? 'balanced' : 'needs_payout';
+          return {
+            ...t,
+            shortage: remainingShortage,
+            paidAmount: newPaidAmount,
+            status: newStatus,
+            lastPayout: newPayout.processedAt
+          };
+        }));
+
+        if (amount < selectedTeller.shortage) {
+          const remaining = selectedTeller.shortage - amount;
+          showToast(
+            `Partial payout: ${peso.format(amount)} paid. Remaining shortage: ${peso.format(remaining)}`,
+            'success'
+          );
+        } else {
+          showToast(`Full shortage covered: ${peso.format(amount)} to ${selectedTeller.name}`, 'success');
+        }
+      }
 
       setIsProcessing(false);
       closePayoutModal();
-      showToast(`Payout processed: ${peso.format(amount)} to ${selectedTeller.name}`, 'success');
-    }, 1200);
-  }, [selectedTeller, payoutAmount, payoutReason, payoutNotes, peso, showToast, closePayoutModal]);
+    }, 900);
+  }, [selectedTeller, payoutAmount, payoutNotes, peso, showToast, closePayoutModal, isEditMode, editingPayout, maxAllowedAmount]);
 
-  // Get status badge
+  // Status badge
   const getStatusBadge = (status) => {
     const badges = {
       needs_payout: { class: 'status-needs-payout', text: 'NEEDS PAYOUT', icon: '💸' },
@@ -252,7 +426,7 @@ const PayoutTapal = () => {
     return badges[status] || badges.needs_payout;
   };
 
-  // Statistics Cards Component
+  // Components
   const StatisticsCards = () => (
     <div className="statistics-grid">
       <div className="stat-card">
@@ -274,11 +448,11 @@ const PayoutTapal = () => {
     </div>
   );
 
-  // Teller Item Component
   const TellerItem = ({ teller }) => {
     const statusBadge = getStatusBadge(teller.status);
-    const needsPayout = teller.status === 'needs_payout';
+    const needsPayout = teller.status === 'needs_payout' && teller.shortage > 0;
     const hasShortage = teller.shortage > 0;
+    const hasPartialPayment = teller.paidAmount > 0 && teller.shortage > 0;
 
     return (
       <article className={`teller-item ${teller.status} ${hasShortage ? 'urgent' : ''}`}>
@@ -317,12 +491,23 @@ const PayoutTapal = () => {
               <div className="stat-value winning-count">{teller.winningTickets.toLocaleString()}</div>
             </div>
           </div>
+          
+          {teller.paidAmount > 0 && (
+            <div className="payout-row paid-row">
+              <div className="payout-label">Amount Paid</div>
+              <div className="payout-amount paid">{peso.format(teller.paidAmount)}</div>
+            </div>
+          )}
+          
           {hasShortage && (
             <div className="shortage-row">
-              <div className="shortage-label">Shortage Amount</div>
+              <div className="shortage-label">
+                {hasPartialPayment ? 'Remaining Shortage' : 'Shortage Amount'}
+              </div>
               <div className="shortage-amount">{peso.format(teller.shortage)}</div>
             </div>
           )}
+          
           {teller.surplus > 0 && (
             <div className="surplus-row">
               <div className="surplus-label">Surplus Amount</div>
@@ -341,7 +526,7 @@ const PayoutTapal = () => {
               onClick={() => openPayoutModal(teller)}
             >
               <span className="btn-icon">💸</span>
-              Process Tapal
+              {hasPartialPayment ? 'Pay Remaining' : 'Process Tapal'}
             </button>
           )}
         </div>
@@ -349,7 +534,6 @@ const PayoutTapal = () => {
     );
   };
 
-  // Payout History Item Component
   const PayoutHistoryItem = ({ payout }) => (
     <article className="history-item">
       <div className="history-header">
@@ -364,23 +548,31 @@ const PayoutTapal = () => {
         <div className="history-time">{payout.processedAt}</div>
         <div className="history-processor">by {payout.processedBy}</div>
       </div>
-      <div className="history-reason">
-        Reason: {payout.reason.replace(/_/g, ' ').toUpperCase()}
-      </div>
+      {/* Legacy reason shown if present */}
+      {payout.reason && (
+        <div className="history-reason">
+          Reason: {payout.reason.replace(/_/g, ' ').toUpperCase()}
+        </div>
+      )}
       {payout.notes && (
         <div className="history-notes">{payout.notes}</div>
       )}
+      <div className="history-actions">
+        <button
+          className="btn btn-edit"
+          onClick={() => openEditModal(payout)}
+        >
+          <span>✏️</span>
+          Edit Payout
+        </button>
+      </div>
     </article>
   );
 
-  const reasonOptions = [
-    { value: 'insufficient_funds', label: 'Insufficient Funds' },
-    { value: 'multiple_winners', label: 'Multiple Winners' },
-    { value: 'jackpot_prize', label: 'Jackpot Prize' },
-    { value: 'emergency_payout', label: 'Emergency Payout' },
-    { value: 'system_error', label: 'System Error' },
-    { value: 'other', label: 'Other' }
-  ];
+  const ModalPortal = ({ children }) => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(children, document.body);
+  };
 
   return (
     <div className="container">
@@ -395,7 +587,7 @@ const PayoutTapal = () => {
         </Link>
       </header>
 
-      {/* Statistics Summary */}
+      {/* Statistics */}
       <section className="card statistics-section">
         <h2 className="section-title">
           <span className="section-icon">📊</span>
@@ -417,13 +609,12 @@ const PayoutTapal = () => {
         </div>
       </section>
 
-      {/* Search and Filter Controls */}
+      {/* Controls */}
       <section className="card controls-section">
         <h2 className="section-title">
           <span className="section-icon">🔍</span>
           Search & Filter
         </h2>
-        
         <div className="controls-grid">
           <div className="control-group">
             <label htmlFor="search" className="control-label">Search Tellers</label>
@@ -436,7 +627,6 @@ const PayoutTapal = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
           <div className="control-group">
             <label htmlFor="status-filter" className="control-label">Filter by Status</label>
             <select
@@ -454,13 +644,12 @@ const PayoutTapal = () => {
         </div>
       </section>
 
-      {/* Tellers List */}
+      {/* Tellers */}
       <section className="card tellers-section">
         <h2 className="section-title">
           <span className="section-icon">👥</span>
           Tellers ({filteredTellers.length})
         </h2>
-        
         {filteredTellers.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🔍</div>
@@ -478,13 +667,12 @@ const PayoutTapal = () => {
         )}
       </section>
 
-      {/* Payout History */}
+      {/* History */}
       <section className="card history-section">
         <h2 className="section-title">
           <span className="section-icon">📋</span>
           Payout History
         </h2>
-        
         {payoutHistory.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📋</div>
@@ -502,126 +690,129 @@ const PayoutTapal = () => {
         )}
       </section>
 
-      {/* Payout Modal */}
+      {/* Modal */}
       {showPayoutModal && selectedTeller && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Process Payout</h3>
-              <button 
-                className="modal-close" 
-                onClick={closePayoutModal}
-                aria-label="Close modal"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="teller-summary">
-                <h4>{selectedTeller.name} ({selectedTeller.code})</h4>
-                <div className="summary-grid">
-                  <div className="summary-item">
-                    <span>Total Sales</span>
-                    <span>{peso.format(selectedTeller.totalSales)}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span>Winner Payouts</span>
-                    <span>{peso.format(selectedTeller.totalWinners)}</span>
-                  </div>
-                  <div className="summary-item shortage-highlight">
-                    <span>Shortage Amount</span>
-                    <span className="highlight">{peso.format(selectedTeller.shortage)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="payout-reason" className="form-label">
-                  Payout Reason
-                </label>
-                <select
-                  id="payout-reason"
-                  className="form-select"
-                  value={payoutReason}
-                  onChange={(e) => setPayoutReason(e.target.value)}
+        <ModalPortal>
+          <div className="modal-overlay" onClick={closePayoutModal} role="dialog" aria-modal="true" aria-labelledby="payout-modal-title">
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 id="payout-modal-title">{isEditMode ? 'Edit Payout' : 'Process Payout'}</h3>
+                <button 
+                  className="modal-close" 
+                  onClick={closePayoutModal}
+                  aria-label="Close modal"
                 >
-                  <option value="">Select reason...</option>
-                  {reasonOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  ×
+                </button>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="payout-amount" className="form-label">
-                  Payout Amount
-                </label>
-                <input
-                  id="payout-amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="form-input"
-                  value={payoutAmount}
-                  onChange={(e) => setPayoutAmount(e.target.value)}
-                />
-                <div className="form-help">
-                  Enter the amount to advance to the teller for winner payments.
+              <div className="modal-body">
+                <div className="teller-summary">
+                  <h4>{selectedTeller.name} ({selectedTeller.code})</h4>
+                  <div className="summary-grid">
+                    <div className="summary-item">
+                      <span>Total Sales</span>
+                      <span>{peso.format(selectedTeller.totalSales)}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span>Winner Payouts</span>
+                      <span>{peso.format(selectedTeller.totalWinners)}</span>
+                    </div>
+                    {selectedTeller.paidAmount > 0 && (
+                      <div className="summary-item">
+                        <span>Already Paid</span>
+                        <span className="paid-highlight">{peso.format(selectedTeller.paidAmount)}</span>
+                      </div>
+                    )}
+                    <div className="summary-item shortage-highlight">
+                      <span>{isEditMode ? 'Current Shortage' : selectedTeller.paidAmount > 0 ? 'Remaining Shortage' : 'Shortage Amount'}</span>
+                      <span className="highlight">{peso.format(selectedTeller.shortage)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="payout-amount" className="form-label">
+                    Payout Amount
+                  </label>
+                  <input
+                    id="payout-amount"
+                    ref={amountInputRef}
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.,]?[0-9]{0,2}"
+                    className="form-input"
+                    value={payoutAmount}
+                    onChange={onAmountChange}
+                    // keep focus; just prevent wheel increments
+                    onWheel={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
+                    }}
+                    aria-describedby="payout-amount-help"
+                    placeholder={`Max ${peso.format(maxAllowedAmount)}`}
+                    autoFocus
+                  />
+                  <div id="payout-amount-help" className="form-help">
+                    {fieldError
+                      ? <span style={{color:'#ef4444'}}>{fieldError}</span>
+                      : (isEditMode
+                          ? `You can update up to ${peso.format(maxAllowedAmount)}.`
+                          : `Enter amount up to ${peso.format(maxAllowedAmount)}.`)
+                    }
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="payout-notes" className="form-label">
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    id="payout-notes"
+                    className="form-textarea"
+                    placeholder="Add any notes about this payout..."
+                    value={payoutNotes}
+                    onChange={(e) => setPayoutNotes(e.target.value)}
+                    maxLength={500}
+                  />
+                  <div className="form-help">
+                    {payoutNotes.length}/500 characters
+                  </div>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="payout-notes" className="form-label">
-                  Notes (Optional)
-                </label>
-                <textarea
-                  id="payout-notes"
-                  className="form-textarea"
-                  placeholder="Add any notes about this payout..."
-                  value={payoutNotes}
-                  onChange={(e) => setPayoutNotes(e.target.value)}
-                  maxLength={500}
-                />
-                <div className="form-help">
-                  {payoutNotes.length}/500 characters
-                </div>
+              <div className="modal-footer">
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={closePayoutModal}
+                  disabled={isProcessing}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleProcessPayout}
+                  disabled={isProcessing || !payoutAmount}
+                >
+                  {isProcessing ? (
+                    <>
+                      <span className="spinner"></span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <span>{isEditMode ? '✏️' : '💸'}</span>
+                      {isEditMode ? 'Update Payout' : 'Process Payout'}
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-
-            <div className="modal-footer">
-              <button 
-                className="btn btn-secondary" 
-                onClick={closePayoutModal}
-                disabled={isProcessing}
-              >
-                Cancel
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={handleProcessPayout}
-                disabled={isProcessing || !payoutAmount || !payoutReason}
-              >
-                {isProcessing ? (
-                  <>
-                    <span className="spinner"></span>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <span>💸</span>
-                    Process Payout
-                  </>
-                )}
-              </button>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
-      {/* Toast Notification */}
+      {/* Toast */}
       {toast.show && (
         <div className={`toast show ${toast.type}`}>
           {toast.message}

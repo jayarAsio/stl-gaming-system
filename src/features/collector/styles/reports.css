@@ -370,6 +370,7 @@ body.reports-module-bg {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .preview-container {
@@ -855,10 +856,33 @@ body.reports-module-bg {
 /* ===========================================
    PRINT STYLES
    =========================================== */
+/* ===========================================
+   PRINT: 1-page compact, professional
+   =========================================== */
+
+:root { --print-scale: 0.92; } /* Adjust to 0.88–0.95 if needed */
 
 @media print {
-  body.reports-module-bg {
-    background: white !important;
+  /* Page setup */
+  @page {
+    size: A4 portrait;            /* Works well for A4; Letter will still scale */
+    margin: 10mm;                 /* Safe printer margins */
+  }
+
+  /* Reset backgrounds & chrome */
+  html, body {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide app UI; keep only the preview */
+  .header,
+  .statistics-section,
+  .configuration-section,
+  .preview-header,
+  .toast {
+    display: none !important;
   }
 
   .container {
@@ -866,21 +890,11 @@ body.reports-module-bg {
     padding: 0 !important;
   }
 
-  .header,
-  .statistics-section,
-  .configuration-section {
-    display: none !important;
-  }
-
   .preview-section {
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
-    background: white !important;
-  }
-
-  .preview-header {
-    display: none !important;
+    background: #fff !important;
   }
 
   .preview-container {
@@ -889,29 +903,191 @@ body.reports-module-bg {
     overflow: visible !important;
   }
 
+  /* SINGLE-PAGE FIT
+     Scale the entire printable area while preserving layout width */
   .report-preview {
-    padding: 20px !important;
-    font-size: 12px !important;
+    /* Single professional font everywhere */
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: #000;
+    background: #fff !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+
+    /* Sizing & scale */
+    width: calc(100% / var(--print-scale)) !important;
+    transform: scale(var(--print-scale));
+    transform-origin: top left;
+
+    /* Compact paddings */
+    padding: 8mm !important;
+    margin: 0 !important;
+    line-height: 1.25 !important;
   }
 
+  /* Typographic compaction + single font enforce */
+  .report-preview,
+  .report-preview * {
+    font-size: 11px !important;
+    font-family: inherit !important;  /* keep the single font */
+  }
+
+  .company-header h1 {
+    font-size: 16px !important;
+    margin: 0 0 4px 0 !important;
+    color: #000 !important;
+  }
+  .company-header p {
+    font-size: 11px !important;
+    margin: 0 0 2px 0 !important;
+    color: #333 !important;
+  }
+
+  .report-header {
+    margin: 0 0 8mm 0 !important;
+    padding: 0 0 4mm 0 !important;
+    align-items: flex-start !important;
+    border-bottom: 1px solid #000 !important;
+  }
+
+  .report-meta {
+    text-align: right !important;
+    font-size: 10px !important;
+    color: #333 !important;
+  }
+  .report-meta div { margin-bottom: 2px !important; }
+
+  /* Summary block: single column, dense & clean */
+  .report-summary {
+    margin: 0 0 6mm 0 !important;
+  }
+  .report-summary h2 {
+    font-size: 13px !important;
+    margin: 0 0 4mm 0 !important;
+    border-bottom: 1px solid #000 !important;
+    padding-bottom: 2mm !important;
+    color: #000 !important;
+  }
+  .summary-grid {
+    grid-template-columns: 1fr !important; /* ✅ single column */
+    gap: 4px !important;
+    padding: 4mm !important;
+    border: 1px solid #bbb !important;
+    background: transparent !important; /* remove color fill for B&W print */
+  }
+  .summary-item {
+    padding: 2mm 0 !important;
+    border-bottom: 1px solid #eee !important;
+    font-size: 11px !important;
+  }
+  .summary-item.total {
+    font-size: 12px !important;
+    border-top: 1px solid #000 !important;
+    padding-top: 3mm !important;
+  }
+
+  /* Amounts: keep single font, right-aligned */
+  .amount {
+    font-family: inherit !important;   /* ✅ no monospace */
+    font-weight: 600 !important;
+  }
+  .amount.positive, .amount.negative { color: #000 !important; }
+
+  /* Sections */
+  .report-section {
+    margin: 0 0 6mm 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .report-section h2 {
+    font-size: 13px !important;
+    margin: 0 0 3mm 0 !important;
+    padding-bottom: 2mm !important;
+    border-bottom: 1px solid #000 !important;
+    color: #000 !important;
+  }
+
+  /* Tables: compact, ink-friendly */
   .data-table {
+    margin: 0 0 4mm 0 !important;
+    overflow: visible !important;
+  }
+  .data-table table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important; /* prevents wrap explosions */
     font-size: 10px !important;
   }
-
   .data-table th,
   .data-table td {
-    padding: 6px 4px !important;
+    padding: 4px 3px !important;
     font-size: 10px !important;
+    border: 0.5px solid #999 !important;
+    vertical-align: top !important;
+    word-break: break-word !important;
+  }
+  .data-table th {
+    background: #f1f5f9 !important; /* light gray header */
+    color: #000 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+  }
+  .data-table tbody tr:nth-child(even),
+  .data-table tbody tr:hover {
+    background: transparent !important; /* remove zebra/hover in print */
+  }
+  .data-table .amount {
+    text-align: right !important;
+  }
+  .total-row {
+    background: #fafafa !important;
+  }
+  .total-row td {
+    border-top: 1px solid #000 !important;
+    padding: 6px 3px !important;
   }
 
-  .report-section {
-    page-break-inside: avoid;
+  /* Footer & signatures: compact and unbreakable */
+  .report-footer {
+    margin-top: 6mm !important;
+    padding-top: 4mm !important;
+    border-top: 1px solid #000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
-
+  .report-footer p {
+    margin: 0 0 3mm 0 !important;
+    color: #000 !important;
+  }
+  .report-footer ul {
+    margin: 0 0 4mm 16px !important;
+  }
+  .report-footer li {
+    margin-bottom: 2px !important;
+    font-size: 10px !important;
+    color: #333 !important;
+  }
   .signature-section {
-    page-break-inside: avoid;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 12mm !important;
+    margin-top: 6mm !important;
+  }
+  .signature {
+    text-align: center !important;
+    min-width: 0 !important;
+  }
+  .signature p {
+    margin: 0 0 2mm 0 !important;
+    font-size: 10px !important;
+    color: #333 !important;
+  }
+  .signature p:first-child {
+    margin-bottom: 3mm !important;
+    border-bottom: 1px solid #333 !important;
+    padding-bottom: 2mm !important;
   }
 }
+
 
 /* ===========================================
    ACCESSIBILITY

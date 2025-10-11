@@ -1,120 +1,114 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from "react-router-dom";
-import "../styles/reports.css";
+import '../styles/reports.css';
 
-// Mock combined data from Sales Collection and Payout & Tapal modules
-const mockReportData = {
-  collections: [
-    {
-      tellerId: 'T001',
-      tellerName: 'Juan Dela Cruz',
-      tellerCode: 'TLR001',
-      location: 'Booth A1',
-      date: '2025-01-15',
-      totalSales: 25420,
-      totalWinners: 8650,
-      grossSurplus: 16770,
-      commission: 1271,
-      netCollected: 15499,
-      collectedAt: '2025-01-15 02:30 PM',
-      collectedBy: 'Collector C001'
-    },
-    {
-      tellerId: 'T003',
-      tellerName: 'Pedro Garcia',
-      tellerCode: 'TLR003',
-      location: 'Booth C3',
-      date: '2025-01-15',
-      totalSales: 32750,
-      totalWinners: 18900,
-      grossSurplus: 13850,
-      commission: 1637.5,
-      netCollected: 12212.5,
-      collectedAt: '2025-01-15 01:45 PM',
-      collectedBy: 'Collector C001'
-    },
-    {
-      tellerId: 'T007',
-      tellerName: 'Miguel Fernandez',
-      tellerCode: 'TLR007',
-      location: 'Booth G7',
-      date: '2025-01-15',
-      totalSales: 2850,
-      totalWinners: 0,
-      grossSurplus: 2850,
-      commission: 142.5,
-      netCollected: 2707.5,
-      collectedAt: '2025-01-15 03:15 PM',
-      collectedBy: 'Collector C001'
-    }
-  ],
-  payouts: [
-    {
-      tellerId: 'T004',
-      tellerName: 'Ana Reyes',
-      tellerCode: 'TLR004',
-      location: 'Booth D4',
-      date: '2025-01-15',
-      totalSales: 31200,
-      totalWinners: 45600,
-      shortage: 14400,
-      payoutAmount: 14400,
-      processedAt: '2025-01-15 01:30 PM',
-      processedBy: 'Collector C001',
-      reason: 'insufficient_funds'
-    },
-    {
-      tellerId: 'T002',
-      tellerName: 'Maria Santos',
-      tellerCode: 'TLR002',
-      location: 'Booth B2',
-      date: '2025-01-15',
-      totalSales: 18150,
-      totalWinners: 28350,
-      shortage: 10200,
-      payoutAmount: 10200,
-      processedAt: '2025-01-15 10:45 AM',
-      processedBy: 'Collector C001',
-      reason: 'multiple_winners'
-    }
-  ],
-  dailySummary: {
-    '2025-01-15': {
-      totalCollections: 30419,
-      totalPayouts: 24600,
-      netPosition: 5819,
-      tellersWithSurplus: 3,
-      tellersWithShortage: 2,
-      totalTellers: 8
-    },
-    '2025-01-14': {
-      totalCollections: 45200,
-      totalPayouts: 18750,
-      netPosition: 26450,
-      tellersWithSurplus: 5,
-      tellersWithShortage: 1,
-      totalTellers: 8
-    }
+// Generate mock collection data
+const generateMockCollections = (dateFrom, dateTo) => {
+  const collections = [];
+  const tellers = [
+    { id: 'T001', name: 'Juan Dela Cruz', code: 'TLR001', location: 'Booth A1' },
+    { id: 'T002', name: 'Maria Santos', code: 'TLR002', location: 'Booth B2' },
+    { id: 'T003', name: 'Pedro Garcia', code: 'TLR003', location: 'Booth C3' },
+    { id: 'T004', name: 'Ana Reyes', code: 'TLR004', location: 'Booth D4' },
+    { id: 'T005', name: 'Carlos Lopez', code: 'TLR005', location: 'Booth E5' }
+  ];
+
+  const start = new Date(dateFrom || new Date());
+  const end = new Date(dateTo || new Date());
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    tellers.forEach(teller => {
+      if (Math.random() > 0.3) { // 70% chance of collection
+        const totalSales = Math.floor(Math.random() * 30000) + 10000;
+        const totalWinners = Math.floor(totalSales * (Math.random() * 0.4 + 0.3));
+        const grossSurplus = totalSales - totalWinners;
+        const commission = grossSurplus * 0.05;
+        const netCollected = grossSurplus - commission;
+
+        collections.push({
+          date: d.toISOString().split('T')[0],
+          tellerId: teller.id,
+          tellerName: teller.name,
+          tellerCode: teller.code,
+          location: teller.location,
+          totalSales,
+          totalWinners,
+          grossSurplus,
+          commission,
+          netCollected,
+          collectedAt: `${d.toISOString().split('T')[0]} ${Math.floor(Math.random() * 12) + 8}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
+          collectedBy: 'Collector C001'
+        });
+      }
+    });
   }
+
+  return collections;
 };
 
-const ReportsModule = () => {
+// Generate mock payout data
+const generateMockPayouts = (dateFrom, dateTo) => {
+  const payouts = [];
+  const tellers = [
+    { id: 'T001', name: 'Juan Dela Cruz', code: 'TLR001', location: 'Booth A1' },
+    { id: 'T006', name: 'Rosa Martinez', code: 'TLR006', location: 'Booth F6' },
+    { id: 'T007', name: 'Miguel Fernandez', code: 'TLR007', location: 'Booth G7' }
+  ];
+
+  const reasons = [
+    'insufficient_funds',
+    'multiple_winners',
+    'jackpot_prize',
+    'emergency_payout'
+  ];
+
+  const start = new Date(dateFrom || new Date());
+  const end = new Date(dateTo || new Date());
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    tellers.forEach(teller => {
+      if (Math.random() > 0.6) { // 40% chance of payout
+        const totalSales = Math.floor(Math.random() * 20000) + 5000;
+        const totalWinners = Math.floor(totalSales * (Math.random() * 0.5 + 1.2)); // Winners exceed sales
+        const shortage = totalWinners - totalSales;
+        const payoutAmount = shortage;
+
+        payouts.push({
+          date: d.toISOString().split('T')[0],
+          tellerId: teller.id,
+          tellerName: teller.name,
+          tellerCode: teller.code,
+          location: teller.location,
+          totalSales,
+          totalWinners,
+          shortage,
+          payoutAmount,
+          processedAt: `${d.toISOString().split('T')[0]} ${Math.floor(Math.random() * 12) + 8}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
+          processedBy: 'Collector C001',
+          reason: reasons[Math.floor(Math.random() * reasons.length)]
+        });
+      }
+    });
+  }
+
+  return payouts;
+};
+
+const Reports = () => {
   // State management
   const [reportType, setReportType] = useState('combined');
-  const [dateRange, setDateRange] = useState({ from: '', to: '' });
-  const [selectedTellers, setSelectedTellers] = useState([]);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedReport, setGeneratedReport] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  // Initialize date range to today
+  // Initialize with today's date
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    setDateRange({ from: today, to: today });
+    setDateFrom(today);
+    setDateTo(today);
   }, []);
-
-  // (removed realtime clock) - currentTime state was unused
 
   // Apply body class for background
   useEffect(() => {
@@ -122,321 +116,146 @@ const ReportsModule = () => {
     return () => document.body.classList.remove("reports-module-bg");
   }, []);
 
-  // Format currency
-  const peso = new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    maximumFractionDigits: 2
-  });
+  // Generate report data
+  const reportData = useMemo(() => {
+    if (!dateFrom || !dateTo) return { collections: [], payouts: [] };
 
-  // Toast notification system
-  const showToast = useCallback((message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
-  }, []);
-
-  // Get unique tellers for filter
-  const availableTellers = useMemo(() => {
-    const tellers = new Set();
-    mockReportData.collections.forEach(c => tellers.add(`${c.tellerId}:${c.tellerName}`));
-    mockReportData.payouts.forEach(p => tellers.add(`${p.tellerId}:${p.tellerName}`));
-    return Array.from(tellers).map(t => {
-      const [id, name] = t.split(':');
-      return { id, name };
-    });
-  }, []);
-
-  // Filter data based on selections
-  const filteredData = useMemo(() => {
-    const collections = mockReportData.collections.filter(item => {
-      const dateMatch = !dateRange.from || !dateRange.to || 
-        (item.date >= dateRange.from && item.date <= dateRange.to);
-      const tellerMatch = selectedTellers.length === 0 || 
-        selectedTellers.includes(item.tellerId);
-      return dateMatch && tellerMatch;
-    });
-
-    const payouts = mockReportData.payouts.filter(item => {
-      const dateMatch = !dateRange.from || !dateRange.to || 
-        (item.date >= dateRange.from && item.date <= dateRange.to);
-      const tellerMatch = selectedTellers.length === 0 || 
-        selectedTellers.includes(item.tellerId);
-      return dateMatch && tellerMatch;
-    });
+    const collections = generateMockCollections(dateFrom, dateTo);
+    const payouts = generateMockPayouts(dateFrom, dateTo);
 
     return { collections, payouts };
-  }, [dateRange, selectedTellers]);
+  }, [dateFrom, dateTo]);
 
-  // Calculate report statistics
-  const reportStats = useMemo(() => {
-    const { collections, payouts } = filteredData;
-    
+  // Calculate statistics
+  const statistics = useMemo(() => {
+    const { collections, payouts } = reportData;
+
     const totalCollections = collections.reduce((sum, c) => sum + c.netCollected, 0);
     const totalPayouts = payouts.reduce((sum, p) => sum + p.payoutAmount, 0);
-    const totalCommission = collections.reduce((sum, c) => sum + c.commission, 0);
+    const totalGrossSurplus = collections.reduce((sum, c) => sum + c.grossSurplus, 0);
+    const totalCommissions = collections.reduce((sum, c) => sum + c.commission, 0);
     const netPosition = totalCollections - totalPayouts;
 
     return {
       totalCollections,
       totalPayouts,
-      totalCommission,
+      totalGrossSurplus,
+      totalCommissions,
       netPosition,
       collectionsCount: collections.length,
-      payoutsCount: payouts.length,
-      totalTransactions: collections.length + payouts.length
+      payoutsCount: payouts.length
     };
-  }, [filteredData]);
+  }, [reportData]);
 
-  // Handle teller selection
-  const handleTellerToggle = useCallback((tellerId) => {
-    setSelectedTellers(prev => 
-      prev.includes(tellerId) 
-        ? prev.filter(id => id !== tellerId)
-        : [...prev, tellerId]
-    );
+  // Toast notification
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
   }, []);
 
-  // Generate report
-  const handleGenerateReport = useCallback(async () => {
-    if (!dateRange.from || !dateRange.to) {
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  // Generate report handler
+  const handleGenerateReport = useCallback(() => {
+    if (!dateFrom || !dateTo) {
       showToast('Please select date range', 'error');
       return;
     }
 
     setIsGenerating(true);
-
-    // Simulate report generation
     setTimeout(() => {
-      const report = {
-        id: `RPT${Date.now().toString().slice(-8)}`,
-        type: reportType,
-        dateRange,
-        selectedTellers: selectedTellers.length || 'All Tellers',
-        data: filteredData,
-        stats: reportStats,
-        generatedAt: new Date().toISOString(),
-        generatedBy: 'Collector C001'
-      };
-
-      setGeneratedReport(report);
       setIsGenerating(false);
       setShowPreview(true);
-      showToast('Report generated successfully', 'success');
-    }, 2000);
-  }, [reportType, dateRange, selectedTellers, filteredData, reportStats, showToast]);
-
-  // Export as PDF (simulated)
-  const handleExportPDF = useCallback(() => {
-    if (!generatedReport) return;
-
-    // In a real app, you'd use a library like jsPDF or react-pdf
-    showToast('PDF export started - check downloads folder', 'success');
-    
-    // Simulate PDF generation
-    setTimeout(() => {
-      const blob = new Blob(['PDF content would be here'], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${generatedReport.type}-report-${generatedReport.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('PDF downloaded successfully', 'success');
+      showToast('Report generated successfully');
     }, 1000);
-  }, [generatedReport, showToast]);
+  }, [dateFrom, dateTo, showToast]);
+
+  // Export handlers
+  const handlePrint = useCallback(() => {
+    window.print();
+    showToast('Opening print dialog');
+  }, [showToast]);
+
+  const handleDownloadPDF = useCallback(() => {
+    window.print();
+    showToast('Use Print dialog and select "Save as PDF"');
+  }, [showToast]);
+
+  const handleDownloadCSV = useCallback(() => {
+    const { collections, payouts } = reportData;
+    let csvContent = '';
+
+    if (reportType === 'combined' || reportType === 'collections') {
+      csvContent += 'COLLECTIONS REPORT\n';
+      csvContent += 'Date,Teller Code,Teller Name,Location,Total Sales,Total Winners,Gross Surplus,Commission,Net Collected,Collected At\n';
+      collections.forEach(c => {
+        csvContent += `${c.date},${c.tellerCode},${c.tellerName},${c.location},${c.totalSales},${c.totalWinners},${c.grossSurplus},${c.commission},${c.netCollected},${c.collectedAt}\n`;
+      });
+      csvContent += '\n';
+    }
+
+    if (reportType === 'combined' || reportType === 'payouts') {
+      csvContent += 'PAYOUTS REPORT\n';
+      csvContent += 'Date,Teller Code,Teller Name,Location,Total Sales,Total Winners,Shortage,Payout Amount,Reason,Processed At\n';
+      payouts.forEach(p => {
+        csvContent += `${p.date},${p.tellerCode},${p.tellerName},${p.location},${p.totalSales},${p.totalWinners},${p.shortage},${p.payoutAmount},${p.reason},${p.processedAt}\n`;
+      });
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `collector_report_${dateFrom}_to_${dateTo}.csv`;
+    link.click();
+    showToast('CSV downloaded successfully');
+  }, [reportData, reportType, dateFrom, dateTo, showToast]);
 
   // Statistics Cards Component
   const StatisticsCards = () => (
     <div className="statistics-grid">
-      <div className="stat-card">
-        <div className="stat-value">{reportStats.totalTransactions}</div>
-        <div className="stat-label">Total Transactions</div>
-      </div>
       <div className="stat-card collections">
-        <div className="stat-value">{peso.format(reportStats.totalCollections)}</div>
+        <div className="stat-value">{formatCurrency(statistics.totalCollections)}</div>
         <div className="stat-label">Total Collections</div>
       </div>
       <div className="stat-card payouts">
-        <div className="stat-value">{peso.format(reportStats.totalPayouts)}</div>
+        <div className="stat-value">{formatCurrency(statistics.totalPayouts)}</div>
         <div className="stat-label">Total Payouts</div>
       </div>
       <div className="stat-card net">
-        <div className="stat-value">{peso.format(Math.abs(reportStats.netPosition))}</div>
-        <div className="stat-label">{reportStats.netPosition >= 0 ? 'Net Gain' : 'Net Loss'}</div>
+        <div className="stat-value">{formatCurrency(statistics.netPosition)}</div>
+        <div className="stat-label">Net Position</div>
+      </div>
+      <div className="stat-card">
+        <div className="stat-value">{statistics.collectionsCount + statistics.payoutsCount}</div>
+        <div className="stat-label">Total Transactions</div>
       </div>
     </div>
   );
 
-  // Report Preview Component
-  const ReportPreview = ({ report }) => {
-    if (!report) return null;
-
-    return (
-      <div className="report-preview">
-        <div className="report-header">
-          <div className="company-header">
-            <h1>STL Gaming System</h1>
-            <p>PCSO Licensed Gaming Operator</p>
-            <p>Collector Financial Report</p>
-          </div>
-          <div className="report-meta">
-            <div><strong>Report ID:</strong> {report.id}</div>
-            <div><strong>Type:</strong> {report.type.toUpperCase()}</div>
-            <div><strong>Period:</strong> {report.dateRange.from} to {report.dateRange.to}</div>
-            <div><strong>Generated:</strong> {new Date(report.generatedAt).toLocaleString('en-PH')}</div>
-            <div><strong>Generated By:</strong> {report.generatedBy}</div>
-          </div>
-        </div>
-
-        <div className="report-summary">
-          <h2>Executive Summary</h2>
-          <div className="summary-grid">
-            <div className="summary-item">
-              <span>Total Collections:</span>
-              <span className="amount positive">{peso.format(report.stats.totalCollections)}</span>
-            </div>
-            <div className="summary-item">
-              <span>Total Payouts:</span>
-              <span className="amount negative">{peso.format(report.stats.totalPayouts)}</span>
-            </div>
-            <div className="summary-item">
-              <span>Commission Earned:</span>
-              <span className="amount">{peso.format(report.stats.totalCommission)}</span>
-            </div>
-            <div className="summary-item total">
-              <span>Net Position:</span>
-              <span className={`amount ${report.stats.netPosition >= 0 ? 'positive' : 'negative'}`}>
-                {report.stats.netPosition >= 0 ? '+' : ''}{peso.format(report.stats.netPosition)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {(reportType === 'collections' || reportType === 'combined') && report.data.collections.length > 0 && (
-          <div className="report-section">
-            <h2>Collections Report</h2>
-            <div className="data-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Teller</th>
-                    <th>Location</th>
-                    <th>Total Sales</th>
-                    <th>Winners</th>
-                    <th>Gross Surplus</th>
-                    <th>Commission</th>
-                    <th>Net Collected</th>
-                    <th>Collected At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.data.collections.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.tellerName} ({item.tellerCode})</td>
-                      <td>{item.location}</td>
-                      <td>{peso.format(item.totalSales)}</td>
-                      <td>{peso.format(item.totalWinners)}</td>
-                      <td>{peso.format(item.grossSurplus)}</td>
-                      <td>{peso.format(item.commission)}</td>
-                      <td className="amount positive">{peso.format(item.netCollected)}</td>
-                      <td>{item.collectedAt}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="total-row">
-                    <td colSpan="6"><strong>Total Collections:</strong></td>
-                    <td className="amount positive"><strong>{peso.format(report.data.collections.reduce((sum, c) => sum + c.netCollected, 0))}</strong></td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {(reportType === 'payouts' || reportType === 'combined') && report.data.payouts.length > 0 && (
-          <div className="report-section">
-            <h2>Payouts Report</h2>
-            <div className="data-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Teller</th>
-                    <th>Location</th>
-                    <th>Total Sales</th>
-                    <th>Winners</th>
-                    <th>Shortage</th>
-                    <th>Payout Amount</th>
-                    <th>Reason</th>
-                    <th>Processed At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.data.payouts.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.tellerName} ({item.tellerCode})</td>
-                      <td>{item.location}</td>
-                      <td>{peso.format(item.totalSales)}</td>
-                      <td>{peso.format(item.totalWinners)}</td>
-                      <td>{peso.format(item.shortage)}</td>
-                      <td className="amount negative">{peso.format(item.payoutAmount)}</td>
-                      <td>{item.reason.replace(/_/g, ' ').toUpperCase()}</td>
-                      <td>{item.processedAt}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="total-row">
-                    <td colSpan="5"><strong>Total Payouts:</strong></td>
-                    <td className="amount negative"><strong>{peso.format(report.data.payouts.reduce((sum, p) => sum + p.payoutAmount, 0))}</strong></td>
-                    <td colSpan="2"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        )}
-
-        <div className="report-footer">
-          <p><strong>Report Notes:</strong></p>
-          <ul>
-            <li>All amounts are in Philippine Peso (PHP)</li>
-            <li>Collections represent surplus amounts after winner payouts</li>
-            <li>Payouts represent advances to tellers for insufficient funds</li>
-            <li>Commission rate: 5% of gross sales</li>
-            <li>This report is generated automatically by the STL Gaming System</li>
-          </ul>
-          <div className="signature-section">
-            <div className="signature">
-              <p>_________________________</p>
-              <p>Collector Signature</p>
-            </div>
-            <div className="signature">
-              <p>_________________________</p>
-              <p>Supervisor Approval</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="container">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`toast show ${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
+
       {/* Header */}
       <header className="header">
         <div className="header-content">
           <h1>Reports & Analytics</h1>
           <p className="header-subtitle">Generate remittance and combined payouts/tapal reports</p>
         </div>
-        <Link 
-          to="/collector"
-          className="back-btn" 
-          aria-label="Back to Dashboard"
-        >
+        <Link to="/collector" className="back-btn" aria-label="Back to Dashboard">
           <span aria-hidden="true">←</span> Back To Dashboard
         </Link>
       </header>
@@ -473,72 +292,42 @@ const ReportsModule = () => {
           </div>
 
           <div className="config-group">
-            <label htmlFor="date-from" className="config-label">From Date</label>
+            <label htmlFor="date-from" className="config-label">Date From</label>
             <input
               id="date-from"
               type="date"
               className="config-input"
-              value={dateRange.from}
-              onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
             />
           </div>
 
           <div className="config-group">
-            <label htmlFor="date-to" className="config-label">To Date</label>
+            <label htmlFor="date-to" className="config-label">Date To</label>
             <input
               id="date-to"
               type="date"
               className="config-input"
-              value={dateRange.to}
-              onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
             />
-          </div>
-        </div>
-
-        <div className="teller-selection">
-          <h3 className="selection-title">Select Tellers (Optional)</h3>
-          <div className="teller-grid">
-            {availableTellers.map(teller => (
-              <label key={teller.id} className="teller-checkbox">
-                <input
-                  type="checkbox"
-                  checked={selectedTellers.includes(teller.id)}
-                  onChange={() => handleTellerToggle(teller.id)}
-                />
-                <span className="checkbox-label">{teller.name}</span>
-              </label>
-            ))}
-          </div>
-          <div className="selection-actions">
-            <button 
-              className="btn btn-secondary"
-              onClick={() => setSelectedTellers([])}
-            >
-              Clear All
-            </button>
-            <button 
-              className="btn btn-secondary"
-              onClick={() => setSelectedTellers(availableTellers.map(t => t.id))}
-            >
-              Select All
-            </button>
           </div>
         </div>
 
         <div className="generate-section">
           <button
-            className="btn btn-primary generate-btn"
+            className="generate-btn"
             onClick={handleGenerateReport}
-            disabled={isGenerating}
+            disabled={isGenerating || !dateFrom || !dateTo}
           >
             {isGenerating ? (
               <>
                 <span className="spinner"></span>
-                Generating Report...
+                Generating...
               </>
             ) : (
               <>
-                <span>📋</span>
+                <span>📄</span>
                 Generate Report
               </>
             )}
@@ -547,7 +336,7 @@ const ReportsModule = () => {
       </section>
 
       {/* Report Preview */}
-      {showPreview && generatedReport && (
+      {showPreview && (
         <section className="card preview-section">
           <div className="preview-header">
             <h2 className="section-title">
@@ -555,36 +344,196 @@ const ReportsModule = () => {
               Report Preview
             </h2>
             <div className="preview-actions">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowPreview(false)}
-              >
-                Close Preview
+              <button onClick={handlePrint} className="btn btn-secondary">
+                <span>🖨️</span> Print
               </button>
-              <button
-                className="btn btn-success"
-                onClick={handleExportPDF}
-              >
-                <span>📥</span>
-                Export PDF
+              <button onClick={handleDownloadPDF} className="btn btn-primary">
+                <span>📥</span> Download PDF
+              </button>
+              <button onClick={handleDownloadCSV} className="btn btn-success">
+                <span>📊</span> Download CSV
               </button>
             </div>
           </div>
-          
+
           <div className="preview-container">
-            <ReportPreview report={generatedReport} />
+            <div className="report-preview">
+              {/* Report Header */}
+              <div className="report-header">
+                <div className="company-header">
+                  <h1>STL Gaming System</h1>
+                  <p>Collector Financial Report</p>
+                  <p>Philippine Charity Sweepstakes Office</p>
+                </div>
+                <div className="report-meta">
+                  <div><strong>Report Type:</strong> {reportType === 'combined' ? 'Combined Report' : reportType === 'collections' ? 'Collections Only' : 'Payouts Only'}</div>
+                  <div><strong>Period:</strong> {dateFrom} to {dateTo}</div>
+                  <div><strong>Generated:</strong> {new Date().toLocaleString('en-PH')}</div>
+                  <div><strong>Generated By:</strong> Collector C001</div>
+                </div>
+              </div>
+
+              {/* Report Summary */}
+              <div className="report-summary">
+                <h2>Executive Summary</h2>
+                <div className="summary-grid">
+                  {(reportType === 'combined' || reportType === 'collections') && (
+                    <>
+                      <div className="summary-item">
+                        <span>Total Collections:</span>
+                        <span className="amount positive">{formatCurrency(statistics.totalCollections)}</span>
+                      </div>
+                      <div className="summary-item">
+                        <span>Gross Surplus:</span>
+                        <span className="amount">{formatCurrency(statistics.totalGrossSurplus)}</span>
+                      </div>
+                      <div className="summary-item">
+                        <span>Total Commissions:</span>
+                        <span className="amount">{formatCurrency(statistics.totalCommissions)}</span>
+                      </div>
+                    </>
+                  )}
+                  
+                  {(reportType === 'combined' || reportType === 'payouts') && (
+                    <div className="summary-item">
+                      <span>Total Payouts/Tapal:</span>
+                      <span className="amount negative">{formatCurrency(statistics.totalPayouts)}</span>
+                    </div>
+                  )}
+
+                  {reportType === 'combined' && (
+                    <div className="summary-item total">
+                      <span>Net Position:</span>
+                      <span className={`amount ${statistics.netPosition >= 0 ? 'positive' : 'negative'}`}>
+                        {formatCurrency(statistics.netPosition)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Collections Report Section */}
+              {(reportType === 'combined' || reportType === 'collections') && reportData.collections.length > 0 && (
+                <div className="report-section">
+                  <h2>Collections Report</h2>
+                  <div className="data-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Teller Code</th>
+                          <th>Teller Name</th>
+                          <th>Location</th>
+                          <th>Total Sales</th>
+                          <th>Winners</th>
+                          <th>Surplus</th>
+                          <th>Commission</th>
+                          <th>Net Collected</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportData.collections.map((collection, index) => (
+                          <tr key={index}>
+                            <td>{collection.date}</td>
+                            <td>{collection.tellerCode}</td>
+                            <td>{collection.tellerName}</td>
+                            <td>{collection.location}</td>
+                            <td className="amount">{formatCurrency(collection.totalSales)}</td>
+                            <td className="amount">{formatCurrency(collection.totalWinners)}</td>
+                            <td className="amount">{formatCurrency(collection.grossSurplus)}</td>
+                            <td className="amount">{formatCurrency(collection.commission)}</td>
+                            <td className="amount">{formatCurrency(collection.netCollected)}</td>
+                          </tr>
+                        ))}
+                        <tr className="total-row">
+                          <td colSpan="4"><strong>TOTAL COLLECTIONS</strong></td>
+                          <td className="amount"><strong>{formatCurrency(reportData.collections.reduce((s, c) => s + c.totalSales, 0))}</strong></td>
+                          <td className="amount"><strong>{formatCurrency(reportData.collections.reduce((s, c) => s + c.totalWinners, 0))}</strong></td>
+                          <td className="amount"><strong>{formatCurrency(statistics.totalGrossSurplus)}</strong></td>
+                          <td className="amount"><strong>{formatCurrency(statistics.totalCommissions)}</strong></td>
+                          <td className="amount"><strong>{formatCurrency(statistics.totalCollections)}</strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Payouts Report Section */}
+              {(reportType === 'combined' || reportType === 'payouts') && reportData.payouts.length > 0 && (
+                <div className="report-section">
+                  <h2>Payouts & Tapal Report</h2>
+                  <div className="data-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Teller Code</th>
+                          <th>Teller Name</th>
+                          <th>Location</th>
+                          <th>Total Sales</th>
+                          <th>Winners</th>
+                          <th>Shortage</th>
+                          <th>Payout</th>
+                          <th>Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportData.payouts.map((payout, index) => (
+                          <tr key={index}>
+                            <td>{payout.date}</td>
+                            <td>{payout.tellerCode}</td>
+                            <td>{payout.tellerName}</td>
+                            <td>{payout.location}</td>
+                            <td className="amount">{formatCurrency(payout.totalSales)}</td>
+                            <td className="amount">{formatCurrency(payout.totalWinners)}</td>
+                            <td className="amount">{formatCurrency(payout.shortage)}</td>
+                            <td className="amount">{formatCurrency(payout.payoutAmount)}</td>
+                            <td>{payout.reason.replace(/_/g, ' ').toUpperCase()}</td>
+                          </tr>
+                        ))}
+                        <tr className="total-row">
+                          <td colSpan="4"><strong>TOTAL PAYOUTS</strong></td>
+                          <td className="amount"><strong>{formatCurrency(reportData.payouts.reduce((s, p) => s + p.totalSales, 0))}</strong></td>
+                          <td className="amount"><strong>{formatCurrency(reportData.payouts.reduce((s, p) => s + p.totalWinners, 0))}</strong></td>
+                          <td className="amount"><strong>{formatCurrency(reportData.payouts.reduce((s, p) => s + p.shortage, 0))}</strong></td>
+                          <td className="amount"><strong>{formatCurrency(statistics.totalPayouts)}</strong></td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Report Footer */}
+              <div className="report-footer">
+                <p>Report Certification:</p>
+                <ul>
+                  <li>All amounts have been verified and reconciled</li>
+                  <li>Commission rate of 5% has been applied to all collections</li>
+                  <li>All payouts/tapal have been properly documented with reasons</li>
+                  <li>This report is generated automatically by the STL Gaming System</li>
+                </ul>
+                <div className="signature-section">
+                  <div className="signature">
+                    <p>_________________________</p>
+                    <p>Collector Signature</p>
+                    <p>Collector C001</p>
+                  </div>
+                  <div className="signature">
+                    <p>_________________________</p>
+                    <p>Supervisor Approval</p>
+                    <p>Date: {new Date().toLocaleDateString('en-PH')}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
-      )}
-
-      {/* Toast Notification */}
-      {toast.show && (
-        <div className={`toast show ${toast.type}`}>
-          {toast.message}
-        </div>
       )}
     </div>
   );
 };
 
-export default ReportsModule;
+export default Reports;
