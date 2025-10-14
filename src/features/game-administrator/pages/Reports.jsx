@@ -1,77 +1,70 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import '../styles/reports.css';
 
-// Helper: format local date to YYYY-MM-DD (no UTC shift issues)
+/* Utils */
 const formatDateLocal = (d = new Date()) => {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${y}-${m}-${day}`;
 };
 
 const ReportsPage = () => {
-  // TODAY: compute once
-  const todayStr = formatDateLocal(new Date()); // e.g., 2025-10-14
+  /* Defaults: Today */
+  const todayStr = formatDateLocal(new Date());
   const now = new Date();
 
+  /* Tabs & filters */
   const [activeTab, setActiveTab] = useState('summary');
-  const [dateFrom, setDateFrom] = useState(todayStr);        // TODAY
-  const [dateTo, setDateTo] = useState(todayStr);            // TODAY
+  const [dateFrom, setDateFrom] = useState(todayStr);
+  const [dateTo, setDateTo] = useState(todayStr);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterArea, setFilterArea] = useState('all');
   const [filterRole, setFilterRole] = useState('all');
   const [filterTeller, setFilterTeller] = useState('all');
+  const [filterCollector, setFilterCollector] = useState('all'); // NEW
   const [filterGame, setFilterGame] = useState('all');
   const [filterDrawTime, setFilterDrawTime] = useState('all');
-  const [filterCollector, setFilterCollector] = useState('all'); // (from previous step)
 
-  // Generate mock data (unchanged list of users)
-  const userManagementData = useMemo(() => {
-    return [
-      { id: 'T-0001', name: 'Ana Cruz', role: 'Teller', area: 'Toril', status: 'Active', loginCount: 145, lastLogin: `${todayStr} 08:15:23`, ticketsProcessed: 1247 },
-      { id: 'T-0002', name: 'Mark Dela Peña', role: 'Teller', area: 'Buhangin', status: 'Suspended', loginCount: 89, lastLogin: `${todayStr} 14:22:11`, ticketsProcessed: 856 },
-      { id: 'T-0003', name: 'Carla Reyes', role: 'Teller', area: 'Lanang', status: 'Active', loginCount: 167, lastLogin: `${todayStr} 09:02:45`, ticketsProcessed: 1589 },
-      { id: 'C-0101', name: 'Joy Santos', role: 'Collector', area: 'Matina', status: 'Active', loginCount: 98, lastLogin: `${todayStr} 07:45:12`, ticketsProcessed: 0 },
-      { id: 'T-0004', name: 'Paolo Garcia', role: 'Teller', area: 'Sasa', status: 'Active', loginCount: 134, lastLogin: `${todayStr} 16:30:08`, ticketsProcessed: 1123 },
-      { id: 'C-0102', name: 'Leo Tan', role: 'Collector', area: 'Agdao', status: 'Active', loginCount: 76, lastLogin: `${todayStr} 18:20:33`, ticketsProcessed: 0 },
-      { id: 'T-0005', name: 'Lara Torres', role: 'Teller', area: 'Agdao', status: 'Active', loginCount: 142, lastLogin: `${todayStr} 08:55:17`, ticketsProcessed: 1334 },
-      { id: 'T-0006', name: 'Mike Ramos', role: 'Teller', area: 'Toril', status: 'Active', loginCount: 156, lastLogin: `${todayStr} 09:12:05`, ticketsProcessed: 1456 },
-      { id: 'T-0007', name: 'Nina Lopez', role: 'Teller', area: 'Buhangin', status: 'Suspended', loginCount: 67, lastLogin: `${todayStr} 12:45:22`, ticketsProcessed: 678 },
-      { id: 'C-0103', name: 'Rico Martinez', role: 'Collector', area: 'Lanang', status: 'Active', loginCount: 88, lastLogin: `${todayStr} 19:15:40`, ticketsProcessed: 0 },
-    ];
-  }, [todayStr]);
+  /* Data: Users */
+  const userManagementData = useMemo(() => ([
+    { id: 'T-0001', name: 'Ana Cruz', role: 'Teller',    area: 'Toril',    status: 'Active',    loginCount: 145, lastLogin: `${todayStr} 08:15:23`, ticketsProcessed: 1247 },
+    { id: 'T-0002', name: 'Mark Dela Peña', role: 'Teller', area: 'Buhangin', status: 'Suspended', loginCount: 89,  lastLogin: `${todayStr} 14:22:11`, ticketsProcessed: 856  },
+    { id: 'T-0003', name: 'Carla Reyes', role: 'Teller',  area: 'Lanang',  status: 'Active',    loginCount: 167, lastLogin: `${todayStr} 09:02:45`, ticketsProcessed: 1589 },
+    { id: 'C-0101', name: 'Joy Santos', role: 'Collector', area: 'Matina',   status: 'Active',    loginCount: 98,  lastLogin: `${todayStr} 07:45:12`, ticketsProcessed: 0    },
+    { id: 'T-0004', name: 'Paolo Garcia', role: 'Teller', area: 'Sasa',     status: 'Active',    loginCount: 134, lastLogin: `${todayStr} 16:30:08`, ticketsProcessed: 1123 },
+    { id: 'C-0102', name: 'Leo Tan', role: 'Collector',   area: 'Agdao',    status: 'Active',    loginCount: 76,  lastLogin: `${todayStr} 18:20:33`, ticketsProcessed: 0    },
+    { id: 'T-0005', name: 'Lara Torres', role: 'Teller',  area: 'Agdao',    status: 'Active',    loginCount: 142, lastLogin: `${todayStr} 08:55:17`, ticketsProcessed: 1334 },
+    { id: 'T-0006', name: 'Mike Ramos', role: 'Teller',   area: 'Toril',    status: 'Active',    loginCount: 156, lastLogin: `${todayStr} 09:12:05`, ticketsProcessed: 1456 },
+    { id: 'T-0007', name: 'Nina Lopez', role: 'Teller',   area: 'Buhangin', status: 'Suspended', loginCount: 67,  lastLogin: `${todayStr} 12:45:22`, ticketsProcessed: 678  },
+    { id: 'C-0103', name: 'Rico Martinez', role: 'Collector', area: 'Lanang', status: 'Active',   loginCount: 88,  lastLogin: `${todayStr} 19:15:40`, ticketsProcessed: 0    },
+  ]), [todayStr]);
 
-  // DAILY OPS: generate only for today
+  /* Daily Ops (today only) – kept for future use */
   const dailyOpsData = useMemo(() => {
-    const operations = [];
     const areas = ['Toril', 'Buhangin', 'Lanang', 'Matina', 'Sasa', 'Agdao'];
-    areas.forEach(area => {
-      operations.push({
-        date: todayStr, // TODAY
-        area,
-        totalTickets: Math.floor(Math.random() * 400) + 200,
-        activeTickets: Math.floor(Math.random() * 350) + 150,
-        voidedTickets: Math.floor(Math.random() * 40) + 10,
-        totalSales: Math.floor(Math.random() * 400000) + 150000,
-        voidRequests: Math.floor(Math.random() * 12) + 3,
-      });
-    });
-    return operations;
+    return areas.map(area => ({
+      date: todayStr,
+      area,
+      totalTickets: Math.floor(Math.random() * 400) + 200,
+      activeTickets: Math.floor(Math.random() * 350) + 150,
+      voidedTickets: Math.floor(Math.random() * 40) + 10,
+      totalSales: Math.floor(Math.random() * 400000) + 150000,
+      voidRequests: Math.floor(Math.random() * 12) + 3,
+    }));
   }, [todayStr]);
 
-  // Teller-Collector assignments
-  const tellerCollectorAssignments = useMemo(() => {
-    return {
-      'T-0001': 'C-0101',
-      'T-0003': 'C-0103',
-      'T-0004': 'C-0101',
-      'T-0005': 'C-0102',
-      'T-0006': 'C-0101',
-    };
-  }, []);
+  /* Teller -> Collector assignments */
+  const tellerCollectorAssignments = useMemo(() => ({
+    'T-0001': 'C-0101',
+    'T-0003': 'C-0103',
+    'T-0004': 'C-0101',
+    'T-0005': 'C-0102',
+    'T-0006': 'C-0101',
+  }), []);
 
-  // TELLER REPORTS: only today
+  /* Teller Reports (today only) */
   const tellerReportsData = useMemo(() => {
     const reports = [];
     const tellers = userManagementData.filter(u => u.role === 'Teller' && u.status === 'Active');
@@ -85,7 +78,7 @@ const ReportsPage = () => {
       const collector = collectorId ? userManagementData.find(u => u.id === collectorId) : null;
 
       reports.push({
-        date: todayStr, // TODAY
+        date: todayStr,
         tellerId: teller.id,
         tellerName: teller.name,
         area: teller.area,
@@ -95,22 +88,21 @@ const ReportsPage = () => {
         ticketsVoided,
         ticketsActive: ticketsIssued - ticketsVoided,
         totalSales: sales,
-        loginTime: '08:' + (Math.floor(Math.random() * 60)).toString().padStart(2, '0') + ':00',
-        logoutTime: '17:' + (Math.floor(Math.random() * 60)).toString().padStart(2, '0') + ':00',
+        loginTime: '08:' + String(Math.floor(Math.random() * 60)).padStart(2, '0') + ':00',
+        logoutTime: '17:' + String(Math.floor(Math.random() * 60)).padStart(2, '0') + ':00',
       });
     });
 
     return reports;
   }, [userManagementData, tellerCollectorAssignments, todayStr]);
 
-  // DRAWS: only today; Completed if earlier than now, else Scheduled
+  /* Draws (today only) */
   const drawManagementData = useMemo(() => {
     const draws = [];
     const games = ['STL Pares', 'Last 2', 'Last 3', 'Swer3'];
     const times = ['11:00 AM', '4:00 PM', '9:00 PM'];
 
     const toTodayTime = (timeStr) => {
-      // timeStr like "4:00 PM" => build Date for today
       const [t, mer] = timeStr.split(' ');
       let [h, m] = t.split(':').map(Number);
       if (mer.toUpperCase() === 'PM' && h !== 12) h += 12;
@@ -120,33 +112,31 @@ const ReportsPage = () => {
       return d;
     };
 
-    const generateWinningNumbers = (game) => {
+    const genWin = (game) => {
       if (game === 'STL Pares') {
         const n1 = String(Math.floor(Math.random() * 40) + 1).padStart(2, '0');
         const n2 = String(Math.floor(Math.random() * 40) + 1).padStart(2, '0');
         return `${n1}-${n2}`;
-      } else if (game === 'Last 2') {
-        return String(Math.floor(Math.random() * 100)).padStart(2, '0');
-      } else {
-        return String(Math.floor(Math.random() * 1000)).padStart(3, '0');
       }
+      if (game === 'Last 2') return String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      return String(Math.floor(Math.random() * 1000)).padStart(3, '0');
     };
 
     games.forEach(game => {
       times.forEach(time => {
-        const drawDateTime = toTodayTime(time);
-        const isCompleted = drawDateTime < now;
+        const dt = toTodayTime(time);
+        const isCompleted = dt < now;
         const totalBets = Math.floor(Math.random() * 4000) + 1000;
         const totalAmount = Math.floor(Math.random() * 1500000) + 500000;
 
         draws.push({
-          date: todayStr,        // TODAY
+          date: todayStr,
           game,
           drawTime: time,
           status: isCompleted ? 'Completed' : 'Scheduled',
           totalBets,
           totalAmount,
-          winningNumbers: isCompleted ? generateWinningNumbers(game) : '—',
+          winningNumbers: isCompleted ? genWin(game) : '—',
           winners: isCompleted ? Math.floor(Math.random() * 45) + 5 : 0,
           payoutAmount: isCompleted ? Math.floor(Math.random() * 400000) + 50000 : 0,
         });
@@ -156,83 +146,83 @@ const ReportsPage = () => {
     return draws;
   }, [todayStr, now]);
 
-  // Unique lists
-  const uniqueTellers = useMemo(() => {
-    const tellers = userManagementData.filter(u => u.role === 'Teller' && u.status === 'Active');
-    return tellers.sort((a, b) => a.name.localeCompare(b.name));
-  }, [userManagementData]);
+  /* Unique options */
+  const uniqueTellers = useMemo(() => (
+    userManagementData
+      .filter(u => u.role === 'Teller' && u.status === 'Active')
+      .sort((a, b) => a.name.localeCompare(b.name))
+  ), [userManagementData]);
 
-  const uniqueCollectors = useMemo(() => {
-    const collectors = userManagementData.filter(u => u.role === 'Collector' && u.status === 'Active');
-    return collectors.sort((a, b) => a.name.localeCompare(b.name));
-  }, [userManagementData]);
+  const uniqueCollectors = useMemo(() => (
+    userManagementData
+      .filter(u => u.role === 'Collector' && u.status === 'Active')
+      .sort((a, b) => a.name.localeCompare(b.name))
+  ), [userManagementData]);
 
-  const uniqueDrawTimes = useMemo(() => {
-    const times = [...new Set(drawManagementData.map(d => d.drawTime))];
-    return times.sort();
-  }, [drawManagementData]);
+  const uniqueDrawTimes = useMemo(() => (
+    [...new Set(drawManagementData.map(d => d.drawTime))].sort()
+  ), [drawManagementData]);
 
-  // Filters
-  const filteredUserData = useMemo(() => {
-    return userManagementData.filter(user => {
-      const matchesSearch = searchQuery ? 
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.area.toLowerCase().includes(searchQuery.toLowerCase()) : true;
-      
+  /* Filtering */
+  const filteredUserData = useMemo(() => (
+    userManagementData.filter(user => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = searchQuery
+        ? user.name.toLowerCase().includes(q) ||
+          user.id.toLowerCase().includes(q) ||
+          user.area.toLowerCase().includes(q)
+        : true;
       const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
       const matchesArea = filterArea === 'all' || user.area === filterArea;
       const matchesRole = filterRole === 'all' || user.role === filterRole;
-      
       return matchesSearch && matchesStatus && matchesArea && matchesRole;
-    });
-  }, [userManagementData, searchQuery, filterStatus, filterArea, filterRole]);
+    })
+  ), [userManagementData, searchQuery, filterStatus, filterArea, filterRole]);
 
-  const filteredTellerReports = useMemo(() => {
-    return tellerReportsData.filter(report => {
+  const filteredTellerReports = useMemo(() => (
+    tellerReportsData.filter(report => {
       const reportDate = new Date(report.date);
       const from = new Date(dateFrom);
       const to = new Date(dateTo);
-
       const matchesDate = reportDate >= from && reportDate <= to;
       const matchesArea = filterArea === 'all' || report.area === filterArea;
       const matchesTeller = filterTeller === 'all' || report.tellerId === filterTeller;
       const matchesCollector = filterCollector === 'all' || report.collectorId === filterCollector;
-
-      const matchesSearch = searchQuery ? 
-        report.tellerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.tellerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.area.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (report.collector || '').toLowerCase().includes(searchQuery.toLowerCase()) : true;
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = searchQuery
+        ? report.tellerName.toLowerCase().includes(q) ||
+          report.tellerId.toLowerCase().includes(q) ||
+          report.area.toLowerCase().includes(q) ||
+          (report.collector || '').toLowerCase().includes(q)
+        : true;
 
       return matchesDate && matchesArea && matchesTeller && matchesCollector && matchesSearch;
-    });
-  }, [tellerReportsData, dateFrom, dateTo, filterArea, filterTeller, filterCollector, searchQuery]);
+    })
+  ), [tellerReportsData, dateFrom, dateTo, filterArea, filterTeller, filterCollector, searchQuery]);
 
-  const filteredDrawData = useMemo(() => {
-    return drawManagementData.filter(draw => {
+  const filteredDrawData = useMemo(() => (
+    drawManagementData.filter(draw => {
       const drawDate = new Date(draw.date);
       const from = new Date(dateFrom);
       const to = new Date(dateTo);
-      
       const matchesDate = drawDate >= from && drawDate <= to;
-      const matchesSearch = searchQuery ? 
-        draw.game.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        draw.winningNumbers.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = searchQuery
+        ? draw.game.toLowerCase().includes(q) ||
+          draw.winningNumbers.toLowerCase().includes(q)
+        : true;
       const matchesGame = filterGame === 'all' || draw.game === filterGame;
       const matchesTime = filterDrawTime === 'all' || draw.drawTime === filterDrawTime;
-      
       return matchesDate && matchesSearch && matchesGame && matchesTime;
-    });
-  }, [drawManagementData, dateFrom, dateTo, searchQuery, filterGame, filterDrawTime]);
+    })
+  ), [drawManagementData, dateFrom, dateTo, searchQuery, filterGame, filterDrawTime]);
 
-  // Summary
+  /* Summary */
   const summaryStats = useMemo(() => {
-    const totalTickets = filteredTellerReports.reduce((sum, r) => sum + r.ticketsIssued, 0);
-    const totalSales = filteredTellerReports.reduce((sum, r) => sum + r.totalSales, 0);
+    const totalTickets = filteredTellerReports.reduce((s, r) => s + r.ticketsIssued, 0);
+    const totalSales = filteredTellerReports.reduce((s, r) => s + r.totalSales, 0);
     const totalDraws = filteredDrawData.filter(d => d.status === 'Completed').length;
-    const totalPayout = filteredDrawData.reduce((sum, d) => sum + d.payoutAmount, 0);
-    
+    const totalPayout = filteredDrawData.reduce((s, d) => s + d.payoutAmount, 0);
     return {
       totalUsers: filteredUserData.length,
       activeUsers: filteredUserData.filter(u => u.status === 'Active').length,
@@ -244,75 +234,44 @@ const ReportsPage = () => {
     };
   }, [filteredUserData, filteredTellerReports, filteredDrawData]);
 
-  // Export
+  /* Exporter */
   const exportToCSV = useCallback(() => {
     let csvContent = '';
     let filename = '';
 
     if (activeTab === 'users') {
       const headers = ['User ID', 'User Name', 'Role', 'Area', 'Status', 'Login Count', 'Last Login', 'Tickets Processed'];
-      const rows = filteredUserData.map(user => [
-        user.id,
-        user.name,
-        user.role,
-        user.area,
-        user.status,
-        user.loginCount,
-        user.lastLogin,
-        user.ticketsProcessed
-      ]);
-      
+      const rows = filteredUserData.map(u => [u.id, u.name, u.role, u.area, u.status, u.loginCount, u.lastLogin, u.ticketsProcessed]);
       csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
       filename = `user_management_report_${dateFrom}_to_${dateTo}.csv`;
     } else if (activeTab === 'operations') {
       const headers = ['Date', 'Teller ID', 'Teller Name', 'Area', 'Collector', 'Tickets Issued', 'Tickets Voided', 'Tickets Active', 'Total Sales', 'Login Time', 'Logout Time'];
-      const rows = filteredTellerReports.map(report => [
-        report.date,
-        report.tellerId,
-        report.tellerName,
-        report.area,
-        report.collector,
-        report.ticketsIssued,
-        report.ticketsVoided,
-        report.ticketsActive,
-        report.totalSales,
-        report.loginTime,
-        report.logoutTime
+      const rows = filteredTellerReports.map(r => [
+        r.date, r.tellerId, r.tellerName, r.area, r.collector,
+        r.ticketsIssued, r.ticketsVoided, r.ticketsActive, r.totalSales, r.loginTime, r.logoutTime
       ]);
-      
       csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
       filename = `teller_operations_report_${dateFrom}_to_${dateTo}.csv`;
     } else if (activeTab === 'draws') {
       const headers = ['Date', 'Game', 'Draw Time', 'Status', 'Total Bets', 'Total Amount', 'Winning Numbers', 'Winners', 'Payout Amount'];
-      const rows = filteredDrawData.map(draw => [
-        draw.date,
-        draw.game,
-        draw.drawTime,
-        draw.status,
-        draw.totalBets,
-        draw.totalAmount,
-        draw.winningNumbers,
-        draw.winners,
-        draw.payoutAmount
+      const rows = filteredDrawData.map(d => [
+        d.date, d.game, d.drawTime, d.status, d.totalBets, d.totalAmount, d.winningNumbers, d.winners, d.payoutAmount
       ]);
-      
       csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
       filename = `draw_management_report_${dateFrom}_to_${dateTo}.csv`;
     }
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
+    link.href = URL.createObjectURL(blob);
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }, [activeTab, filteredUserData, filteredTellerReports, filteredDrawData, dateFrom, dateTo]);
 
+  /* Render */
   return (
     <div className="rpt-container">
       {/* Header */}
@@ -335,16 +294,28 @@ const ReportsPage = () => {
       {/* Tabs */}
       <div className="rpt-tabs-card">
         <div className="rpt-tabs">
-          <button className={`rpt-tab ${activeTab === 'summary' ? 'active' : ''}`} onClick={() => setActiveTab('summary')}>
+          <button
+            className={`rpt-tab ${activeTab === 'summary' ? 'active' : ''}`}
+            onClick={() => setActiveTab('summary')}
+          >
             <span>📊</span> Summary
           </button>
-          <button className={`rpt-tab ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab='users' && setActiveTab('users')}>
+          <button
+            className={`rpt-tab ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
             <span>👥</span> User Management
           </button>
-          <button className={`rpt-tab ${activeTab === 'operations' ? 'active' : ''}`} onClick={() => setActiveTab('operations')}>
+          <button
+            className={`rpt-tab ${activeTab === 'operations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('operations')}
+          >
             <span>📋</span> Daily Operations
           </button>
-          <button className={`rpt-tab ${activeTab === 'draws' ? 'active' : ''}`} onClick={() => setActiveTab('draws')}>
+          <button
+            className={`rpt-tab ${activeTab === 'draws' ? 'active' : ''}`}
+            onClick={() => setActiveTab('draws')}
+          >
             <span>🎲</span> Draw Management
           </button>
         </div>
@@ -430,6 +401,7 @@ const ReportsPage = () => {
                   ))}
                 </select>
 
+                {/* Collector filter */}
                 <select className="rpt-filter-select rpt-filter-collector" value={filterCollector} onChange={(e) => setFilterCollector(e.target.value)}>
                   <option value="all">All Collectors</option>
                   {uniqueCollectors.map(user => (
@@ -461,7 +433,7 @@ const ReportsPage = () => {
         </div>
       )}
 
-      {/* Content (unchanged) */}
+      {/* Content */}
       {activeTab === 'summary' && (
         <div className="rpt-summary-section">
           <div className="rpt-summary-grid">
@@ -508,9 +480,7 @@ const ReportsPage = () => {
         <div className="rpt-card">
           <div className="rpt-card-header">
             <h3 className="rpt-card-title">User Management Report</h3>
-            <div className="rpt-results-count">
-              Showing <strong>{filteredUserData.length}</strong> users
-            </div>
+            <div className="rpt-results-count">Showing <strong>{filteredUserData.length}</strong> users</div>
           </div>
           <div className="rpt-table-wrapper">
             <table className="rpt-table">
@@ -545,9 +515,7 @@ const ReportsPage = () => {
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan="8" className="rpt-no-results">No users found matching your criteria</td>
-                  </tr>
+                  <tr><td colSpan="8" className="rpt-no-results">No users found matching your criteria</td></tr>
                 )}
               </tbody>
             </table>
@@ -559,9 +527,7 @@ const ReportsPage = () => {
         <div className="rpt-card">
           <div className="rpt-card-header">
             <h3 className="rpt-card-title">Teller Operations Report</h3>
-            <div className="rpt-results-count">
-              Showing <strong>{filteredTellerReports.length}</strong> records
-            </div>
+            <div className="rpt-results-count">Showing <strong>{filteredTellerReports.length}</strong> records</div>
           </div>
           <div className="rpt-table-wrapper">
             <table className="rpt-table">
@@ -598,9 +564,7 @@ const ReportsPage = () => {
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan="11" className="rpt-no-results">No teller operations data found for selected filters</td>
-                  </tr>
+                  <tr><td colSpan="11" className="rpt-no-results">No teller operations data found for selected filters</td></tr>
                 )}
               </tbody>
             </table>
@@ -612,9 +576,7 @@ const ReportsPage = () => {
         <div className="rpt-card">
           <div className="rpt-card-header">
             <h3 className="rpt-card-title">Draw Management Report</h3>
-            <div className="rpt-results-count">
-              Showing <strong>{filteredDrawData.length}</strong> draws
-            </div>
+            <div className="rpt-results-count">Showing <strong>{filteredDrawData.length}</strong> draws</div>
           </div>
           <div className="rpt-table-wrapper">
             <table className="rpt-table">
@@ -651,9 +613,7 @@ const ReportsPage = () => {
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan="9" className="rpt-no-results">No draw data found for selected filters</td>
-                  </tr>
+                  <tr><td colSpan="9" className="rpt-no-results">No draw data found for selected filters</td></tr>
                 )}
               </tbody>
             </table>
