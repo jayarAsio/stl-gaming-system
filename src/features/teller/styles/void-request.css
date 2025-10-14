@@ -201,17 +201,21 @@ body {
 }
 
 .tab-btn {
-  background: transparent;
-  color: var(--gray-600);
-  border: none;
+  display: block;
+  width: 100%; 
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--neutral-600);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
   font-weight: 600;
   font-size: var(--text-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 44px;
   touch-action: manipulation;
+  transition: all var(--duration-normal) ease;
 }
 
 .tab-btn[aria-selected="true"] {

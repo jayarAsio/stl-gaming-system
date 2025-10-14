@@ -1,5 +1,5 @@
 /* ============================================
-   ENFORCEMENT MODULE - SIMPLIFIED CSS
+   ENFORCEMENT MODULE - COMPACT & OPTIMIZED
    ============================================ */
 :root {
   --navy-dark: #08204F;
@@ -48,7 +48,7 @@
 }
 
 /* ============================================
-   BASE CONTAINER
+   BASE CONTAINER (COMPACT)
    ============================================ */
 .enf-container {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
@@ -71,12 +71,12 @@
 }
 
 /* ============================================
-   HEADER - Same as Reports Module
+   HEADER (COMPACT)
    ============================================ */
 .enf-header {
   background: linear-gradient(135deg, var(--ga-navy) 0%, var(--ga-blue-dark) 100%);
   color: white;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
 }
@@ -88,78 +88,91 @@
 }
 
 .enf-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.4rem;
   color: white;
   letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 .enf-subtitle {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   opacity: 0.9;
   margin: 0;
   color: white;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .enf-header-actions {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .enf-export-btn-header {
-  padding: 0.75rem 1.25rem;
+  height: 36px;
+  padding: 0 0.875rem;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   border-radius: var(--ga-radius);
   font-weight: 600;
+  font-size: 0.8125rem;
   cursor: pointer;
   transition: all 0.2s var(--ga-ease);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  outline: none;
 }
 
 .enf-export-btn-header:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.enf-export-btn-header span {
+  font-size: 1rem;
+  line-height: 1;
 }
 
 /* ============================================
-   FILTERS CARD
+   FILTERS CARD (COMPACT)
    ============================================ */
 .enf-filters-card {
   background: var(--white);
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-sm);
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: var(--shadow);
 }
 
 .enf-filters {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: nowrap;
-  margin-bottom: 1rem;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.875rem;
   align-items: flex-end;
-  overflow-x: auto;
 }
 
 .enf-search-wrapper {
   position: relative;
   flex: 1;
-  min-width: 250px;
+  min-width: 240px;
 }
 
 .enf-search-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  height: 36px;
+  padding: 0 0.875rem 0 2.5rem;
   background: var(--gray-50);
-  border: 1px solid var(--gray-300);
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-sm);
   color: var(--gray-700);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   transition: all 0.2s ease;
   outline: none;
@@ -171,44 +184,50 @@
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
+.enf-search-input::placeholder {
+  color: var(--gray-400);
+}
+
 .enf-search-icon {
   position: absolute;
-  left: 1rem;
+  left: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--gray-400);
   pointer-events: none;
-  font-size: 1rem;
+  font-size: 14px;
 }
 
 .enf-date-filters {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.625rem;
+  flex-wrap: wrap;
 }
 
 .enf-date-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  min-width: 160px;
+  gap: 0.3rem;
+  min-width: 150px;
 }
 
 .enf-date-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--gray-600);
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.05em;
 }
 
 .enf-date-input {
-  padding: 0.75rem 1rem;
+  height: 36px;
+  padding: 0 0.75rem;
   background: var(--gray-50);
-  border: 1px solid var(--gray-300);
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-sm);
   color: var(--gray-700);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
@@ -222,22 +241,28 @@
 }
 
 .enf-filter-select {
-  padding: 0.75rem 1rem;
+  height: 36px;
+  padding: 0 2rem 0 0.75rem;
   background: var(--gray-50);
-  border: 1px solid var(--gray-300);
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-sm);
   color: var(--gray-700);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
-  min-width: 140px;
+  min-width: 130px;
   white-space: nowrap;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px;
 }
 
 .enf-filter-select:focus {
-  background: var(--white);
+  background-color: var(--white);
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
@@ -247,27 +272,29 @@
 }
 
 .enf-results-count {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--gray-600);
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.875rem;
   background: var(--gray-50);
   border-radius: var(--radius-sm);
   border: 1px solid var(--gray-200);
+  font-weight: 500;
 }
 
 .enf-results-count strong {
   color: var(--gray-800);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ============================================
-   CARD
+   CARD (COMPACT)
    ============================================ */
 .enf-card {
   background: var(--white);
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-sm);
-  padding: 1.5rem;
+  padding: 1.25rem;
   box-shadow: var(--shadow);
   transition: all 0.3s ease;
 }
@@ -277,20 +304,22 @@
 }
 
 .enf-card-title {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--navy-dark);
-  margin: 0 0 1.25rem;
+  margin: 0 0 1rem;
   letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
 /* ============================================
-   TABLE
+   TABLE (COMPACT)
    ============================================ */
 .enf-table-wrapper {
   overflow-x: auto;
   border-radius: var(--radius-sm);
   border: 1px solid var(--gray-200);
+  background: var(--white);
 }
 
 .enf-table {
@@ -304,10 +333,10 @@
 }
 
 .enf-table thead th {
-  padding: 0.875rem 1rem;
+  padding: 0.625rem 0.75rem;
   text-align: left;
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--gray-600);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -316,10 +345,15 @@
 }
 
 .enf-table tbody td {
-  padding: 0.875rem 1rem;
+  padding: 0.625rem 0.75rem;
   border-bottom: 1px solid var(--gray-200);
   font-size: 0.8125rem;
   color: var(--gray-700);
+  vertical-align: middle;
+}
+
+.enf-table tbody tr {
+  transition: background 0.2s ease;
 }
 
 .enf-table tbody tr:hover {
@@ -331,9 +365,10 @@
 }
 
 .enf-td-time {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--navy-dark);
   font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
 }
 
 .enf-user-cell {
@@ -345,26 +380,30 @@
 .enf-user-name {
   font-weight: 600;
   color: var(--gray-800);
+  font-size: 0.8125rem;
 }
 
 .enf-user-role {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--gray-500);
+  font-weight: 500;
 }
 
 .enf-td-user {
-  min-width: 150px;
+  min-width: 140px;
 }
 
 .enf-td-action {
-  font-weight: 500;
+  font-weight: 600;
   text-transform: capitalize;
+  font-size: 0.8125rem;
 }
 
 .enf-td-ip {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.75rem;
   color: var(--gray-600);
+  font-variant-numeric: tabular-nums;
 }
 
 .enf-log-success {
@@ -381,25 +420,29 @@
 
 .enf-no-results {
   text-align: center;
-  padding: 3rem 1rem !important;
+  padding: 2.5rem 1rem !important;
   color: var(--gray-500);
   font-style: italic;
+  font-size: 0.875rem;
 }
 
 /* ============================================
-   PILLS / BADGES
+   PILLS / BADGES (COMPACT)
    ============================================ */
 .enf-pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.3125rem 0.75rem;
+  height: 26px;
+  padding: 0 0.625rem;
   border-radius: 999px;
-  font-size: 0.6875rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.025em;
   border: 1px solid;
   white-space: nowrap;
+  justify-content: center;
+  min-width: 70px;
 }
 
 .enf-pill-success {
@@ -415,10 +458,11 @@
 }
 
 /* ============================================
-   BUTTONS
+   BUTTONS (COMPACT)
    ============================================ */
 .enf-btn-view-small {
-  padding: 0.4375rem 0.875rem;
+  height: 30px;
+  padding: 0 0.75rem;
   background: var(--white);
   border: 1px solid var(--gray-300);
   color: var(--gray-700);
@@ -428,6 +472,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  outline: none;
 }
 
 .enf-btn-view-small:hover {
@@ -435,23 +480,36 @@
   color: white;
   border-color: var(--accent-600);
   transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.2);
 }
 
 /* ============================================
-   DRAWER
+   DRAWER (COMPACT & PORTALED)
    ============================================ */
+.enf-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 10001;
+  animation: fadeIn 0.2s ease;
+  cursor: pointer;
+}
+
 .enf-drawer {
   position: fixed;
   right: 0;
   top: 0;
   bottom: 0;
-  width: min(90vw, 500px);
+  width: min(90vw, 480px);
   background: var(--white);
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
-  z-index: 1001;
+  box-shadow: var(--shadow-xl);
+  z-index: 10002;
   display: flex;
   flex-direction: column;
-  animation: slideInRight 0.3s ease;
+  animation: slideInRight 0.2s ease;
+  font-family: inherit;
 }
 
 @keyframes slideInRight {
@@ -463,112 +521,6 @@
   }
 }
 
-.enf-drawer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: var(--gray-50);
-  border-bottom: 2px solid var(--gray-200);
-}
-
-.enf-drawer-header h3 {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--navy-dark);
-}
-
-.enf-drawer-close {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--white);
-  border: 1px solid var(--gray-300);
-  border-radius: var(--radius-sm);
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--gray-600);
-}
-
-.enf-drawer-close:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-400);
-  color: var(--gray-800);
-}
-
-.enf-drawer-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-}
-
-.enf-drawer-section {
-  margin-bottom: 2rem;
-}
-
-.enf-drawer-section:last-child {
-  margin-bottom: 0;
-}
-
-.enf-drawer-section h4 {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  margin: 0 0 1rem;
-}
-
-.enf-drawer-description {
-  padding: 1rem;
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  color: var(--gray-700);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.enf-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.enf-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.enf-detail-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.enf-detail-value {
-  font-weight: 600;
-  font-size: 0.9375rem;
-  color: var(--gray-800);
-}
-
-.enf-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  animation: fadeIn 0.3s ease;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -578,18 +530,133 @@
   }
 }
 
+.enf-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.25rem 1rem;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  flex-shrink: 0;
+}
+
+.enf-drawer-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.enf-drawer-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--gray-500);
+  flex-shrink: 0;
+  outline: none;
+}
+
+.enf-drawer-close:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+  color: var(--gray-700);
+}
+
+.enf-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: var(--white);
+}
+
+.enf-drawer-section {
+  margin-bottom: 1.5rem;
+}
+
+.enf-drawer-section:last-child {
+  margin-bottom: 0;
+}
+
+.enf-drawer-section h4 {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.875rem;
+}
+
+.enf-drawer-description {
+  padding: 0.875rem;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--gray-700);
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+}
+
+.enf-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+}
+
+.enf-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.enf-detail-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.enf-detail-value {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--gray-800);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE (COMPACT)
    ============================================ */
 @media (max-width: 768px) {
   .enf-header {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 
   .enf-header-content {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.875rem;
+  }
+
+  .enf-title {
+    font-size: 1.25rem;
+  }
+
+  .enf-subtitle {
+    font-size: 0.8125rem;
   }
 
   .enf-header-actions {
@@ -602,23 +669,27 @@
   }
 
   .enf-filters {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .enf-search-wrapper {
-    min-width: 100%;
+    min-width: auto;
   }
 
   .enf-date-filters {
     width: 100%;
+    flex-direction: column;
   }
 
   .enf-date-group {
     width: 100%;
+    min-width: auto;
   }
 
   .enf-filter-select {
     width: 100%;
+    min-width: auto;
   }
 
   .enf-detail-grid {
@@ -635,5 +706,54 @@
 
   .enf-table {
     min-width: 800px;
+  }
+}
+
+@media (max-width: 480px) {
+  .enf-filters-card {
+    padding: 0.875rem;
+  }
+
+  .enf-card {
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.enf-export-btn-header:focus-visible,
+.enf-btn-view-small:focus-visible,
+.enf-drawer-close:focus-visible,
+.enf-search-input:focus-visible,
+.enf-date-input:focus-visible,
+.enf-filter-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-contrast: high) {
+  .enf-card,
+  .enf-filters-card,
+  .enf-table-wrapper,
+  .enf-drawer {
+    border-width: 2px;
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .enf-drawer,
+  .enf-drawer-overlay {
+    animation: none;
+  }
+  .enf-card,
+  .enf-btn-view-small,
+  .enf-export-btn-header,
+  .enf-drawer-close,
+  .enf-table tbody tr {
+    transition: none;
   }
 }

@@ -4,55 +4,17 @@
 // Base URL: /stl-gaming-system/game-administrator/
 // ============================================
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/dashboard.css';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [error, setError] = useState(null);
+  const [dashboardData] = useState(getMockDashboardData());
   
   // Filter states
   const [analyticsMetric, setAnalyticsMetric] = useState('revenue');
-
-  // Load dashboard data on mount
-  useEffect(() => {
-    loadDashboardData();
-    
-    // Auto-refresh every 30 seconds
-    const refreshInterval = setInterval(() => {
-      loadDashboardData(true);
-    }, 30000);
-
-    return () => clearInterval(refreshInterval);
-  }, []);
-
-  const loadDashboardData = async (isAutoRefresh = false) => {
-    try {
-      if (!isAutoRefresh) setLoading(true);
-      setRefreshing(isAutoRefresh);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const data = getMockDashboardData();
-      setDashboardData(data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load dashboard data');
-      console.error('Dashboard load error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    loadDashboardData();
-  };
 
   const handleExport = () => {
     console.log('Exporting dashboard data...');
@@ -105,18 +67,6 @@ const DashboardPage = () => {
     console.log(`[${type.toUpperCase()}] ${message}`);
   };
 
-  if (loading) {
-    return <DashboardLoading />;
-  }
-
-  if (error) {
-    return <DashboardError error={error} onRetry={handleRefresh} navigate={navigate} />;
-  }
-
-  if (!dashboardData) {
-    return <DashboardEmpty />;
-  }
-
   return (
     <div className="dashboard-page">
       {/* Dashboard Header - Reports Style */}
@@ -131,15 +81,6 @@ const DashboardPage = () => {
           <div className="dashboard-header-actions">
             <button 
               className="dashboard-action-btn" 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              aria-label="Refresh dashboard"
-            >
-              <span className={`icon ${refreshing ? 'spinning' : ''}`}>🔄</span>
-              <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-            </button>
-            <button 
-              className="dashboard-action-btn" 
               onClick={handleExport}
               aria-label="Export dashboard data"
             >
@@ -152,7 +93,6 @@ const DashboardPage = () => {
           <div className="status-item">
             <span className="status-label">Last Updated:</span>
             <span className="status-value">{formatTime(new Date())}</span>
-            {refreshing && <span className="refresh-indicator">●</span>}
           </div>
         </div>
       </div>
@@ -388,9 +328,6 @@ const KPICard = ({ label, value, subtitle, trend, icon, status, badge, tooltip, 
     >
       <div className="kpi-header">
         <span className="kpi-icon">{icon}</span>
-        {badge !== undefined && badge > 0 && (
-          <span className="kpi-badge">{badge}</span>
-        )}
       </div>
       <div className="kpi-body">
         <div className="kpi-value">{value}</div>
@@ -443,60 +380,6 @@ const HealthService = ({ name, status, latency, uptime }) => (
         />
       </div>
       <span className="uptime-text">{uptime}% uptime</span>
-    </div>
-  </div>
-);
-
-// ============================================
-// Loading, Error, Empty States
-// ============================================
-
-const DashboardLoading = () => (
-  <div className="dashboard-page">
-    <div className="dashboard-loading">
-      <div className="loading-header">
-        <div className="skeleton skeleton-text" style={{width: '150px', height: '24px'}} />
-        <div className="skeleton skeleton-button" />
-      </div>
-      <div className="kpi-grid">
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="kpi-skeleton skeleton" />
-        ))}
-      </div>
-      <div className="skeleton skeleton-section" style={{height: '400px', marginBottom: '1.5rem'}} />
-    </div>
-  </div>
-);
-
-const DashboardError = ({ error, onRetry, navigate }) => (
-  <div className="dashboard-error">
-    <div className="error-content">
-      <span className="error-icon">⚠️</span>
-      <h2 className="error-title">Unable to Load Dashboard</h2>
-      <p className="error-message">{error}</p>
-      <div className="error-actions">
-        <button className="btn-retry" onClick={onRetry}>
-          <span>🔄</span>
-          <span>Retry</span>
-        </button>
-        <button 
-          className="btn-support" 
-          onClick={() => navigate('/stl-gaming-system/support')}
-        >
-          <span>💬</span>
-          <span>Contact Support</span>
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-const DashboardEmpty = () => (
-  <div className="dashboard-empty">
-    <div className="empty-content">
-      <span className="empty-icon">📊</span>
-      <h2 className="empty-title">No Data Available</h2>
-      <p className="empty-message">Dashboard data will appear here once system operations begin.</p>
     </div>
   </div>
 );
