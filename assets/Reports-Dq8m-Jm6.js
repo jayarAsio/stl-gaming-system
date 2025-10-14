@@ -1,1 +1,0 @@
-import{j as r}from"./index-D9c0fj6T.js";const s=()=>r.jsxs("div",{className:"operations-card",children:[r.jsx("h3",{children:"Reports"}),r.jsx("p",{style:{color:"var(--gray-500)"},children:"Reports content goes here..."})]});export{s as default};

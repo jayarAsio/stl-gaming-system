@@ -1,0 +1,1 @@
+import{j as e}from"./index-D7yeeZOw.js";const i=()=>e.jsxs("div",{className:"operations-card",children:[e.jsx("h3",{children:"Daily Reconciliation"}),e.jsx("p",{style:{color:"var(--gray-500)"},children:"Reconciliation module content goes here..."})]});export{i as default};
