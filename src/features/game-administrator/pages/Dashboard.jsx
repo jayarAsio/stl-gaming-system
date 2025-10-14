@@ -1,7 +1,3 @@
-// ============================================
-// File: src/features/game-administrator/pages/Dashboard.jsx
-// Fixed: Enhanced hamburger menu with animations
-// ============================================
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import '../styles/game-administrator.css';
@@ -19,6 +15,8 @@ const navigationItems = [
 const GameAdministratorLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
   const profileRef = useRef(null);
   const sidebarRef = useRef(null);
@@ -29,14 +27,30 @@ const GameAdministratorLayout = () => {
     role: 'Game Administrator'
   });
 
-  // Close sidebar and profile menu on route change
+  // Auto-hide header on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setHeaderVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 10) {
+        setHeaderVisible(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   useEffect(() => {
     setSidebarOpen(false);
     setProfileMenuOpen(false);
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Prevent body scroll when sidebar open on mobile
   useEffect(() => {
     if (sidebarOpen && window.innerWidth <= 768) {
       document.body.style.overflow = 'hidden';
@@ -55,7 +69,6 @@ const GameAdministratorLayout = () => {
     };
   }, [sidebarOpen]);
 
-  // Close sidebar on escape key
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -71,7 +84,6 @@ const GameAdministratorLayout = () => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [sidebarOpen, profileMenuOpen]);
 
-  // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -81,21 +93,12 @@ const GameAdministratorLayout = () => {
 
     if (profileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [profileMenuOpen]);
 
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768 && sidebarOpen) {
-        setSidebarOpen(false);
-      }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [sidebarOpen]);
+  }, [profileMenuOpen]);
 
   const isActivePath = (path) => {
     if (path === '/game-administrator') {
@@ -104,8 +107,7 @@ const GameAdministratorLayout = () => {
     return location.pathname.startsWith(path);
   };
 
-  const toggleSidebar = (e) => {
-    e.stopPropagation();
+  const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
   };
 
@@ -113,140 +115,139 @@ const GameAdministratorLayout = () => {
     setSidebarOpen(false);
   };
 
+  const handleNavClick = () => {
+    setSidebarOpen(false);
+    setProfileMenuOpen(false);
+  };
+
   const toggleProfileMenu = () => {
     setProfileMenuOpen(prev => !prev);
   };
 
-  const handleNavClick = () => {
-    if (window.innerWidth <= 768) {
-      setSidebarOpen(false);
-    }
-  };
-
-  const handleLogout = () => {
-    console.log('Logging out...');
-    // Add your logout logic here
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path === '/game-administrator') return 'Dashboard';
+    if (path.includes('configuration')) return 'Configuration';
+    if (path.includes('user-management')) return 'User Management';
+    if (path.includes('daily-operations')) return 'Daily Operations';
+    if (path.includes('draw-management')) return 'Draw Management';
+    if (path.includes('enforcement')) return 'Enforcement';
+    if (path.includes('reports')) return 'Reports';
+    return 'Game Administrator';
   };
 
   return (
-    <>
-      <div className={`ga-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        {/* Enhanced Mobile Menu Button */}
-        <button
-          className={`ga-mobile-menu-btn ${sidebarOpen ? 'is-active' : ''}`}
-          onClick={toggleSidebar}
-          aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={sidebarOpen}
-          aria-controls="gaSidebar"
-        >
-          <span className="ga-menu-icon">
-            <span className="ga-menu-line ga-menu-line-1"></span>
-            <span className="ga-menu-line ga-menu-line-2"></span>
-            <span className="ga-menu-line ga-menu-line-3"></span>
-          </span>
-          <span className="ga-menu-text">{sidebarOpen ? 'Close' : 'Menu'}</span>
-        </button>
-
-        {/* Scrim/Backdrop for mobile */}
-        {sidebarOpen && (
-          <div 
-            className="ga-scrim" 
-            onClick={closeSidebar}
-            aria-hidden="true"
-          />
-        )}
-
-        {/* Enhanced Sidebar */}
-        <aside 
-          ref={sidebarRef}
-          className={`ga-sidebar ${sidebarOpen ? 'is-open' : ''}`}
-          id="gaSidebar" 
-          aria-hidden={!sidebarOpen && window.innerWidth <= 768}
-        >
-          <div className="ga-sidebar-header">
-            <Link to="/game-administrator" className="ga-brand" onClick={handleNavClick}>
-              <div className="ga-brand-glow"></div>
-              <span className="ga-brand-text">Game Administrator</span>
-            </Link>
-          </div>
-          
-          <nav className="ga-nav" aria-label="Primary navigation">
-            <ul className="ga-nav-menu">
-              {navigationItems.map((item) => (
-                <li key={item.key} className="ga-nav-item">
-                  <Link
-                    to={item.path}
-                    className={`ga-nav-link ${isActivePath(item.path) ? 'active' : ''}`}
-                    aria-current={isActivePath(item.path) ? 'page' : undefined}
-                    onClick={handleNavClick}
-                  >
-                    <span className="ga-nav-icon">{item.icon}</span>
-                    <span className="ga-nav-label">{item.label}</span>
-                    {isActivePath(item.path) && <span className="ga-nav-indicator"></span>}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Profile Section */}
-          <div className="ga-sidebar-footer">
-            <div 
-              ref={profileRef}
-              className={`ga-sidebar-profile ${profileMenuOpen ? 'menu-open' : ''}`}
-              onClick={toggleProfileMenu}
-              role="button"
-              tabIndex={0}
-              aria-expanded={profileMenuOpen}
-              aria-label="User profile menu"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggleProfileMenu();
-                }
-              }}
+    <div className={`ga-layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
+      {/* Auto-hide Header - Only visible when sidebar is CLOSED */}
+      {!sidebarOpen && (
+        <header className={`ga-header ${headerVisible ? 'ga-header-visible' : 'ga-header-hidden'}`}>
+          <div className="ga-header-container">
+            <button 
+              className="ga-header-menu-btn"
+              onClick={toggleSidebar}
+              aria-label="Toggle menu"
             >
-              <div className="ga-profile-main">
-                <div className="ga-profile-avatar">
-                  <span>{user.initials}</span>
-                  <div className="ga-avatar-ring"></div>
-                </div>
-                <div className="ga-profile-info">
-                  <div className="ga-profile-name">{user.name}</div>
-                  <div className="ga-profile-role">{user.role}</div>
-                </div>
-                <span className="ga-profile-chevron">
-                  {profileMenuOpen ? '▲' : '▼'}
-                </span>
-              </div>
-              
-              {/* Logout Menu */}
-              {profileMenuOpen && (
-                <div className="ga-profile-menu">
-                  <button 
-                    className="ga-profile-menu-item ga-logout-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLogout();
-                    }}
-                  >
-                    <span className="ga-logout-icon">🚪</span>
-                    <span>Logout</span>
-                  </button>
-                </div>
-              )}
+              <span className="ga-hamburger-line"></span>
+              <span className="ga-hamburger-line"></span>
+              <span className="ga-hamburger-line"></span>
+            </button>
+
+            <div className="ga-header-content">
+              <h1 className="ga-header-title">{getPageTitle()}</h1>
+              <p className="ga-header-subtitle">Game Administrator</p>
             </div>
           </div>
-        </aside>
+        </header>
+      )}
 
-        {/* Main Content */}
-        <main className="ga-main" id="gaMain">
-          <div className="ga-content">
-            <Outlet />
+      {/* Scrim/Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="ga-scrim" 
+          onClick={closeSidebar}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside 
+        ref={sidebarRef}
+        className={`ga-sidebar ${sidebarOpen ? 'is-open' : ''}`}
+        id="gaSidebar" 
+        aria-hidden={!sidebarOpen && window.innerWidth <= 768}
+      >
+        <div className="ga-sidebar-header">
+          <Link to="/game-administrator" className="ga-brand" onClick={handleNavClick}>
+            <div className="ga-brand-glow"></div>
+            <span className="ga-brand-text">Game Administrator</span>
+          </Link>
+        </div>
+        
+        <nav className="ga-nav" aria-label="Primary navigation">
+          <ul className="ga-nav-menu">
+            {navigationItems.map((item) => (
+              <li key={item.key} className="ga-nav-item">
+                <Link
+                  to={item.path}
+                  className={`ga-nav-link ${isActivePath(item.path) ? 'active' : ''}`}
+                  aria-current={isActivePath(item.path) ? 'page' : undefined}
+                  onClick={handleNavClick}
+                >
+                  <span className="ga-nav-icon">{item.icon}</span>
+                  <span className="ga-nav-label">{item.label}</span>
+                  {isActivePath(item.path) && <span className="ga-nav-indicator"></span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="ga-sidebar-footer">
+          <div 
+            ref={profileRef}
+            className={`ga-sidebar-profile ${profileMenuOpen ? 'menu-open' : ''}`}
+            onClick={toggleProfileMenu}
+            role="button"
+            tabIndex={0}
+            aria-expanded={profileMenuOpen}
+            aria-label="User profile menu"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleProfileMenu();
+              }
+            }}
+          >
+            <div className="ga-profile-main">
+              <div className="ga-profile-avatar">
+                <span>{user.initials}</span>
+                <div className="ga-avatar-ring"></div>
+              </div>
+              <div className="ga-profile-info">
+                <div className="ga-profile-name">{user.name}</div>
+                <div className="ga-profile-role">{user.role}</div>
+              </div>
+              <span className="ga-profile-chevron">
+                {profileMenuOpen ? '▲' : '▼'}
+              </span>
+            </div>
+            
+            {profileMenuOpen && (
+              <div className="ga-profile-menu">
+                <Link to="/" className="ga-profile-menu-item logout">
+                  <span>🚪</span>
+                  <span>Logout</span>
+                </Link>
+              </div>
+            )}
           </div>
-        </main>
-      </div>
-    </>
+        </div>
+      </aside>
+
+      <main className="ga-main">
+        <Outlet />
+      </main>
+    </div>
   );
 };
 

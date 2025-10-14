@@ -71,7 +71,7 @@
    HEADER - Reports Style (COMPACT)
    ============================================ */
 .dmx-header {
-  background: linear-gradient(135deg, var(--ga-navy) 0%, var(--ga-blue-dark) 100%);
+  background: linear-gradient(180deg, #050e24 0%, #0a1528 100%);
   color: white;
   padding: 1.5rem;
   border-radius: var(--radius-lg);
