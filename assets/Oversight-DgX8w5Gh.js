@@ -1,1 +1,0 @@
-import{j as r}from"./index-8iPTcRPW.js";const s=()=>r.jsxs("div",{className:"operations-card",children:[r.jsx("h3",{children:"Operations Oversight"}),r.jsx("p",{style:{color:"var(--gray-500)"},children:"Oversight content goes here..."})]});export{s as default};
