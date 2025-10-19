@@ -31,10 +31,8 @@ const GameAdminReports         = lazy(() => import("./features/game-administrato
 
 // Operation Support — pages
 const OperationSupportDashboard        = lazy(() => import("./features/operation-support/pages/DashboardPage"));
-const OperationSupportLedger          = lazy(() => import("./features/operation-support/pages/LedgerManagement"));
-const OperationSupportReconciliation  = lazy(() => import("./features/operation-support/pages/Reconciliation"));
-const OperationSupportDiscrepancy     = lazy(() => import("./features/operation-support/pages/DiscrepancyHandling"));
-const OperationSupportOversight       = lazy(() => import("./features/operation-support/pages/Oversight"));
+const OperationSupportBalances    = lazy(() => import("./features/operation-support/pages/Balances"));
+const OperationSupportDailyLedgers          = lazy(() => import("./features/operation-support/pages/DailyLedgers"));
 const OperationSupportReports         = lazy(() => import("./features/operation-support/pages/Reports"));
 
 // Teller — pages
@@ -83,16 +81,13 @@ export default function App() {
           {/* Operation Support - with nested routes */}
           <Route path="/operation-support" element={<OperationSupport />}>
             <Route index element={<OperationSupportDashboard />} />
-            <Route path="ledger-management" element={<OperationSupportLedger />} />
-            <Route path="reconciliation" element={<OperationSupportReconciliation />} />
-            <Route path="discrepancy-handling" element={<OperationSupportDiscrepancy />} />
-            <Route path="oversight" element={<OperationSupportOversight />} />
+            <Route path="balances" element={<OperationSupportBalances />} />
+            <Route path="daily-ledgers" element={<OperationSupportDailyLedgers />} />
             <Route path="reports" element={<OperationSupportReports />} />
           </Route>
 
           {/* Collector Dashboard */}
           <Route path="/collector" element={<Collector />} />
-
           {/* Collector sub-pages */}
           <Route path="/collector/sales-collection" element={<CollectorSalesCollection />} />
           <Route path="/collector/payouts-tapal" element={<CollectorPayoutsTapal />} />
@@ -100,7 +95,6 @@ export default function App() {
 
           {/* Teller Dashboard */}
           <Route path="/teller" element={<Teller />} />
-
           {/* Teller sub-pages */}
           <Route path="/teller/void-request" element={<TellerVoidRequest />} />
           <Route path="/teller/sales-report" element={<TellerSalesReport />} />
