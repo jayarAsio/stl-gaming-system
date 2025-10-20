@@ -1,6 +1,7 @@
 // ============================================
 // File: src/features/operation-support/pages/Balances.jsx
 // Operation Support - Balances Module (Yesterday's Shortages)
+// Updated with Dashboard-style header
 // ============================================
 
 import React, { useState } from 'react';
@@ -125,6 +126,17 @@ const BalancesPage = () => {
     })}`;
   };
 
+  // Format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   // Get status label
   const getStatusLabel = (status) => {
     const labels = {
@@ -228,18 +240,24 @@ const BalancesPage = () => {
 
   return (
     <div className="os-balances-container">
-      {/* Header */}
-      <div className="os-balances-header">
+      {/* Header - Dashboard Style */}
+      <header className="os-balances-header">
         <div className="os-balances-header-main">
           <div className="os-balances-icon">💰</div>
-          <div>
+          <div className="os-balances-header-text">
             <h1 className="os-balances-title">Yesterday's Shortages</h1>
             <p className="os-balances-subtitle">
-              Track and manage remittance shortages from October 19, 2025
+              Track and manage remittance shortages from operations
             </p>
           </div>
         </div>
-      </div>
+        <div className="os-balances-header-meta">
+          <div className="os-balances-date-info">
+            <div className="os-balances-date-label">Report Date</div>
+            <div className="os-balances-date-value">October 19, 2025</div>
+          </div>
+        </div>
+      </header>
 
       {/* Statistics Grid */}
       <div className="os-stats-grid">
