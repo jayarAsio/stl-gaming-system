@@ -1,0 +1,1 @@
+import{j as e}from"./index-CYe3miYN.js";const r=()=>e.jsxs("div",{className:"sa-card",children:[e.jsx("h3",{style:{fontSize:"1.5rem",fontWeight:"700",color:"white",marginBottom:"1rem"},children:"Sales Analytics"}),e.jsx("p",{style:{color:"#94A3B8",fontSize:"1rem"},children:"Comprehensive sales analytics, trends, and performance metrics."})]});export{r as default};

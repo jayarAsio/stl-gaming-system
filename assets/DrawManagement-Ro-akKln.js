@@ -1,1 +1,0 @@
-import{j as e}from"./index-DVPZBxee.js";const r=()=>e.jsxs("div",{className:"sa-card",children:[e.jsx("h3",{style:{fontSize:"1.5rem",fontWeight:"700",color:"white",marginBottom:"1rem"},children:"Draw Management"}),e.jsx("p",{style:{color:"#94A3B8",fontSize:"1rem"},children:"Schedule, execute, and manage all lottery draws across the system."})]});export{r as default};
