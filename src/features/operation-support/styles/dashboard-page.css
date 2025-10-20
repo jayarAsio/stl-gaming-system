@@ -383,9 +383,6 @@
 /* ============================================
    ALERTS SECTION
    ============================================ */
-.os-alerts-section {
-  /* Inherits from .os-dashboard-section */
-}
 
 .os-alerts-list {
   display: flex;
@@ -489,9 +486,7 @@
 /* ============================================
    TASKS SECTION
    ============================================ */
-.os-tasks-section {
-  /* Inherits from .os-dashboard-section */
-}
+
 
 .os-tasks-list {
   display: flex;
@@ -610,9 +605,6 @@
 /* ============================================
    QUICK ACTIONS SECTION
    ============================================ */
-.os-quick-actions-section {
-  /* Inherits from .os-dashboard-section */
-}
 
 .os-quick-actions-grid {
   display: grid;
@@ -671,9 +663,6 @@
 /* ============================================
    ACTIVITY SECTION
    ============================================ */
-.os-activity-section {
-  /* Inherits from .os-dashboard-section */
-}
 
 .os-activity-list {
   display: flex;

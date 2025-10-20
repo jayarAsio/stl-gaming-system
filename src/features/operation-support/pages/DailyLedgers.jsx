@@ -34,18 +34,18 @@ const DailyLedgersPage = () => {
     'AREA-01': {
       name: 'Area 1 - Downtown',
       tellers: ['CPZ-00016 - RELANO, VIC', 'CPZ-00020 - SANTOS, MARIA'],
-      collector: 'CPZ-00025 - CRUZ, PEDRO',
+      collector: 'COL-01 - CRUZ, PEDRO',
     },
     'AREA-02': {
       name: 'Area 2 - Uptown',
       tellers: [],
-      collector: 'CPZ-00040 - REYES, MARIA',
+      collector: 'COL-02 - REYES, MARIA',
     },
   };
 
   const collectors = [
-    { id: 'CPZ-00025', name: 'CPZ-00025 - CRUZ, PEDRO', area: 'AREA-01' },
-    { id: 'CPZ-00040', name: 'CPZ-00040 - REYES, MARIA', area: 'AREA-02' },
+    { id: 'COL-01', name: 'COL-01 - CRUZ, PEDRO', area: 'AREA-01' },
+    { id: 'COL-02', name: 'COL-02 - REYES, MARIA', area: 'AREA-02' },
   ];
 
   const handleAreaChange = (areaId) => {
@@ -76,7 +76,6 @@ const DailyLedgersPage = () => {
     description: '',
     amount: '',
     amountType: 'debit',
-    hitsExpr: '', // for Payouts (e.g., "50*750")
   });
 
   const toggleManualEntryModal = () => {
@@ -86,15 +85,6 @@ const DailyLedgersPage = () => {
       date: m.date || todayISO(),
     }));
     setShowManualEntryModal(v => !v);
-  };
-
-  const parseHitsProduct = (expr) => {
-    if (!expr) return null;
-    const parts = expr.split('*').map(s => s.trim()).filter(Boolean);
-    if (parts.length < 2) return null;
-    const nums = parts.map(p => Number(p));
-    if (nums.some(n => !isFinite(n))) return null;
-    return nums.reduce((a, b) => a * b, 1);
   };
 
   // ==== Seed data (2 tellers × 1 week) ====
@@ -175,16 +165,7 @@ const DailyLedgersPage = () => {
 
     seededRows.push(
       ...mkDay(d, 'CPZ-00016 - RELANO, VIC', 'CPZ-00016', b1_2pm, b1_7pm, h2pm_1_qty, h2pm_1_mult, h7pm_1_qty, h7pm_1_mult),
-      ...mkDay(d, 'CPZ-00020 - SANTOS, MARIA', 'CPZ-00020', b2_2pm, b2_7pm, h2pm_2_qty, h2pm_2_mult, h7pm_2_qty, h7pm_2_mult),
-      // Collector collection for the area
-      {
-        id: `C-AREA01-${d}`, date: d, time: '21:00:00', drawTime: '-',
-        agent: 'CPZ-00025 - CRUZ, PEDRO', agentId: 'CPZ-00025', type: 'Collector', area: 'AREA-01',
-        transType: 'COLLECTION', description: 'Collection from Area 1 Tellers',
-        debit: 0,
-        credit: Math.round(((b1_2pm + b1_7pm) * 0.7 + (b2_2pm + b2_7pm) * 0.7) * 100) / 100,
-        game: '-', hits: '-',
-      }
+      ...mkDay(d, 'CPZ-00020 - SANTOS, MARIA', 'CPZ-00020', b2_2pm, b2_7pm, h2pm_2_qty, h2pm_2_mult, h7pm_2_qty, h7pm_2_mult)
     );
   });
 
@@ -229,13 +210,9 @@ const DailyLedgersPage = () => {
         const matchesDateRange = itemDate >= fromDate && itemDate <= toDate;
 
         const isTellerMatch = tellers.includes(item.agent);
-        const isCollectorInScope =
-          item.type === 'Collector' && (
-            (selectedArea !== 'none' && item.area === selectedArea) ||
-            (selectedCollector !== 'none' && item.agentId === selectedCollector)
-          );
+        const isCollectorInScope = false; // Collectors are excluded from ledgers
 
-        const matchesAgent = (selectedAgent !== 'none') ? isTellerMatch : (isTellerMatch || isCollectorInScope);
+        const matchesAgent = (selectedAgent !== 'none') ? isTellerMatch : isTellerMatch;
 
         const matchesSearch =
           item.agent.toLowerCase().includes(q) ||
@@ -293,21 +270,29 @@ const DailyLedgersPage = () => {
     return { withBalances, openingSum, closingSum, closingMap };
   };
 
-  // Group by date → compute sequentially
-  const groupedByDate = filteredData.reduce((groups, item) => {
-    const d = item.date;
-    if (!groups[d]) groups[d] = [];
-    groups[d].push(item);
+  // Group by date AND agent (for individual teller display when area is selected)
+  const groupedByDateAndAgent = filteredData.reduce((groups, item) => {
+    const key = `${item.date}___${item.agentId}`;
+    if (!groups[key]) groups[key] = { date: item.date, agentId: item.agentId, agent: item.agent, items: [] };
+    groups[key].items.push(item);
     return groups;
   }, {});
 
-  const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(a) - new Date(b));
+  const sortedKeys = Object.keys(groupedByDateAndAgent).sort((a, b) => {
+    const [dateA, agentA] = a.split('___');
+    const [dateB, agentB] = b.split('___');
+    const dateComp = new Date(dateA) - new Date(dateB);
+    if (dateComp !== 0) return dateComp;
+    return agentA.localeCompare(agentB);
+  });
 
   let rollingClosings = {}; // agentId -> closing
-  const daysWithBalances = sortedDates.map(date => {
-    const dayData = groupedByDate[date];
+  const daysWithBalances = sortedKeys.map(key => {
+    const group = groupedByDateAndAgent[key];
+    const { date, agentId, agent, items } = group;
+    
     const { withBalances, openingSum, closingSum, closingMap } =
-      calculateRunningBalancesPerAgent(dayData, date, rollingClosings);
+      calculateRunningBalancesPerAgent(items, date, { [agentId]: rollingClosings[agentId] });
     rollingClosings = { ...rollingClosings, ...closingMap };
 
     const dayDebit = withBalances.reduce((sum, item) => sum + item.debit, 0);
@@ -315,6 +300,8 @@ const DailyLedgersPage = () => {
 
     return {
       date,
+      agentId,
+      agent,
       data: withBalances,
       openingBalance: openingSum,
       closingBalance: closingSum,
@@ -340,15 +327,30 @@ const DailyLedgersPage = () => {
     }
   };
 
-  // Encoder mapping
-  const getEncoderByType = (type) => {
+  // Encoder mapping - Shows who encoded each transaction type
+  const getEncoderByType = (type, agentId, isManual = false) => {
+    // All manual entries are encoded by Operation Support
+    if (isManual) return 'Maria Santos'; // Operation Support Staff
+    
     const t = (type || '').toUpperCase();
     if (t === 'SALES') return 'System';
-    if (t === 'NET') return 'Game Admin';
-    if (t === 'PAYOUT') return 'Game Admin';
-    if (t === 'DEFICIT') return 'Collectors';
-    if (t === 'REMITTANCE') return 'Collectors';
+    if (t === 'NET') return 'Juan Dela Cruz'; // Game Administrator
+    if (t === 'PAYOUT') return 'Juan Dela Cruz'; // Game Administrator
+    if (t === 'DEFICIT') return getCollectorName(agentId); // Collector's name
+    if (t === 'REMITTANCE') return getCollectorName(agentId); // Collector's name
+    if (t === 'FORCE BALANCE') return 'Maria Santos'; // Operation Support
     return '-';
+  };
+
+  // Helper to get collector name based on teller's area
+  const getCollectorName = (tellerId) => {
+    // Find which area this teller belongs to
+    for (const [areaId, areaData] of Object.entries(areas)) {
+      if (areaData.tellers.some(t => t.startsWith(tellerId))) {
+        return areaData.collector;
+      }
+    }
+    return 'COL-01 - CRUZ, PEDRO'; // Default collector
   };
 
   const formatCurrency = (amount) =>
@@ -356,10 +358,10 @@ const DailyLedgersPage = () => {
     '₱' +
     Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // ==== Manual Entry submit (adds paired NET for SALES) ====
+  // ==== Manual Entry submit (simplified for debit/credit only) ====
   const handleManualEntrySubmit = (e) => {
     e.preventDefault();
-    const { date, transType, description, amount, amountType, hitsExpr } = manualEntry;
+    const { date, transType, description, amount, amountType } = manualEntry;
 
     // Focus only to the selected teller (if chosen)
     const agent = selectedAgent !== 'none' ? selectedAgent : manualEntry.agent;
@@ -371,55 +373,21 @@ const DailyLedgersPage = () => {
     const time = now.toTimeString().split(' ')[0];
 
     const itemsToAdd = [];
+    const amt = parseFloat(amount || '0') || 0;
 
-    if ((transType || '').toUpperCase() === 'PAYOUT') {
-      const product = parseHitsProduct(hitsExpr);
-      const credit = product != null ? product : Math.max(0, parseFloat(amount || '0') || 0);
-      itemsToAdd.push({
-        id: `L${Math.floor(Math.random() * 100000)}`,
-        date, time, drawTime: '-', agent, agentId, area, type: 'Teller',
-        transType: 'PAYOUT',
-        description: description || 'Winning Payouts',
-        debit: 0, credit, game: '-', hits: hitsExpr || (product != null ? String(product) : '-'),
-        manual: true,
-        manualSeq: manualSeqRef.current++,
-      });
-    } else if ((transType || '').toUpperCase() === 'SALES') {
-      const salesAmt = parseFloat(amount || '0') || 0;
-      itemsToAdd.push({
-        id: `L${Math.floor(Math.random() * 100000)}`,
-        date, time, drawTime: '-', agent, agentId, area, type: 'Teller',
-        transType: 'SALES',
-        description: description || 'Game Sales',
-        debit: salesAmt, credit: 0, game: '-', hits: '-',
-        manual: true,
-        manualSeq: manualSeqRef.current++,
-      });
-      // paired NET (15%)
-      const netTime = new Date(now.getTime() + 60 * 1000).toTimeString().split(' ')[0];
-      itemsToAdd.push({
-        id: `L${Math.floor(Math.random() * 100000)}`,
-        date, time: netTime, drawTime: '-', agent, agentId, area, type: 'Teller',
-        transType: 'NET',
-        description: 'Net Commission (15%)',
-        debit: 0, credit: Math.round(salesAmt * 0.15 * 100) / 100, game: '-', hits: '-',
-        manual: true,
-        manualSeq: manualSeqRef.current++,
-      });
-    } else {
-      const amt = parseFloat(amount || '0') || 0;
-      const debit = amountType === 'credit' ? 0 : amt;
-      const credit = amountType === 'credit' ? amt : 0;
-      itemsToAdd.push({
-        id: `L${Math.floor(Math.random() * 100000)}`,
-        date, time, drawTime: '-', agent, agentId, area, type: 'Teller',
-        transType: (transType || 'DEFICIT').toUpperCase(),
-        description: description || '-',
-        debit, credit, game: '-', hits: '-',
-        manual: true,
-        manualSeq: manualSeqRef.current++,
-      });
-    }
+    // All manual entries are simple debit or credit transactions
+    const debit = amountType === 'debit' ? amt : 0;
+    const credit = amountType === 'credit' ? amt : 0;
+
+    itemsToAdd.push({
+      id: `L${Math.floor(Math.random() * 100000)}`,
+      date, time, drawTime: '-', agent, agentId, area, type: 'Teller',
+      transType: (transType || 'DEFICIT').toUpperCase(),
+      description: description || '-',
+      debit, credit, game: '-', hits: '-',
+      manual: true,
+      manualSeq: manualSeqRef.current++,
+    });
 
     setLedgerData(prev => [...prev, ...itemsToAdd]);
 
@@ -431,7 +399,6 @@ const DailyLedgersPage = () => {
       description: '',
       amount: '',
       amountType: 'debit',
-      hitsExpr: '',
     });
   };
 
@@ -552,7 +519,10 @@ const DailyLedgersPage = () => {
             {daysWithBalances.map((day, idx) => (
               <div className="os-day-section" key={idx}>
                 <div className="os-day-header">
-                  <h3 className="os-day-title">{new Date(day.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+                  <div>
+                    <h3 className="os-day-title">{new Date(day.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+                    <p className="os-day-agent-label">{day.agent}</p>
+                  </div>
                   <div className="os-day-stats">
                     <div className="os-day-stat">
                       <span className="os-day-stat-label">Opening:</span>
@@ -615,7 +585,7 @@ const DailyLedgersPage = () => {
                             <td className={`os-td-debit ${debitClass}`}>{item.debit ? formatCurrency(item.debit) : '-'}</td>
                             <td className={`os-td-credit ${creditClass}`}>{item.credit ? formatCurrency(item.credit) : '-'}</td>
                             <td className={`os-td-balance ${balanceClass}`}>{formatCurrency(item.balance)}</td>
-                            <td className="os-td-encoder no-print">{getEncoderByType(item.transType)}</td>
+                            <td className="os-td-encoder no-print">{getEncoderByType(item.transType, item.agentId, item.manual)}</td>
                           </tr>
                         );
                       })}
@@ -733,53 +703,39 @@ const DailyLedgersPage = () => {
                     </select>
                   </div>
 
-                  {manualEntry.transType.toUpperCase() === 'PAYOUT' ? (
-                    <div className="os-form-group">
-                      <label className="os-form-label">Hits (Qty*Multiplier)</label>
-                      <input
-                        type="text"
-                        className="os-form-input"
-                        placeholder="e.g., 50*750"
-                        value={manualEntry.hitsExpr}
-                        onChange={(e) => setManualEntry({ ...manualEntry, hitsExpr: e.target.value })}
-                      />
-                      <div className="os-form-help-text">Credit is computed from this value; amount field is not required.</div>
+                  <div className="os-form-group">
+                    <label className="os-form-label">Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="os-form-input"
+                      value={manualEntry.amount}
+                      onChange={(e) => setManualEntry({ ...manualEntry, amount: e.target.value })}
+                      required
+                    />
+                    <div className="os-radio-group">
+                      <label className="os-radio-label">
+                        <input
+                          type="radio"
+                          name="amountType"
+                          value="debit"
+                          checked={manualEntry.amountType === 'debit'}
+                          onChange={(e) => setManualEntry({ ...manualEntry, amountType: e.target.value })}
+                        />
+                        Debit
+                      </label>
+                      <label className="os-radio-label">
+                        <input
+                          type="radio"
+                          name="amountType"
+                          value="credit"
+                          checked={manualEntry.amountType === 'credit'}
+                          onChange={(e) => setManualEntry({ ...manualEntry, amountType: e.target.value })}
+                        />
+                        Credit
+                      </label>
                     </div>
-                  ) : (
-                    <div className="os-form-group">
-                      <label className="os-form-label">Amount</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        className="os-form-input"
-                        value={manualEntry.amount}
-                        onChange={(e) => setManualEntry({ ...manualEntry, amount: e.target.value })}
-                        required
-                      />
-                      <div className="os-radio-group">
-                        <label className="os-radio-label">
-                          <input
-                            type="radio"
-                            name="amountType"
-                            value="debit"
-                            checked={manualEntry.amountType === 'debit'}
-                            onChange={(e) => setManualEntry({ ...manualEntry, amountType: e.target.value })}
-                          />
-                          Debit
-                        </label>
-                        <label className="os-radio-label">
-                          <input
-                            type="radio"
-                            name="amountType"
-                            value="credit"
-                            checked={manualEntry.amountType === 'credit'}
-                            onChange={(e) => setManualEntry({ ...manualEntry, amountType: e.target.value })}
-                          />
-                          Credit
-                        </label>
-                      </div>
-                    </div>
-                  )}
+                  </div>
 
                   <div className="os-form-group">
                     <label className="os-form-label">Description</label>
