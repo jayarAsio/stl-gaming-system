@@ -1,1 +1,0 @@
-import{j as t}from"./index-DIpsmQdA.js";const r=()=>t.jsxs("div",{className:"sa-card",children:[t.jsx("h3",{style:{fontSize:"1.5rem",fontWeight:"700",color:"white",marginBottom:"1rem"},children:"Security & Audit"}),t.jsx("p",{style:{color:"#94A3B8",fontSize:"1rem"},children:"Security monitoring, audit logs, and compliance reporting."})]});export{r as default};
