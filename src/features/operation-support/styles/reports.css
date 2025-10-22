@@ -2,11 +2,51 @@
    OPERATION SUPPORT - REPORTS MODULE
    Comprehensive reports with working buttons
    ============================================ */
+:root {
+  --os-navy: #0f172a;
+  --os-blue-dark: #1e3a5f;
+  --os-accent: #0496c7;
+  --os-accent-light: #06b6d4;
+  --os-accent-glow: rgba(4, 150, 199, 0.25);
+  --os-accent-ring: rgba(4, 150, 199, 0.15);
+  --os-accent-ghost: rgba(4, 150, 199, 0.08);
+
+  --os-gray-50: #f9fafb;
+  --os-gray-100: #f3f4f6;
+  --os-gray-200: #e5e7eb;
+  --os-gray-300: #d1d5db;
+  --os-gray-400: #9ca3af;
+  --os-gray-500: #6b7280;
+  --os-gray-600: #4b5563;
+  --os-gray-700: #374151;
+  --os-gray-800: #1f2937;
+
+  --os-white: #ffffff;
+  --os-success: #10b981;
+  --os-success-bg: rgba(16, 185, 129, 0.1);
+  --os-danger: #ef4444;
+  --os-danger-bg: rgba(239, 68, 68, 0.1);
+  --os-warning: #f59e0b;
+  --os-warning-bg: rgba(245, 158, 11, 0.1);
+  --os-info: #3b82f6;
+  --os-teal: #14b8a6;
+
+  --os-radius-xs: 8px;
+  --os-radius-sm: 12px;
+  --os-radius: 16px;
+  --os-radius-md: 18px;
+  --os-radius-lg: 22px;
+
+  --os-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --os-shadow-md: 0 4px 6px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.06);
+  --os-shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+  --os-ease: cubic-bezier(0.4,0,0.2,1);
+}
 
 /* BASE CONTAINER */
 .os-reports-container {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-  color: #374151;
+  color: #a4b7d4;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -28,12 +68,16 @@
    HEADER - Dashboard Style
    ============================================ */
 .os-reports-header {
-  background: #fff;
-  padding: 1.5rem;
-  border-radius: 22px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
-  border: 1px solid #e5e7eb;
-  margin-bottom: 1.5rem;
+  background: var(--os-white);
+  padding: 1rem;
+  border-radius: var(--os-radius);
+  box-shadow: var(--os-shadow);
+  border: 1px solid var(--os-gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .os-reports-header-main {
@@ -47,29 +91,22 @@
   line-height: 1;
 }
 
-.os-reports-header-text {
-  flex: 1;
-  min-width: 0;
-}
-
 .os-reports-title {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #02367B 0%, #0496C7 100%);
+  margin: 0 0 .4rem;
+  background: linear-gradient(135deg, var(--os-navy) 0%, var(--os-accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 .4rem;
   letter-spacing: -.01em;
-  line-height: 1.2;
 }
 
 .os-reports-subtitle {
   font-size: .875rem;
-  color: #4b5563;
+  color: var(--os-gray-600);
   margin: 0;
   font-weight: 500;
-  line-height: 1.4;
 }
 
 /* ============================================

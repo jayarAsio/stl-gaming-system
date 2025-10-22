@@ -972,7 +972,7 @@ const ReportsPage = () => {
                                 </td>
                                 <td className={item.percentage < 0 ? 'danger' : 'success'}>{formatPercentage(item.percentage)}</td>
                               </tr>
-                            ))}
+                            ))} 
                           </tbody>
                         </table>
                       </div>
