@@ -1,290 +1,412 @@
 // ============================================
-// File: src/features/super-admin/pages/DashboardPage.jsx
+// System Control Center - Main Dashboard
+// Super Admin Complete System Overview
 // ============================================
 import React, { useState, useEffect } from 'react';
-import '../styles/dashboard-page.css';
+import { useNavigate } from 'react-router-dom';
+import '../styles/system-control-center.css';
 
-const DashboardPage = () => {
-  const [ticketsPerMin, setTicketsPerMin] = useState(247);
-  const [countdown, setCountdown] = useState({ hours: 3, minutes: 45, seconds: 22 });
+const SystemControlCenter = () => {
+  const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [liveData, setLiveData] = useState({
+    totalRevenue: 2847650,
+    activeUsers: 183,
+    todayTickets: 8942,
+    systemHealth: 99.2,
+    activeModules: 4,
+    totalModules: 4,
+    pendingAlerts: 8,
+    criticalAlerts: 2
+  });
 
-  // Update tickets per min
+  // Update time
   useEffect(() => {
     const timer = setInterval(() => {
-      setTicketsPerMin(240 + Math.floor(Math.random() * 20));
+      setCurrentTime(new Date());
+      // Simulate live data updates
+      setLiveData(prev => ({
+        ...prev,
+        totalRevenue: prev.totalRevenue + Math.floor(Math.random() * 1000),
+        todayTickets: prev.todayTickets + Math.floor(Math.random() * 5)
+      }));
     }, 3000);
     return () => clearInterval(timer);
   }, []);
 
-  // Countdown timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        let { hours, minutes, seconds } = prev;
-        seconds--;
-        if (seconds < 0) {
-          seconds = 59;
-          minutes--;
-          if (minutes < 0) {
-            minutes = 59;
-            hours = hours > 0 ? hours - 1 : 3;
-          }
-        }
-        return { hours, minutes, seconds };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const formatCurrency = (amount) => {
+    return `₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
-  const formatTime = (num) => String(num).padStart(2, '0');
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  };
 
-  const hotNumbers = [
-    { num: 7, count: 23 },
-    { num: 14, count: 18 },
-    { num: 23, count: 15 },
-    { num: 9, count: 12 },
-    { num: 31, count: 11 }
+  // Module status data
+  const modules = [
+    { id: 'teller', name: 'Teller Module', icon: '🎫', status: 'active', users: 142, health: 98.5 },
+    { id: 'collector', name: 'Collector Module', icon: '💼', status: 'active', users: 28, health: 99.1 },
+    { id: 'game-admin', name: 'Game Admin', icon: '🎮', status: 'active', users: 8, health: 100 },
+    { id: 'ops-support', name: 'Ops Support', icon: '⚙️', status: 'active', users: 5, health: 99.8 }
   ];
 
-  const systemStatus = [
-    { name: 'API Gateway', status: 'Operational', color: 'green' },
-    { name: 'Database Cluster', status: 'Healthy', color: 'green' },
-    { name: 'SMS Gateway', status: 'Degraded (87%)', color: 'orange' },
-    { name: 'Payment Processor', status: 'Online', color: 'green' }
+  // Quick stats
+  const quickStats = [
+    { label: 'Games Active', value: '12', change: '+2', trend: 'up', color: 'cyan' },
+    { label: 'Draws Today', value: '48', change: '16 pending', trend: 'neutral', color: 'purple' },
+    { label: 'Avg Response', value: '0.8s', change: '-12%', trend: 'up', color: 'green' },
+    { label: 'Uptime', value: '99.2%', change: '24h', trend: 'up', color: 'blue' }
+  ];
+
+  // Recent activity
+  const recentActivity = [
+    { time: '2 min ago', action: 'New game admin created', user: 'Super Admin', type: 'success' },
+    { time: '5 min ago', action: 'Module control: Teller enabled', user: 'Super Admin', type: 'info' },
+    { time: '12 min ago', action: 'Security alert resolved', user: 'Super Admin', type: 'warning' },
+    { time: '18 min ago', action: 'System backup completed', user: 'System', type: 'success' },
+    { time: '25 min ago', action: 'Game configuration updated', user: 'Super Admin', type: 'info' }
+  ];
+
+  // Critical alerts
+  const criticalAlerts = [
+    { id: 1, priority: 'high', message: 'Unusual betting pattern detected', module: 'Teller', time: '5m ago' },
+    { id: 2, priority: 'medium', message: '3 void requests pending approval', module: 'Game Admin', time: '12m ago' }
   ];
 
   return (
-    <>
-      {/* Quick Actions */}
-      <div className="sa-dash-actions">
-        <button className="sa-dash-action sa-dash-action-blue">
-          ➕ New Draw
-        </button>
-        <button className="sa-dash-action sa-dash-action-green">
-          ✓ Publish Result
-        </button>
-        <button className="sa-dash-action sa-dash-action-purple">
-          💰 Process Payouts
-        </button>
-        <button className="sa-dash-action sa-dash-action-orange">
-          📥 Generate Reports
-        </button>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="sa-dash-kpi-grid">
-        {/* Today's Revenue */}
-        <div className="sa-card sa-dash-kpi">
-          <div className="sa-dash-kpi-glow sa-dash-kpi-glow-green"></div>
-          <div className="sa-dash-kpi-content">
-            <div className="sa-dash-kpi-header">
-              <div className="sa-dash-kpi-icon sa-dash-kpi-icon-green">💰</div>
-              <span className="sa-dash-kpi-trend sa-dash-kpi-trend-up">↗ +12.5%</span>
-            </div>
-            <h3 className="sa-dash-kpi-value">₱2.45M</h3>
-            <p className="sa-dash-kpi-label">Today's Revenue</p>
-            <div className="sa-dash-progress">
-              <div className="sa-dash-progress-bar sa-dash-progress-bar-green" style={{ width: '68%' }}></div>
-            </div>
-            <p className="sa-dash-progress-label">68% of daily target</p>
-          </div>
-        </div>
-
-        {/* Active Players */}
-        <div className="sa-card sa-dash-kpi">
-          <div className="sa-dash-kpi-glow sa-dash-kpi-glow-blue"></div>
-          <div className="sa-dash-kpi-content">
-            <div className="sa-dash-kpi-header">
-              <div className="sa-dash-kpi-icon sa-dash-kpi-icon-blue">👥</div>
-              <span className="sa-dash-kpi-trend sa-dash-kpi-trend-up">↗ +8.3%</span>
-            </div>
-            <h3 className="sa-dash-kpi-value">12,847</h3>
-            <p className="sa-dash-kpi-label">Active Players</p>
-            <div className="sa-dash-chart-bars">
-              <div className="sa-dash-chart-bar" style={{ height: '40%' }}></div>
-              <div className="sa-dash-chart-bar" style={{ height: '65%' }}></div>
-              <div className="sa-dash-chart-bar" style={{ height: '35%' }}></div>
-              <div className="sa-dash-chart-bar" style={{ height: '80%' }}></div>
-              <div className="sa-dash-chart-bar" style={{ height: '60%' }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Today's Draws */}
-        <div className="sa-card sa-dash-kpi">
-          <div className="sa-dash-kpi-glow sa-dash-kpi-glow-purple"></div>
-          <div className="sa-dash-kpi-content">
-            <div className="sa-dash-kpi-header">
-              <div className="sa-dash-kpi-icon sa-dash-kpi-icon-purple">🎲</div>
-              <div className="sa-dash-status-dots">
-                <span className="sa-dash-status-dot sa-dash-status-dot-green"></span>
-                <span className="sa-dash-status-dot sa-dash-status-dot-orange"></span>
-                <span className="sa-dash-status-dot sa-dash-status-dot-gray"></span>
-              </div>
-            </div>
-            <h3 className="sa-dash-kpi-value">9/12</h3>
-            <p className="sa-dash-kpi-label">Draws Completed</p>
-            <div className="sa-dash-draw-list">
-              <div className="sa-dash-draw-item">
-                <span className="sa-dash-draw-time">Morning: 10:30</span>
-                <span className="sa-dash-draw-status sa-dash-draw-status-complete">✓ Complete</span>
-              </div>
-              <div className="sa-dash-draw-item">
-                <span className="sa-dash-draw-time">Afternoon: 16:00</span>
-                <span className="sa-dash-draw-status sa-dash-draw-status-progress">⏳ In Progress</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Risk Level */}
-        <div className="sa-card sa-dash-kpi">
-          <div className="sa-dash-kpi-glow sa-dash-kpi-glow-orange"></div>
-          <div className="sa-dash-kpi-content">
-            <div className="sa-dash-kpi-header">
-              <div className="sa-dash-kpi-icon sa-dash-kpi-icon-orange">⚠️</div>
-              <span className="sa-dash-risk-badge">MEDIUM</span>
-            </div>
-            <h3 className="sa-dash-kpi-value">3</h3>
-            <p className="sa-dash-kpi-label">High Risk Combos</p>
-            <div className="sa-dash-risk-item">
-              <div className="sa-dash-risk-header">
-                <span className="sa-dash-risk-combo">12-34 (Pares)</span>
-                <span className="sa-dash-risk-amount">₱48K/₱50K</span>
-              </div>
-              <div className="sa-dash-progress">
-                <div className="sa-dash-progress-bar sa-dash-progress-bar-risk" style={{ width: '96%' }}></div>
-              </div>
-            </div>
-          </div>
+    <div className="scc-container">
+      {/* Page Header */}
+      <div className="scc-header">
+        <div className="scc-header-left">
+          <h1 className="scc-title">System Control Center</h1>
+          <p className="scc-subtitle">Complete system oversight and management</p>
         </div>
       </div>
 
-      {/* Charts & Live Metrics */}
-      <div className="sa-dash-charts-grid">
-        {/* Sales Performance Chart */}
-        <div className="sa-card sa-dash-chart-wide">
-          <div className="sa-dash-section-header">
-            <h3 className="sa-dash-section-title">Sales Performance</h3>
-            <select className="sa-dash-select">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-              <option>Last 3 Months</option>
-            </select>
-          </div>
-          <div className="sa-dash-chart-placeholder">
-            <p>📊 Chart.js integration needed</p>
-          </div>
-        </div>
-
-        {/* Live Metrics */}
-        <div className="sa-card">
-          <h3 className="sa-dash-section-title">Live Metrics</h3>
-          <div className="sa-dash-metrics">
-            <div className="sa-dash-metric-card">
-              <div className="sa-dash-metric-header">
-                <span className="sa-dash-metric-label">Ticket Sales/min</span>
-                <span className="sa-dash-metric-value sa-dash-metric-value-green">{ticketsPerMin}</span>
-              </div>
-              <div className="sa-dash-progress">
-                <div className="sa-dash-progress-bar sa-dash-progress-bar-green" style={{ width: '75%' }}></div>
-              </div>
-            </div>
-
-            <div className="sa-dash-metric-card">
-              <div className="sa-dash-metric-header">
-                <span className="sa-dash-metric-label">System Load</span>
-                <span className="sa-dash-metric-value sa-dash-metric-value-blue">42%</span>
-              </div>
-              <div className="sa-dash-progress">
-                <div className="sa-dash-progress-bar sa-dash-progress-bar-blue" style={{ width: '42%' }}></div>
-              </div>
-            </div>
-
-            <div className="sa-dash-countdown">
-              <p className="sa-dash-countdown-label">Next Draw</p>
-              <p className="sa-dash-countdown-time">
-                {formatTime(countdown.hours)}:{formatTime(countdown.minutes)}:{formatTime(countdown.seconds)}
-              </p>
-              <p className="sa-dash-countdown-info">Evening Draw • 8:00 PM</p>
-            </div>
-          </div>
-        </div>
+      {/* Quick Action Bar */}
+      <div className="scc-quick-actions">
+        <button 
+          className="scc-action-btn scc-action-primary"
+          onClick={() => navigate('/super-admin/module-control')}
+        >
+          <span className="scc-action-icon">🔧</span>
+          <span className="scc-action-text">Module Control</span>
+        </button>
+        <button 
+          className="scc-action-btn scc-action-success"
+          onClick={() => navigate('/super-admin/user-management')}
+        >
+          <span className="scc-action-icon">👥</span>
+          <span className="scc-action-text">Create Admin</span>
+        </button>
+        <button 
+          className="scc-action-btn scc-action-purple"
+          onClick={() => navigate('/super-admin/game-configuration')}
+        >
+          <span className="scc-action-icon">🎮</span>
+          <span className="scc-action-text">Configure Games</span>
+        </button>
+        <button 
+          className="scc-action-btn scc-action-warning"
+          onClick={() => navigate('/super-admin/escalations')}
+        >
+          <span className="scc-action-icon">🚨</span>
+          <span className="scc-action-text">View Alerts</span>
+          <span className="scc-action-badge">{liveData.pendingAlerts}</span>
+        </button>
       </div>
 
-      {/* Recent Draw Results */}
-      <div className="sa-card sa-dash-results">
-        <div className="sa-dash-section-header">
-          <h3 className="sa-dash-section-title">Recent Draw Results</h3>
-          <button className="sa-dash-view-all">View All →</button>
-        </div>
-        <div className="sa-dash-results-list">
-          <div className="sa-dash-result-item">
-            <div className="sa-dash-result-left">
-              <div className="sa-dash-result-icon sa-dash-result-icon-complete">✓</div>
-              <div>
-                <p className="sa-dash-result-title">Swertres - Morning Draw</p>
-                <p className="sa-dash-result-time">10:30 AM • January 15, 2025</p>
-              </div>
+      {/* Primary KPIs */}
+      <div className="scc-kpi-grid">
+        {/* Total Revenue */}
+        <div className="scc-kpi-card scc-kpi-revenue">
+          <div className="scc-kpi-glow scc-kpi-glow-green"></div>
+          <div className="scc-kpi-content">
+            <div className="scc-kpi-header">
+              <span className="scc-kpi-icon">💰</span>
+              <span className="scc-kpi-trend scc-trend-up">
+                <span className="scc-trend-arrow">↗</span>
+                <span className="scc-trend-value">+12.5%</span>
+              </span>
             </div>
-            <div className="sa-dash-result-right">
-              <p className="sa-dash-result-number">4-2-7</p>
-              <p className="sa-dash-result-info">23 winners • ₱230K payout</p>
+            <div className="scc-kpi-body">
+              <div className="scc-kpi-value">{formatCurrency(liveData.totalRevenue)}</div>
+              <div className="scc-kpi-label">Total Revenue Today</div>
+              <div className="scc-kpi-subtitle">Updated in real-time</div>
+            </div>
+            <div className="scc-kpi-footer">
+              <div className="scc-progress-bar">
+                <div className="scc-progress-fill scc-progress-green" style={{ width: '78%' }}></div>
+              </div>
+              <div className="scc-progress-label">78% of daily target</div>
             </div>
           </div>
+        </div>
 
-          <div className="sa-dash-result-item">
-            <div className="sa-dash-result-left">
-              <div className="sa-dash-result-icon sa-dash-result-icon-progress">⏳</div>
-              <div>
-                <p className="sa-dash-result-title">Last 2 - Afternoon Draw</p>
-                <p className="sa-dash-result-time">4:00 PM • In Progress</p>
+        {/* Active Users */}
+        <div className="scc-kpi-card scc-kpi-users">
+          <div className="scc-kpi-glow scc-kpi-glow-blue"></div>
+          <div className="scc-kpi-content">
+            <div className="scc-kpi-header">
+              <span className="scc-kpi-icon">👥</span>
+              <span className="scc-kpi-trend scc-trend-up">
+                <span className="scc-trend-arrow">↗</span>
+                <span className="scc-trend-value">+8</span>
+              </span>
+            </div>
+            <div className="scc-kpi-body">
+              <div className="scc-kpi-value">{liveData.activeUsers}</div>
+              <div className="scc-kpi-label">Active Users Now</div>
+              <div className="scc-kpi-subtitle">Across all modules</div>
+            </div>
+            <div className="scc-kpi-footer">
+              <div className="scc-user-breakdown">
+                <span className="scc-breakdown-item">
+                  <span className="scc-breakdown-dot scc-dot-blue"></span>
+                  <span className="scc-breakdown-text">142 Tellers</span>
+                </span>
+                <span className="scc-breakdown-item">
+                  <span className="scc-breakdown-dot scc-dot-purple"></span>
+                  <span className="scc-breakdown-text">28 Collectors</span>
+                </span>
               </div>
             </div>
-            <div className="sa-dash-result-right">
-              <p className="sa-dash-result-number sa-dash-result-number-pending">●●●</p>
-              <p className="sa-dash-result-info">Drawing in 15 min</p>
+          </div>
+        </div>
+
+        {/* Today's Tickets */}
+        <div className="scc-kpi-card scc-kpi-tickets">
+          <div className="scc-kpi-glow scc-kpi-glow-purple"></div>
+          <div className="scc-kpi-content">
+            <div className="scc-kpi-header">
+              <span className="scc-kpi-icon">🎫</span>
+              <span className="scc-kpi-trend scc-trend-up">
+                <span className="scc-trend-arrow">↗</span>
+                <span className="scc-trend-value">+18%</span>
+              </span>
+            </div>
+            <div className="scc-kpi-body">
+              <div className="scc-kpi-value">{liveData.todayTickets.toLocaleString()}</div>
+              <div className="scc-kpi-label">Tickets Sold Today</div>
+              <div className="scc-kpi-subtitle">Updating live</div>
+            </div>
+            <div className="scc-kpi-footer">
+              <div className="scc-chart-mini">
+                <div className="scc-chart-bar" style={{ height: '40%' }}></div>
+                <div className="scc-chart-bar" style={{ height: '65%' }}></div>
+                <div className="scc-chart-bar" style={{ height: '55%' }}></div>
+                <div className="scc-chart-bar" style={{ height: '80%' }}></div>
+                <div className="scc-chart-bar" style={{ height: '75%' }}></div>
+                <div className="scc-chart-bar" style={{ height: '90%' }}></div>
+                <div className="scc-chart-bar" style={{ height: '100%' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* System Health */}
+        <div className="scc-kpi-card scc-kpi-health">
+          <div className="scc-kpi-glow scc-kpi-glow-cyan"></div>
+          <div className="scc-kpi-content">
+            <div className="scc-kpi-header">
+              <span className="scc-kpi-icon">💚</span>
+              <span className="scc-kpi-status scc-status-healthy">Healthy</span>
+            </div>
+            <div className="scc-kpi-body">
+              <div className="scc-kpi-value">{liveData.systemHealth}%</div>
+              <div className="scc-kpi-label">System Health Score</div>
+              <div className="scc-kpi-subtitle">All systems operational</div>
+            </div>
+            <div className="scc-kpi-footer">
+              <div className="scc-health-indicators">
+                <span className="scc-health-item scc-health-good">
+                  <span className="scc-health-dot"></span>
+                  <span className="scc-health-text">API</span>
+                </span>
+                <span className="scc-health-item scc-health-good">
+                  <span className="scc-health-dot"></span>
+                  <span className="scc-health-text">DB</span>
+                </span>
+                <span className="scc-health-item scc-health-good">
+                  <span className="scc-health-dot"></span>
+                  <span className="scc-health-text">Cache</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Section */}
-      <div className="sa-dash-bottom-grid">
-        {/* Hot Numbers */}
-        <div className="sa-card">
-          <h3 className="sa-dash-section-title">Hot Numbers Today</h3>
-          <div className="sa-dash-hot-numbers">
-            {hotNumbers.map((item, i) => (
-              <div key={i} className={`sa-dash-hot-number ${i < 2 ? 'sa-dash-hot-number-hot' : ''}`}>
-                <p className="sa-dash-hot-number-value">{item.num}</p>
-                <p className="sa-dash-hot-number-count">x{item.count}</p>
-              </div>
-            ))}
+      {/* Quick Stats */}
+      <div className="scc-quick-stats">
+        {quickStats.map((stat, index) => (
+          <div key={index} className={`scc-stat-card scc-stat-${stat.color}`}>
+            <div className="scc-stat-label">{stat.label}</div>
+            <div className="scc-stat-value">{stat.value}</div>
+            <div className={`scc-stat-change scc-change-${stat.trend}`}>
+              {stat.trend === 'up' && '↗'}
+              {stat.trend === 'down' && '↘'}
+              {stat.trend === 'neutral' && '→'}
+              {' '}{stat.change}
+            </div>
           </div>
-          <div className="sa-dash-alert">
-            <p>ℹ️ Combination 7-14-23 approaching exposure limit</p>
-          </div>
-        </div>
+        ))}
+      </div>
 
-        {/* System Status */}
-        <div className="sa-card">
-          <h3 className="sa-dash-section-title">System Status</h3>
-          <div className="sa-dash-status-list">
-            {systemStatus.map((item, i) => (
-              <div key={i} className="sa-dash-status-item">
-                <div className="sa-dash-status-left">
-                  <span className={`sa-dash-status-indicator sa-dash-status-indicator-${item.color}`}></span>
-                  <span className="sa-dash-status-name">{item.name}</span>
+      {/* Main Content Grid */}
+      <div className="scc-main-grid">
+        {/* Module Status */}
+        <div className="scc-panel scc-panel-modules">
+          <div className="scc-panel-header">
+            <h2 className="scc-panel-title">Module Status</h2>
+            <button 
+              className="scc-panel-action"
+              onClick={() => navigate('/super-admin/module-control')}
+            >
+              Manage →
+            </button>
+          </div>
+          <div className="scc-panel-content">
+            <div className="scc-module-list">
+              {modules.map(module => (
+                <div key={module.id} className="scc-module-item">
+                  <div className="scc-module-icon">{module.icon}</div>
+                  <div className="scc-module-info">
+                    <div className="scc-module-name">{module.name}</div>
+                    <div className="scc-module-users">{module.users} active users</div>
+                  </div>
+                  <div className="scc-module-right">
+                    <div className="scc-module-health">{module.health}%</div>
+                    <span className={`scc-module-status scc-status-${module.status}`}>
+                      <span className="scc-status-dot"></span>
+                      {module.status}
+                    </span>
+                  </div>
                 </div>
-                <span className={`sa-dash-status-text sa-dash-status-text-${item.color}`}>{item.status}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Critical Alerts */}
+        <div className="scc-panel scc-panel-alerts">
+          <div className="scc-panel-header">
+            <h2 className="scc-panel-title">
+              Critical Alerts
+              <span className="scc-alert-badge">{liveData.criticalAlerts}</span>
+            </h2>
+            <button 
+              className="scc-panel-action"
+              onClick={() => navigate('/super-admin/escalations')}
+            >
+              View All →
+            </button>
+          </div>
+          <div className="scc-panel-content">
+            {criticalAlerts.length > 0 ? (
+              <div className="scc-alert-list">
+                {criticalAlerts.map(alert => (
+                  <div key={alert.id} className={`scc-alert-item scc-alert-${alert.priority}`}>
+                    <div className="scc-alert-indicator"></div>
+                    <div className="scc-alert-content">
+                      <div className="scc-alert-message">{alert.message}</div>
+                      <div className="scc-alert-meta">
+                        <span className="scc-alert-module">{alert.module}</span>
+                        <span className="scc-alert-time">{alert.time}</span>
+                      </div>
+                    </div>
+                    <button className="scc-alert-action">View</button>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="scc-empty-state">
+                <span className="scc-empty-icon">✓</span>
+                <p className="scc-empty-text">No critical alerts</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="scc-panel scc-panel-activity">
+          <div className="scc-panel-header">
+            <h2 className="scc-panel-title">Recent Activity</h2>
+            <button 
+              className="scc-panel-action"
+              onClick={() => navigate('/super-admin/security-audit')}
+            >
+              View Logs →
+            </button>
+          </div>
+          <div className="scc-panel-content">
+            <div className="scc-activity-list">
+              {recentActivity.map((activity, index) => (
+                <div key={index} className="scc-activity-item">
+                  <div className={`scc-activity-icon scc-activity-${activity.type}`}>
+                    {activity.type === 'success' && '✓'}
+                    {activity.type === 'info' && 'ℹ'}
+                    {activity.type === 'warning' && '!'}
+                  </div>
+                  <div className="scc-activity-content">
+                    <div className="scc-activity-action">{activity.action}</div>
+                    <div className="scc-activity-meta">
+                      <span className="scc-activity-user">{activity.user}</span>
+                      <span className="scc-activity-time">{activity.time}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* System Resources */}
+        <div className="scc-panel scc-panel-resources">
+          <div className="scc-panel-header">
+            <h2 className="scc-panel-title">System Resources</h2>
+          </div>
+          <div className="scc-panel-content">
+            <div className="scc-resource-list">
+              <div className="scc-resource-item">
+                <div className="scc-resource-label">CPU Usage</div>
+                <div className="scc-resource-bar">
+                  <div className="scc-resource-fill scc-fill-blue" style={{ width: '42%' }}></div>
+                </div>
+                <div className="scc-resource-value">42%</div>
+              </div>
+              <div className="scc-resource-item">
+                <div className="scc-resource-label">Memory</div>
+                <div className="scc-resource-bar">
+                  <div className="scc-resource-fill scc-fill-green" style={{ width: '68%' }}></div>
+                </div>
+                <div className="scc-resource-value">68%</div>
+              </div>
+              <div className="scc-resource-item">
+                <div className="scc-resource-label">Database</div>
+                <div className="scc-resource-bar">
+                  <div className="scc-resource-fill scc-fill-purple" style={{ width: '55%' }}></div>
+                </div>
+                <div className="scc-resource-value">55%</div>
+              </div>
+              <div className="scc-resource-item">
+                <div className="scc-resource-label">Storage</div>
+                <div className="scc-resource-bar">
+                  <div className="scc-resource-fill scc-fill-cyan" style={{ width: '73%' }}></div>
+                </div>
+                <div className="scc-resource-value">73%</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export default DashboardPage;
+export default SystemControlCenter;

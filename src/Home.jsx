@@ -103,19 +103,19 @@ export default function Home() {
       desc: "Technical operations, system maintenance, and infrastructure management tools.",
       path: "/game-administrator"
     },
+        {
+      variant: "sales-monitoring",
+      icon: "📈",
+      title: "Operation Support",
+      desc: "Track real-time ticket sales, monitor agent performance, and view daily totals.",
+      path: "/operation-support"
+    },
     {
       variant: "collector",
       icon: "📊",
       title: "Collector",
       desc: "Revenue collection, financial reporting, and comprehensive transaction oversight.",
       path: "/collector"
-    },
-    {
-      variant: "sales-monitoring",
-      icon: "📈",
-      title: "Operation Support",
-      desc: "Track real-time ticket sales, monitor agent performance, and view daily totals.",
-      path: "/operation-support"
     },
     {
       variant: "teller",
@@ -132,7 +132,7 @@ export default function Home() {
 
       <div className="container">
         {/* Header */}
-        <header ref={headerRef} className="header">
+        <header ref={headerRef} className="main-header">
           <div className="logo-container">
             <div className="logo">STL</div>
           </div>

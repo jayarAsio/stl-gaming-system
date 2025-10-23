@@ -1,17 +1,19 @@
 // ============================================
 // File: src/features/super-admin/pages/Dashboard.jsx
+// Super Admin Layout - Sidebar with Updated Navigation
 // ============================================
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import '../styles/super-admin.css';
 
 const navigationItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: '📊', path: '/super-admin' },
-  { key: 'draw-management', label: 'Draw Management', icon: '🎲', path: '/super-admin/draw-management' },
-  { key: 'results-winners', label: 'Results & Winners', icon: '🏆', path: '/super-admin/results-winners' },
-  { key: 'sales-analytics', label: 'Sales Analytics', icon: '📈', path: '/super-admin/sales-analytics' },
+  { key: 'dashboard', label: 'System Control Center', icon: '🎛️', path: '/super-admin' },
+  { key: 'module-control', label: 'Module Control', icon: '🔧', path: '/super-admin/module-control' },
   { key: 'user-management', label: 'User Management', icon: '👥', path: '/super-admin/user-management' },
-  { key: 'escalations', label: 'Escalations', icon: '⚠️', path: '/super-admin/escalations', badge: 3 },
+  { key: 'game-configuration', label: 'Game Configuration', icon: '🎮', path: '/super-admin/game-configuration' },
+  { key: 'sales-transactions', label: 'Sales & Transactions', icon: '💰', path: '/super-admin/sales-transactions' },
+  { key: 'draw-management', label: 'Draw Management', icon: '🎲', path: '/super-admin/draw-management' },
+  { key: 'escalations', label: 'Alerts & Escalations', icon: '🚨', path: '/super-admin/escalations', badge: 8 },
   { key: 'security-audit', label: 'Security & Audit', icon: '🛡️', path: '/super-admin/security-audit' },
   { key: 'system-settings', label: 'System Settings', icon: '⚙️', path: '/super-admin/system-settings' }
 ];
@@ -24,7 +26,7 @@ const SuperAdminLayout = () => {
   const [user] = useState({
     initials: 'SA',
     name: 'Super Admin',
-    role: 'Full Access'
+    role: 'System Controller'
   });
 
   // Clock update
@@ -123,7 +125,7 @@ const SuperAdminLayout = () => {
 
               <button className="sa-notification-btn">
                 <span>🔔</span>
-                <span className="sa-notification-badge">5</span>
+                <span className="sa-notification-badge">8</span>
               </button>
 
               <div className="sa-user">
