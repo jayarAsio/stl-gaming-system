@@ -1,0 +1,807 @@
+/* ============================================
+   GAME CONFIGURATION - COMPACT CSS
+   Professional Game Settings Interface
+   ============================================ */
+
+/* Container */
+.gc-container {
+  padding: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   PAGE HEADER - COMPACT
+   ============================================ */
+.gc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.gc-header-left {
+  flex: 1;
+}
+
+.gc-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.gc-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FFFFFF 0%, #8B5CF6 50%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.gc-subtitle {
+  font-size: 0.8125rem;
+  color: #94A3B8;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ============================================
+   STATISTICS CARDS - COMPACT
+   ============================================ */
+.gc-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.gc-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+.gc-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.gc-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.gc-stat-blue {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.gc-stat-green {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.gc-stat-purple {
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.gc-stat-orange {
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.gc-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.gc-stat-value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: #F1F5F9;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.gc-stat-label {
+  font-size: 0.6875rem;
+  color: #94A3B8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   GAMES GRID - COMPACT
+   ============================================ */
+.gc-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 12px;
+}
+
+.gc-game-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.gc-game-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Game Header */
+.gc-game-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gc-game-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 10px;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.gc-game-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.gc-game-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #F1F5F9;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gc-game-format {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.gc-game-status {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gc-status-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+}
+
+.gc-status-inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94A3B8;
+}
+
+/* Game Body */
+.gc-game-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gc-setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+}
+
+.gc-setting-label {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+.gc-setting-value {
+  font-size: 0.8125rem;
+  color: #F1F5F9;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Game Footer */
+.gc-game-footer {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gc-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #E2E8F0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.gc-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.gc-action-edit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #60A5FA;
+}
+
+.gc-action-schedule:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #C4B5FD;
+}
+
+.gc-action-pause:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #FCD34D;
+}
+
+.gc-action-play:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6EE7B7;
+}
+
+.gc-action-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #FCA5A5;
+}
+
+/* ============================================
+   MODALS - COMPACT
+   ============================================ */
+.gc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+.gc-modal {
+  background: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.gc-modal-small {
+  max-width: 450px;
+}
+
+.gc-modal-large {
+  max-width: 700px;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.gc-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gc-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #F1F5F9;
+  margin: 0;
+}
+
+.gc-modal-icon {
+  font-size: 1.25rem;
+}
+
+.gc-modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.gc-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #F1F5F9;
+}
+
+.gc-modal-body {
+  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.gc-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Form Fields */
+.gc-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.gc-form-field {
+  margin-bottom: 14px;
+}
+
+.gc-form-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #CBD5E1;
+  margin-bottom: 6px;
+}
+
+.gc-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #F1F5F9;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.gc-form-input:focus {
+  outline: none;
+  border-color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+/* Buttons */
+.gc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.gc-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.gc-btn-primary {
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+}
+
+.gc-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.gc-btn-small {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+}
+
+/* Schedule Management */
+.gc-schedule-info {
+  padding: 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: #CBD5E1;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.gc-schedule-add {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.gc-time-input {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #F1F5F9;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.gc-time-input:focus {
+  outline: none;
+  border-color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.gc-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.gc-schedule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.gc-schedule-time {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #F1F5F9;
+}
+
+.gc-schedule-remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #EF4444;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gc-schedule-remove:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.gc-empty-schedule {
+  padding: 24px;
+  text-align: center;
+  color: #64748B;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Create Game Modal Styles */
+.gc-create-info {
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: #CBD5E1;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.gc-category-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.gc-category-tab {
+  flex: 1;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #94A3B8;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gc-category-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.gc-category-tab.active {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #C4B5FD;
+}
+
+.gc-game-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.gc-game-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.gc-game-type-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.gc-game-type-card.selected {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.gc-type-icon {
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+
+.gc-type-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #F1F5F9;
+  white-space: nowrap;
+}
+
+.gc-type-format {
+  font-size: 0.6875rem;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+.gc-type-description {
+  font-size: 0.625rem;
+  color: #64748B;
+  line-height: 1.3;
+}
+
+.gc-form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748B;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Delete Modal */
+.gc-delete-message {
+  font-size: 0.9375rem;
+  color: #CBD5E1;
+  margin: 0 0 12px 0;
+  line-height: 1.6;
+}
+
+.gc-delete-warning {
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: #FCA5A5;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.gc-btn-danger {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.gc-modal-body::-webkit-scrollbar,
+.gc-schedule-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.gc-modal-body::-webkit-scrollbar-track,
+.gc-schedule-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.gc-modal-body::-webkit-scrollbar-thumb,
+.gc-schedule-list::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 3px;
+}
+
+.gc-modal-body::-webkit-scrollbar-thumb:hover,
+.gc-schedule-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}
+
+/* ============================================
+   RESPONSIVE - COMPACT
+   ============================================ */
+@media (max-width: 1024px) {
+  .gc-games-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .gc-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .gc-title {
+    font-size: 1.25rem;
+  }
+  
+  .gc-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .gc-games-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .gc-form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .gc-game-footer {
+    flex-direction: column;
+  }
+  
+  .gc-action-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .gc-container {
+    padding: 0;
+  }
+  
+  .gc-header {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .gc-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus Visible */
+.gc-btn:focus-visible,
+.gc-action-btn:focus-visible,
+.gc-form-input:focus-visible,
+.gc-time-input:focus-visible,
+.gc-modal-close:focus-visible {
+  outline: 3px solid #8B5CF6;
+  outline-offset: 2px;
+}
