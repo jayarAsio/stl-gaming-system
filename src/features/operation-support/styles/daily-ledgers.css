@@ -406,7 +406,7 @@
 .os-ledgers-container .os-day-stat-value {
   font-size: .875rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, .2);
+  background: var(--os-white);
   padding: .25rem .5rem;
   border-radius: 6px;
 }
