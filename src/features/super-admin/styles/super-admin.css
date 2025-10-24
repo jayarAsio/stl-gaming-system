@@ -795,6 +795,7 @@ body {
   z-index: calc(var(--sa-z-fixed) - 1);
   animation: fadeIn 0.2s ease;
   cursor: pointer;
+  pointer-events: none; 
 }
 
 @keyframes fadeIn {
@@ -908,6 +909,7 @@ body {
   .sa-sidebar.is-open ~ .sa-overlay,
   .sa-overlay {
     display: block;
+    pointer-events: auto; 
   }
 
   /* Main content adjustments */
