@@ -53,10 +53,6 @@
   backdrop-filter: blur(10px);
 }
 
-.alerts-header-left {
-  flex: 1;
-}
-
 .alerts-title {
   font-size: 1.5rem;
   font-weight: 800;
@@ -429,7 +425,10 @@
   position: fixed;
   inset: 0;
   z-index: 998;
-  margin-top: 70px;
+  
+  /* ADJUST TOP SPACING HERE */
+  /* Option 1: Use padding-top */
+  margin-top: 70px; /* Change this value: 0px, 20px, 40px, etc */
 }
 
 /* Scrim - Inside container */

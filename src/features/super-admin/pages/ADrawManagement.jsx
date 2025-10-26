@@ -120,74 +120,80 @@ const DrawManagement = () => {
   }, [filteredDraws]);
 
   return (
-    <div className="draw-mgmt">
-      <div className="draw-header">
-        <div>
-          <h1 className="draw-title">Draw Management</h1>
-          <p className="draw-subtitle">View draw schedules and results</p>
+    <div className="drawmgmt-container">
+      <div className="drawmgmt-page-header">
+        <div className="drawmgmt-header-text">
+          <h1 className="drawmgmt-page-title">Draw Management</h1>
+          <p className="drawmgmt-page-subtitle">View draw schedules and results</p>
         </div>
       </div>
 
-      <div className="draw-stats">
-        <div className="stat-card">
-          <div className="stat-icon stat-blue">📅</div>
-          <div>
-            <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Total Draws</div>
+      <div className="drawmgmt-stats-grid">
+        <div className="drawmgmt-stat-box">
+          <div className="drawmgmt-stat-icon drawmgmt-icon-blue">📅</div>
+          <div className="drawmgmt-stat-content">
+            <div className="drawmgmt-stat-number">{stats.total}</div>
+            <div className="drawmgmt-stat-text">Total Draws</div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-green">✓</div>
-          <div>
-            <div className="stat-value">{stats.completed}</div>
-            <div className="stat-label">Completed</div>
+        <div className="drawmgmt-stat-box">
+          <div className="drawmgmt-stat-icon drawmgmt-icon-green">✓</div>
+          <div className="drawmgmt-stat-content">
+            <div className="drawmgmt-stat-number">{stats.completed}</div>
+            <div className="drawmgmt-stat-text">Completed</div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-orange">⏳</div>
-          <div>
-            <div className="stat-value">{stats.pending}</div>
-            <div className="stat-label">Pending</div>
+        <div className="drawmgmt-stat-box">
+          <div className="drawmgmt-stat-icon drawmgmt-icon-orange">⏳</div>
+          <div className="drawmgmt-stat-content">
+            <div className="drawmgmt-stat-number">{stats.pending}</div>
+            <div className="drawmgmt-stat-text">Pending</div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-purple">🏆</div>
-          <div>
-            <div className="stat-value">{stats.totalWinners}</div>
-            <div className="stat-label">Winners</div>
+        <div className="drawmgmt-stat-box">
+          <div className="drawmgmt-stat-icon drawmgmt-icon-purple">🏆</div>
+          <div className="drawmgmt-stat-content">
+            <div className="drawmgmt-stat-number">{stats.totalWinners}</div>
+            <div className="drawmgmt-stat-text">Winners</div>
           </div>
         </div>
-        <div className="stat-card stat-wide">
-          <div className="stat-icon stat-red">💰</div>
-          <div>
-            <div className="stat-value">{formatCurrency(stats.totalPayout)}</div>
-            <div className="stat-label">Total Payout</div>
+        <div className="drawmgmt-stat-box drawmgmt-stat-wide">
+          <div className="drawmgmt-stat-icon drawmgmt-icon-red">💰</div>
+          <div className="drawmgmt-stat-content">
+            <div className="drawmgmt-stat-number">{formatCurrency(stats.totalPayout)}</div>
+            <div className="drawmgmt-stat-text">Total Payout</div>
           </div>
         </div>
       </div>
 
-      <div className="draw-filters">
-        <div className="filter-group">
-          <label>Date</label>
+      <div className="drawmgmt-filters-bar">
+        <div className="drawmgmt-filter-item">
+          <label className="drawmgmt-filter-label">Date</label>
           <input
             type="date"
+            className="drawmgmt-filter-input"
             value={currentDate}
             onChange={(e) => setCurrentDate(e.target.value)}
           />
         </div>
-        <div className="filter-group">
-          <label>Game</label>
-          <select value={selectedGame} onChange={(e) => setSelectedGame(e.target.value)}>
+        <div className="drawmgmt-filter-item">
+          <label className="drawmgmt-filter-label">Game</label>
+          <select 
+            className="drawmgmt-filter-select"
+            value={selectedGame} 
+            onChange={(e) => setSelectedGame(e.target.value)}
+          >
             <option value="all">All Games</option>
             {Object.entries(games).map(([id, game]) => (
               <option key={id} value={id}>{game.name}</option>
             ))}
           </select>
         </div>
-        <div className="filter-group filter-search">
-          <label>Search</label>
+        <div className="drawmgmt-filter-item drawmgmt-search-filter">
+          <label className="drawmgmt-filter-label">Search</label>
           <input
             type="text"
+            className="drawmgmt-filter-input"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -195,18 +201,18 @@ const DrawManagement = () => {
         </div>
       </div>
 
-      <div className="draw-tables">
+      <div className="drawmgmt-tables-container">
         {Object.entries(drawsByGame).map(([gameId, gameData]) => (
-          <div key={gameId} className="game-section">
-            <div className="game-header">
-              <h2>
-                <span className="game-icon">{gameData.icon}</span>
+          <div key={gameId} className="drawmgmt-game-section">
+            <div className="drawmgmt-game-header">
+              <h2 className="drawmgmt-game-title">
+                <span className="drawmgmt-game-icon">{gameData.icon}</span>
                 {gameData.name}
               </h2>
-              <span className="game-date">Draw Date: {formatDate(currentDate)}</span>
+              <span className="drawmgmt-game-date">Draw Date: {formatDate(currentDate)}</span>
             </div>
 
-            <table className="draw-table">
+            <table className="drawmgmt-table">
               <thead>
                 <tr>
                   <th>Time</th>
@@ -219,25 +225,25 @@ const DrawManagement = () => {
               <tbody>
                 {gameData.draws.map(draw => (
                   <tr key={draw.key}>
-                    <td className="td-time">{draw.time}</td>
+                    <td className="drawmgmt-td-time">{draw.time}</td>
                     <td>
-                      <span className={`status-badge ${draw.hasResult ? 'status-complete' : 'status-pending'}`}>
+                      <span className={`drawmgmt-status-badge ${draw.hasResult ? 'drawmgmt-status-complete' : 'drawmgmt-status-pending'}`}>
                         {draw.hasResult ? 'COMPLETED' : 'PENDING'}
                       </span>
                     </td>
                     <td>
-                      <span className="result-badge">{draw.result}</span>
+                      <span className="drawmgmt-result-badge">{draw.result}</span>
                     </td>
-                    <td className="td-payout">
+                    <td className="drawmgmt-td-payout">
                       {draw.hasResult ? formatCurrency(draw.payout) : '—'}
                     </td>
-                    <td className="td-actions">
+                    <td className="drawmgmt-td-actions">
                       {draw.hasResult ? (
-                        <button className="action-btn" onClick={() => handleViewWinners(draw)}>
+                        <button className="drawmgmt-action-btn" onClick={() => handleViewWinners(draw)}>
                           View ({draw.winners})
                         </button>
                       ) : (
-                        <span className="action-msg">Waiting for result</span>
+                        <span className="drawmgmt-action-msg">Waiting for result</span>
                       )}
                     </td>
                   </tr>
@@ -249,41 +255,40 @@ const DrawManagement = () => {
       </div>
 
       {filteredDraws.length === 0 && (
-        <div className="empty-state">
-          <span className="empty-icon">🎲</span>
-          <h3>No draws found</h3>
-          <p>Try adjusting your filters</p>
+        <div className="drawmgmt-empty-state">
+          <span className="drawmgmt-empty-icon">🎲</span>
+          <h3 className="drawmgmt-empty-title">No draws found</h3>
+          <p className="drawmgmt-empty-text">Try adjusting your filters</p>
         </div>
       )}
 
-      {/* Winners Drawer - Following reference pattern */}
       {showWinnersModal && selectedDraw && (
-        <>
-          <div className="drawer-scrim" onClick={() => setShowWinnersModal(false)} />
-          <div className={`winners-drawer ${showWinnersModal ? 'open' : ''}`}>
-            <div className="drawer-header">
-              <h3>🏆 Winners - {selectedDraw.gameName} ({selectedDraw.time})</h3>
-              <button className="drawer-close" onClick={() => setShowWinnersModal(false)}>×</button>
+        <div className="drawmgmt-modal-overlay">
+          <div className="drawmgmt-modal-backdrop" onClick={() => setShowWinnersModal(false)} />
+          <div className={`drawmgmt-winners-drawer ${showWinnersModal ? 'drawmgmt-drawer-open' : ''}`}>
+            <div className="drawmgmt-drawer-header">
+              <h3 className="drawmgmt-drawer-title">🏆 Winners - {selectedDraw.gameName} ({selectedDraw.time})</h3>
+              <button className="drawmgmt-drawer-close" onClick={() => setShowWinnersModal(false)}>×</button>
             </div>
             
-            <div className="drawer-body">
-              <div className="winners-summary">
-                <div className="summary-item">
-                  <div className="summary-value large">{selectedDraw.result}</div>
-                  <div className="summary-label">Winning Number</div>
+            <div className="drawmgmt-drawer-body">
+              <div className="drawmgmt-winners-summary">
+                <div className="drawmgmt-summary-item">
+                  <div className="drawmgmt-summary-value drawmgmt-value-large">{selectedDraw.result}</div>
+                  <div className="drawmgmt-summary-label">Winning Number</div>
                 </div>
-                <div className="summary-item">
-                  <div className="summary-value">{selectedDraw.winners}</div>
-                  <div className="summary-label">Winners</div>
+                <div className="drawmgmt-summary-item">
+                  <div className="drawmgmt-summary-value">{selectedDraw.winners}</div>
+                  <div className="drawmgmt-summary-label">Winners</div>
                 </div>
-                <div className="summary-item">
-                  <div className="summary-value">{formatCurrency(selectedDraw.payout)}</div>
-                  <div className="summary-label">Total Payout</div>
+                <div className="drawmgmt-summary-item">
+                  <div className="drawmgmt-summary-value">{formatCurrency(selectedDraw.payout)}</div>
+                  <div className="drawmgmt-summary-label">Total Payout</div>
                 </div>
               </div>
 
-              <div className="winners-list">
-                <div className="winners-header">
+              <div className="drawmgmt-winners-list">
+                <div className="drawmgmt-winners-header">
                   <div>Ticket</div>
                   <div>Teller</div>
                   <div>Bet</div>
@@ -291,13 +296,13 @@ const DrawManagement = () => {
                   <div>Status</div>
                 </div>
                 {selectedDraw.winnersList.map(winner => (
-                  <div key={winner.id} className="winner-row">
-                    <div className="winner-ticket" data-label="Ticket">{winner.ticketNo}</div>
+                  <div key={winner.id} className="drawmgmt-winner-row">
+                    <div className="drawmgmt-winner-ticket" data-label="Ticket">{winner.ticketNo}</div>
                     <div data-label="Teller">{winner.teller}</div>
                     <div data-label="Bet">{formatCurrency(winner.betAmount)}</div>
-                    <div className="winner-prize" data-label="Prize">{formatCurrency(winner.prize)}</div>
+                    <div className="drawmgmt-winner-prize" data-label="Prize">{formatCurrency(winner.prize)}</div>
                     <div data-label="Status">
-                      <span className={`status-badge ${winner.status === 'Paid' ? 'status-paid' : 'status-pending'}`}>
+                      <span className={`drawmgmt-status-badge ${winner.status === 'Paid' ? 'drawmgmt-status-paid' : 'drawmgmt-status-pending'}`}>
                         {winner.status === 'Paid' ? '✓ PAID' : '⏳ PENDING'}
                       </span>
                     </div>
@@ -306,16 +311,16 @@ const DrawManagement = () => {
               </div>
             </div>
 
-            <div className="drawer-footer">
-              <button className="btn btn-secondary" onClick={() => setShowWinnersModal(false)}>
+            <div className="drawmgmt-drawer-footer">
+              <button className="drawmgmt-action-btn drawmgmt-btn-secondary" onClick={() => setShowWinnersModal(false)}>
                 Close
               </button>
-              <button className="btn btn-primary">
+              <button className="drawmgmt-action-btn drawmgmt-btn-primary">
                 🖨️ Print
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

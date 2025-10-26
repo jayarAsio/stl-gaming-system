@@ -43,7 +43,7 @@
   backdrop-filter: blur(10px);
 }
 
-.secaudit-header-left {
+.secaudit-header-text {
   flex: 1;
 }
 
@@ -60,8 +60,8 @@
 }
 
 .secaudit-page-subtitle {
-  font-size: 0.8125rem;
-  color: #94A3B8;
+  font-size: 0.75rem;
+  color: var(--secaudit-text-secondary);
   margin: 0;
   font-weight: 500;
 }
