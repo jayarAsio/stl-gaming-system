@@ -15,7 +15,6 @@ const navigationItems = [
   { key: 'draw-management', label: 'Draw Management', icon: '🎲', path: '/super-admin/draw-management' },
   { key: 'escalations', label: 'Alerts & Escalations', icon: '🚨', path: '/super-admin/escalations', badge: 8 },
   { key: 'security-audit', label: 'Security & Audit', icon: '🛡️', path: '/super-admin/security-audit' },
-  { key: 'system-settings', label: 'System Settings', icon: '⚙️', path: '/super-admin/system-settings' }
 ];
 
 const SuperAdminLayout = () => {

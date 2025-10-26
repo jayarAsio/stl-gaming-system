@@ -213,7 +213,6 @@ const DrawManagement = () => {
                   <th>Status</th>
                   <th>Results</th>
                   <th>Payout</th>
-                  <th>Winners</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -232,19 +231,10 @@ const DrawManagement = () => {
                     <td className="td-payout">
                       {draw.hasResult ? formatCurrency(draw.payout) : '—'}
                     </td>
-                    <td>
-                      <button 
-                        className="winners-btn"
-                        onClick={() => handleViewWinners(draw)}
-                        disabled={!draw.hasResult}
-                      >
-                        👥 {draw.winners}
-                      </button>
-                    </td>
                     <td className="td-actions">
                       {draw.hasResult ? (
                         <button className="action-btn" onClick={() => handleViewWinners(draw)}>
-                          View
+                          View ({draw.winners})
                         </button>
                       ) : (
                         <span className="action-msg">Waiting for result</span>
@@ -266,64 +256,63 @@ const DrawManagement = () => {
         </div>
       )}
 
+      {/* Winners Drawer - Following reference pattern */}
       {showWinnersModal && selectedDraw && (
         <>
-          <div className="modal-backdrop" onClick={() => setShowWinnersModal(false)} />
-          <div className="modal-overlay">
-            <div className="modal">
-              <div className="modal-header">
-                <h3>🏆 Winners - {selectedDraw.gameName} ({selectedDraw.time})</h3>
-                <button className="modal-close" onClick={() => setShowWinnersModal(false)}>×</button>
-              </div>
-              
-              <div className="modal-body">
-                <div className="winners-summary">
-                  <div className="summary-item">
-                    <div className="summary-value large">{selectedDraw.result}</div>
-                    <div className="summary-label">Winning Number</div>
-                  </div>
-                  <div className="summary-item">
-                    <div className="summary-value">{selectedDraw.winners}</div>
-                    <div className="summary-label">Winners</div>
-                  </div>
-                  <div className="summary-item">
-                    <div className="summary-value">{formatCurrency(selectedDraw.payout)}</div>
-                    <div className="summary-label">Total Payout</div>
-                  </div>
+          <div className="drawer-scrim" onClick={() => setShowWinnersModal(false)} />
+          <div className={`winners-drawer ${showWinnersModal ? 'open' : ''}`}>
+            <div className="drawer-header">
+              <h3>🏆 Winners - {selectedDraw.gameName} ({selectedDraw.time})</h3>
+              <button className="drawer-close" onClick={() => setShowWinnersModal(false)}>×</button>
+            </div>
+            
+            <div className="drawer-body">
+              <div className="winners-summary">
+                <div className="summary-item">
+                  <div className="summary-value large">{selectedDraw.result}</div>
+                  <div className="summary-label">Winning Number</div>
                 </div>
+                <div className="summary-item">
+                  <div className="summary-value">{selectedDraw.winners}</div>
+                  <div className="summary-label">Winners</div>
+                </div>
+                <div className="summary-item">
+                  <div className="summary-value">{formatCurrency(selectedDraw.payout)}</div>
+                  <div className="summary-label">Total Payout</div>
+                </div>
+              </div>
 
-                <div className="winners-list">
-                  <div className="winners-header">
-                    <div>Ticket</div>
-                    <div>Teller</div>
-                    <div>Bet</div>
-                    <div>Prize</div>
-                    <div>Status</div>
-                  </div>
-                  {selectedDraw.winnersList.map(winner => (
-                    <div key={winner.id} className="winner-row">
-                      <div className="winner-ticket">{winner.ticketNo}</div>
-                      <div>{winner.teller}</div>
-                      <div>{formatCurrency(winner.betAmount)}</div>
-                      <div className="winner-prize">{formatCurrency(winner.prize)}</div>
-                      <div>
-                        <span className={`status-badge ${winner.status === 'Paid' ? 'status-paid' : 'status-pending'}`}>
-                          {winner.status === 'Paid' ? '✓ PAID' : '⏳ PENDING'}
-                        </span>
-                      </div>
+              <div className="winners-list">
+                <div className="winners-header">
+                  <div>Ticket</div>
+                  <div>Teller</div>
+                  <div>Bet</div>
+                  <div>Prize</div>
+                  <div>Status</div>
+                </div>
+                {selectedDraw.winnersList.map(winner => (
+                  <div key={winner.id} className="winner-row">
+                    <div className="winner-ticket" data-label="Ticket">{winner.ticketNo}</div>
+                    <div data-label="Teller">{winner.teller}</div>
+                    <div data-label="Bet">{formatCurrency(winner.betAmount)}</div>
+                    <div className="winner-prize" data-label="Prize">{formatCurrency(winner.prize)}</div>
+                    <div data-label="Status">
+                      <span className={`status-badge ${winner.status === 'Paid' ? 'status-paid' : 'status-pending'}`}>
+                        {winner.status === 'Paid' ? '✓ PAID' : '⏳ PENDING'}
+                      </span>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowWinnersModal(false)}>
-                  Close
-                </button>
-                <button className="btn btn-primary">
-                  🖨️ Print
-                </button>
-              </div>
+            <div className="drawer-footer">
+              <button className="btn btn-secondary" onClick={() => setShowWinnersModal(false)}>
+                Close
+              </button>
+              <button className="btn btn-primary">
+                🖨️ Print
+              </button>
             </div>
           </div>
         </>

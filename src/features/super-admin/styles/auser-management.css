@@ -27,13 +27,10 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   backdrop-filter: blur(10px);
-  gap: 16px;
-  flex-wrap: wrap;
 }
 
 .um-header-left {
   flex: 1;
-  min-width: 200px;
 }
 
 .um-title {

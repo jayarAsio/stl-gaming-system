@@ -33,15 +33,10 @@
   flex: 1;
 }
 
-.gc-header-right {
-  display: flex;
-  align-items: center;
-}
-
 .gc-title {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #FFFFFF 0%, #8B5CF6 50%, #EC4899 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #3B82F6 50%, #8B5CF6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -55,6 +50,10 @@
   color: #94A3B8;
   margin: 0;
   font-weight: 500;
+}
+.gc-header-right {
+  display: flex;
+  align-items: center;
 }
 
 /* ============================================

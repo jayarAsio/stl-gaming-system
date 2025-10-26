@@ -21,7 +21,6 @@ const SuperAdminSalesTransactions = lazy(() => import("./features/super-admin/pa
 const SuperAdminADrawManagement    = lazy(() => import("./features/super-admin/pages/ADrawManagement"));
 const SuperAdminEscalations       = lazy(() => import("./features/super-admin/pages/Escalations"));
 const SuperAdminSecurityAudit     = lazy(() => import("./features/super-admin/pages/SecurityAudit"));
-const SuperAdminSystemSettings    = lazy(() => import("./features/super-admin/pages/SystemSettings"));
 
 // ============================================
 // Game Administrator — pages
@@ -79,7 +78,6 @@ export default function App() {
             <Route path="draw-management" element={<SuperAdminADrawManagement />} />
             <Route path="escalations" element={<SuperAdminEscalations />} />
             <Route path="security-audit" element={<SuperAdminSecurityAudit />} />
-            <Route path="system-settings" element={<SuperAdminSystemSettings />} />
           </Route>
           
           {/* ============================================
