@@ -1,9 +1,10 @@
 // ============================================
 // File: src/features/super-admin/pages/Dashboard.jsx
-// Super Admin Layout - Sidebar with Updated Navigation
+// Super Admin Layout - CLEAN VERSION (Logout only in user dropdown)
 // ============================================
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import useAuth from '../../../hooks/useAuth';
 import '../styles/super-admin.css';
 
 const navigationItems = [
@@ -20,11 +21,16 @@ const navigationItems = [
 const SuperAdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const location = useLocation();
+  const userMenuRef = useRef(null);
+  
+  // Auth hook
+  const { logout, user: authUser } = useAuth();
   
   const [user] = useState({
-    initials: 'SA',
-    name: 'Super Admin',
+    initials: authUser?.fullName?.split(' ').map(n => n[0]).join('') || 'SA',
+    name: authUser?.fullName || 'Super Admin',
     role: 'System Controller'
   });
 
@@ -39,6 +45,7 @@ const SuperAdminLayout = () => {
   // Close sidebar on route change
   useEffect(() => {
     setSidebarOpen(false);
+    setShowUserMenu(false);
   }, [location.pathname]);
 
   // Handle body scroll when sidebar is open
@@ -57,14 +64,30 @@ const SuperAdminLayout = () => {
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && sidebarOpen) {
-        setSidebarOpen(false);
+      if (e.key === 'Escape') {
+        if (showUserMenu) {
+          setShowUserMenu(false);
+        } else if (sidebarOpen) {
+          setSidebarOpen(false);
+        }
       }
     };
     
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [sidebarOpen]);
+  }, [sidebarOpen, showUserMenu]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const isActivePath = (path) => {
     if (path === '/super-admin') {
@@ -81,6 +104,13 @@ const SuperAdminLayout = () => {
       second: '2-digit',
       hour12: true
     });
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      logout();
+    }
   };
 
   return (
@@ -127,16 +157,47 @@ const SuperAdminLayout = () => {
                 <span className="sa-notification-badge">8</span>
               </button>
 
-              <div className="sa-user">
-                <div className="sa-user-avatar">
-                  <span>{user.initials}</span>
-                  <div className="sa-avatar-ring"></div>
-                  <div className="sa-avatar-ring sa-avatar-ring-2"></div>
-                </div>
-                <div className="sa-user-info">
-                  <div className="sa-user-name">{user.name}</div>
-                  <div className="sa-user-role">{user.role}</div>
-                </div>
+              {/* User Section with Dropdown - ONLY PLACE WITH LOGOUT */}
+              <div className="sa-user-section" ref={userMenuRef}>
+                <button 
+                  className="sa-user"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                >
+                  <div className="sa-user-avatar">
+                    <span>{user.initials}</span>
+                    <div className="sa-avatar-ring"></div>
+                    <div className="sa-avatar-ring sa-avatar-ring-2"></div>
+                  </div>
+                  <div className="sa-user-info">
+                    <div className="sa-user-name">{user.name}</div>
+                    <div className="sa-user-role">{user.role}</div>
+                  </div>
+                  <span className="sa-dropdown-arrow">{showUserMenu ? '▲' : '▼'}</span>
+                </button>
+
+                {/* Dropdown Menu - ONLY LOGOUT */}
+                {showUserMenu && (
+                  <div className="sa-user-dropdown">
+                    <div className="sa-dropdown-header">
+                      <div className="sa-dropdown-avatar">👑</div>
+                      <div className="sa-dropdown-info">
+                        <p className="sa-dropdown-name">{authUser?.fullName}</p>
+                        <p className="sa-dropdown-email">{authUser?.email}</p>
+                        <span className="sa-dropdown-role-badge">Super Admin</span>
+                      </div>
+                    </div>
+
+                    <div className="sa-dropdown-divider"></div>
+
+                    <button 
+                      className="sa-dropdown-item sa-logout-item"
+                      onClick={handleLogout}
+                    >
+                      <span className="sa-dropdown-icon">🚪</span>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

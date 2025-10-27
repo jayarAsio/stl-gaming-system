@@ -1,169 +1,244 @@
-import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+// ============================================
+// File: src/pages/Login.jsx
+// Purpose: Login page for all user roles
+// ============================================
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import useAuth from './hooks/useAuth';
 import "./index.css";
 
-function AccessCard({ variant, icon, title, desc, onClick, refObj, delay }) {
+const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated, getDashboardPath } = useAuth();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
+
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  /**
+   * Redirect if already authenticated
+   */
   useEffect(() => {
-    const el = refObj.current;
-    if (!el) return;
+    if (isAuthenticated) {
+      const redirectTo = location.state?.from || getDashboardPath();
+      navigate(redirectTo, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location, getDashboardPath]);
 
-    // Use requestAnimationFrame for better performance
-    const timeoutId = setTimeout(() => {
-      requestAnimationFrame(() => {
-        el.classList.add('is-visible');
-      });
-    }, delay);
+  /**
+   * Handle input change
+   */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error when user types
+    setError('');
+  };
 
-    return () => clearTimeout(timeoutId);
-  }, [refObj, delay]);
+  /**
+   * Handle form submission
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!formData.username.trim()) {
+      setError('Please enter your username');
+      return;
+    }
+
+    if (!formData.password) {
+      setError('Please enter your password');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      await login(formData.username, formData.password);
+      
+      // Redirect to appropriate dashboard
+      const redirectTo = location.state?.from || getDashboardPath();
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Invalid username or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Quick login helper (for development/demo)
+   */
+  const quickLogin = (username, password) => {
+    setFormData({ username, password });
+    // Auto submit after a short delay
+    setTimeout(() => {
+      const event = new Event('submit', { cancelable: true, bubbles: true });
+      document.querySelector('.login-form')?.dispatchEvent(event);
+    }, 100);
+  };
 
   return (
-    <div
-      ref={refObj}
-      className={`access-card ${variant}`}
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      aria-label={`${title} available`}
-    >
-      <div className="card-header">
-        <div className="card-icon" aria-hidden="true">{icon}</div>
-        <div className="card-content">
-          <h2 className="card-title">{title}</h2>
-          <p className="card-description">{desc}</p>
-        </div>
+    <div className="login-page">
+      {/* Background Decoration */}
+      <div className="login-background">
+        <div className="login-bg-circle login-bg-circle-1"></div>
+        <div className="login-bg-circle login-bg-circle-2"></div>
+        <div className="login-bg-circle login-bg-circle-3"></div>
       </div>
-      <div className="card-footer">
-        <div className="status-indicator status-available">✓ Available</div>
-        <div className="access-arrow">→</div>
+
+      {/* Login Container */}
+      <div className="login-container">
+        {/* Logo & Header */}
+        <div className="login-header">
+          <div className="login-logo">STL</div>
+          <h1 className="login-title">STL Gaming System</h1>
+          <p className="login-subtitle">Sign in to your account</p>
+        </div>
+
+        {/* Login Form */}
+        <form className="login-form" onSubmit={handleSubmit}>
+          {/* Error Message */}
+          {error && (
+            <div className="login-error">
+              <span className="login-error-icon">⚠️</span>
+              <span className="login-error-text">{error}</span>
+            </div>
+          )}
+
+          {/* Username Input */}
+          <div className="login-input-group">
+            <label className="login-label">Username</label>
+            <div className="login-input-wrapper">
+              <span className="login-input-icon">👤</span>
+              <input
+                type="text"
+                name="username"
+                className="login-input"
+                placeholder="Enter your username"
+                value={formData.username}
+                onChange={handleChange}
+                disabled={loading}
+                autoComplete="username"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          {/* Password Input */}
+          <div className="login-input-group">
+            <label className="login-label">Password</label>
+            <div className="login-input-wrapper">
+              <span className="login-input-icon">🔒</span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                className="login-input"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="login-password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="login-button"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="login-button-spinner"></span>
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
+            )}
+          </button>
+        </form>
+
+        {/* Quick Access (Development Only) */}
+        {import.meta.env.VITE_ENV === 'development' && (
+          <div className="login-quick-access">
+            <p className="login-quick-title">Quick Access (Demo)</p>
+            <div className="login-quick-buttons">
+              <button
+                className="login-quick-btn login-quick-superadmin"
+                onClick={() => quickLogin('superadmin', 'admin123')}
+                disabled={loading}
+              >
+                <span className="login-quick-icon">👑</span>
+                Super Admin
+              </button>
+              <button
+                className="login-quick-btn login-quick-gameadmin"
+                onClick={() => quickLogin('gameadmin', 'admin123')}
+                disabled={loading}
+              >
+                <span className="login-quick-icon">🎮</span>
+                Game Admin
+              </button>
+              <button
+                className="login-quick-btn login-quick-ops"
+                onClick={() => quickLogin('opssupport', 'admin123')}
+                disabled={loading}
+              >
+                <span className="login-quick-icon">⚙️</span>
+                Ops Support
+              </button>
+              <button
+                className="login-quick-btn login-quick-collector"
+                onClick={() => quickLogin('collector', 'admin123')}
+                disabled={loading}
+              >
+                <span className="login-quick-icon">💼</span>
+                Collector
+              </button>
+              <button
+                className="login-quick-btn login-quick-teller"
+                onClick={() => quickLogin('teller', 'admin123')}
+                disabled={loading}
+              >
+                <span className="login-quick-icon">🎯</span>
+                Teller
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="login-footer">
+          <p className="login-footer-text">STL Gaming System</p>
+          <p className="login-footer-subtext">Philippine Charity Sweepstakes Office</p>
+        </div>
       </div>
     </div>
   );
-}
+};
 
-export default function Home() {
-  const navigate = useNavigate();
-  const headerRef = useRef(null);
-  const footerRef = useRef(null);
-
-  // Card refs
-  const cardRefs = [
-    useRef(null),
-    useRef(null),
-    useRef(null),
-    useRef(null),
-    useRef(null)
-  ];
-
-  useEffect(() => {
-    // Use requestAnimationFrame for smooth animations
-    const timeoutIds = [];
-
-    // Animate header
-    const headerTimeout = setTimeout(() => {
-      requestAnimationFrame(() => {
-        headerRef.current?.classList.add('is-visible');
-      });
-    }, 100);
-    timeoutIds.push(headerTimeout);
-
-    // Animate footer after cards
-    const footerDelay = 300 + cardRefs.length * 150;
-    const footerTimeout = setTimeout(() => {
-      requestAnimationFrame(() => {
-        footerRef.current?.classList.add('is-visible');
-      });
-    }, footerDelay);
-    timeoutIds.push(footerTimeout);
-
-    // Cleanup
-    return () => {
-      timeoutIds.forEach(id => clearTimeout(id));
-    };
-  }, []);
-
-  const cards = [
-    {
-      variant: "super-admin",
-      icon: "👑",
-      title: "Super Admin",
-      desc: "Complete system oversight with full administrative privileges and comprehensive control.",
-      path: "/super-admin"
-    },
-    {
-      variant: "system-operator",
-      icon: "⚙️",
-      title: "Game Administrator",
-      desc: "Technical operations, system maintenance, and infrastructure management tools.",
-      path: "/game-administrator"
-    },
-        {
-      variant: "sales-monitoring",
-      icon: "📈",
-      title: "Operation Support",
-      desc: "Track real-time ticket sales, monitor agent performance, and view daily totals.",
-      path: "/operation-support"
-    },
-    {
-      variant: "collector",
-      icon: "📊",
-      title: "Collector",
-      desc: "Revenue collection, financial reporting, and comprehensive transaction oversight.",
-      path: "/collector"
-    },
-    {
-      variant: "teller",
-      icon: "🎯",
-      title: "Teller Agent",
-      desc: "Process transactions, create tickets, and manage daily operational activities.",
-      path: "/teller"
-    }
-  ];
-
-  return (
-    <>
-      <div className="bg-decoration" />
-
-      <div className="container">
-        {/* Header */}
-        <header ref={headerRef} className="main-header">
-          <div className="logo-container">
-            <div className="logo">STL</div>
-          </div>
-          <h1 className="title">STL Gaming System</h1>
-          <p className="subtitle">Select your access level to continue to your dashboard</p>
-        </header>
-
-        {/* Dashboard Grid */}
-        <main className="dashboard-grid">
-          {cards.map((card, index) => (
-            <AccessCard
-              key={card.variant}
-              variant={card.variant}
-              icon={card.icon}
-              title={card.title}
-              desc={card.desc}
-              onClick={() => navigate(card.path)}
-              refObj={cardRefs[index]}
-              delay={300 + index * 150}
-            />
-          ))}
-        </main>
-
-        {/* Footer */}
-        <footer ref={footerRef} className="footer">
-          <div className="footer-content">
-            <p className="footer-text">STL Gaming System Dashboard</p>
-            <p className="footer-subtext">Philippine Charity Sweepstakes Office • Secure Access Portal</p>
-          </div>
-        </footer>
-      </div>
-    </>
-  );
-}
+export default Login;
