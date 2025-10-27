@@ -1,9 +1,10 @@
 // ============================================
 // File: src/features/operation-support/pages/Dashboard.jsx
-// Operation Support Dashboard Layout - Exact GA Structure
+// Operation Support Dashboard Layout - With Authentication
 // ============================================
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import useAuth from '../../../hooks/useAuth';
 import '../styles/operation-support.css';
 
 const navigationItems = [
@@ -18,15 +19,48 @@ const OperationSupportLayout = () => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [loggingOut, setLoggingOut] = useState(false);
+  
   const location = useLocation();
+  const navigate = useNavigate();
   const profileRef = useRef(null);
   const sidebarRef = useRef(null);
   
-  const [user] = useState({
+  // Get authentication context
+  const { user: authUser, logout, isAuthenticated, loading } = useAuth();
+
+  // Derive user display info from auth context
+  const user = authUser ? {
+    initials: authUser.fullName?.split(' ').map(n => n[0]).join('') || 'OS',
+    name: authUser.fullName || 'Operations Staff',
+    role: authUser.role === 'operation-support' ? 'Operation Support Staff' : authUser.role,
+    email: authUser.email
+  } : {
     initials: 'OS',
     name: 'Operations Staff',
     role: 'Operation Support Staff'
-  });
+  };
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  // Handle logout
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    
+    try {
+      setLoggingOut(true);
+      setProfileMenuOpen(false);
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+      setLoggingOut(false);
+    }
+  };
 
   // Auto-hide header on scroll
   useEffect(() => {
@@ -138,6 +172,22 @@ const OperationSupportLayout = () => {
     return 'Operation Support';
   };
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        fontSize: '1.25rem',
+        color: '#6b7280'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className={`os-layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
       {/* Auto-hide Header - Only visible when sidebar is CLOSED */}
@@ -236,10 +286,15 @@ const OperationSupportLayout = () => {
             
             {profileMenuOpen && (
               <div className="os-profile-menu">
-                <Link to="/" className="os-profile-menu-item logout">
+                <button 
+                  onClick={handleLogout} 
+                  className="os-profile-menu-item logout"
+                  disabled={loggingOut}
+                  type="button"
+                >
                   <span>🚪</span>
-                  <span>Logout</span>
-                </Link>
+                  <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+                </button>
               </div>
             )}
           </div>

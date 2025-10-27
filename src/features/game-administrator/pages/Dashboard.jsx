@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import useAuth from '../../../hooks/useAuth';
 import '../styles/game-administrator.css';
 
 const navigationItems = [
@@ -17,15 +18,49 @@ const GameAdministratorLayout = () => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [loggingOut, setLoggingOut] = useState(false);
+  
   const location = useLocation();
+  const navigate = useNavigate();
   const profileRef = useRef(null);
   const sidebarRef = useRef(null);
   
-  const [user] = useState({
+  // Get authentication context
+  const { user: authUser, logout, isAuthenticated, loading } = useAuth();
+
+  // Derive user display info from auth context
+  const user = authUser ? {
+    initials: authUser.fullName?.split(' ').map(n => n[0]).join('') || 'GA',
+    name: authUser.fullName || 'Game Admin',
+    role: authUser.role === 'game-administrator' ? 'Game Administrator' : authUser.role,
+    email: authUser.email
+  } : {
     initials: 'GA',
     name: 'Game Admin',
     role: 'Game Administrator'
-  });
+  };
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  // Handle logout
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    
+    try {
+      setLoggingOut(true);
+      setProfileMenuOpen(false);
+      await logout();
+      // Navigation is handled by AuthContext after logout
+    } catch (error) {
+      console.error('Logout error:', error);
+      setLoggingOut(false);
+    }
+  };
 
   // Auto-hide header on scroll
   useEffect(() => {
@@ -136,6 +171,22 @@ const GameAdministratorLayout = () => {
     return 'Game Administrator';
   };
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        fontSize: '1.25rem',
+        color: '#6b7280'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className={`ga-layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
       {/* Auto-hide Header - Only visible when sidebar is CLOSED */}
@@ -234,10 +285,15 @@ const GameAdministratorLayout = () => {
             
             {profileMenuOpen && (
               <div className="ga-profile-menu">
-                <Link to="/" className="ga-profile-menu-item logout">
+                <button 
+                  onClick={handleLogout} 
+                  className="ga-profile-menu-item logout"
+                  disabled={loggingOut}
+                  type="button"
+                >
                   <span>🚪</span>
-                  <span>Logout</span>
-                </Link>
+                  <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+                </button>
               </div>
             )}
           </div>

@@ -94,6 +94,19 @@ body.collector-bg{
   width: 100%;
   max-width: 280px;
   justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-info:hover {
+  background: var(--cambridge-blue);
+  box-shadow: 0 2px 8px rgba(151,5,29,.08);
+}
+
+.user-info:focus-visible {
+  outline: 2px solid var(--red-pantone);
+  outline-offset: 2px;
 }
 
 .user-avatar{
@@ -142,6 +155,106 @@ body.collector-bg{
   font-size:10px;
   font-weight:700;
   flex-shrink: 0;
+}
+
+/* ---------- Profile Dropdown Arrow ---------- */
+.profile-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.profile-chevron::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--carmine);
+  transition: border-color 0.2s ease;
+}
+
+.user-info:hover .profile-chevron::after {
+  border-top-color: var(--red-pantone);
+}
+
+.user-info.menu-open .profile-chevron {
+  transform: rotate(180deg);
+}
+
+/* ---------- Profile Dropdown Menu ---------- */
+.collector-profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: var(--white);
+  border: 1px solid var(--cambridge-blue);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.collector-profile-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--carmine);
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.collector-profile-menu button span:first-child {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.collector-profile-menu button:hover:not(:disabled) {
+  background: var(--beige);
+  color: var(--red-pantone);
+}
+
+.collector-profile-menu button:active:not(:disabled) {
+  background: var(--cambridge-blue);
+}
+
+.collector-profile-menu button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.collector-profile-menu button:focus-visible {
+  outline: 2px solid var(--red-pantone);
+  outline-offset: -2px;
+  background: var(--beige);
 }
 
 /* ---------- Enhanced Stats (Support 4 cards) ---------- */
@@ -467,6 +580,29 @@ body.collector-bg{
     padding: 4px 10px;
   }
 
+  /* Profile Chevron - Tablet */
+  .profile-chevron {
+    width: 18px;
+    height: 18px;
+  }
+
+  .profile-chevron::after {
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5.5px solid var(--carmine);
+  }
+
+  /* Profile Menu - Tablet */
+  .collector-profile-menu {
+    margin-top: 10px;
+    border-radius: 14px;
+  }
+
+  .collector-profile-menu button {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+
   /* Stats - 4 columns on tablet */
   .stats-grid{
     grid-template-columns:repeat(4,1fr);
@@ -603,6 +739,34 @@ body.collector-bg{
   .status-badge{
     font-size: 12px;
     padding: 4px 12px;
+  }
+
+  /* Profile Chevron - Desktop */
+  .profile-chevron {
+    width: 20px;
+    height: 20px;
+    margin-left: 6px;
+  }
+
+  .profile-chevron::after {
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--carmine);
+  }
+
+  /* Profile Menu - Desktop */
+  .collector-profile-menu {
+    min-width: 220px;
+    border-radius: 16px;
+  }
+
+  .collector-profile-menu button {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .collector-profile-menu button span:first-child {
+    font-size: 18px;
   }
 
   .stats-grid{
