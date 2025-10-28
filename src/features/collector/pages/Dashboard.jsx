@@ -1,7 +1,12 @@
+// ============================================
+// File: features/collector/pages/Dashboard.jsx
+// Role: Collector layout + dashboard (renders children via useOutlet())
+// ============================================
+
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutlet } from "react-router-dom"; // ← useOutlet here
 import useAuth from "../../../hooks/useAuth";
-import "../styles/dashboard.css";
+import "../styles/collector-dashboard.css";
 
 /** ---------- Helpers ---------- */
 const peso = (n) =>
@@ -180,8 +185,10 @@ export default function Dashboard({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [stats, setStats] = useState(initialStats);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+  const outlet = useOutlet(); // ← if a child route is active, this returns the element
 
   // Get authentication context
   const { user: authUser, logout, isAuthenticated, loading } = useAuth();
@@ -261,8 +268,7 @@ export default function Dashboard({
     return () => document.body.classList.remove("collector-bg");
   }, []);
 
-  // Live-updating collections
-  const [stats, setStats] = useState(initialStats);
+  // Live-updating collections (demo)
   useEffect(() => {
     const id = setInterval(() => {
       setStats((s) => {
@@ -308,7 +314,7 @@ export default function Dashboard({
 
   return (
     <div className="collector-container" aria-live="polite">
-      {/* Enhanced Header with Live Time and Profile Menu */}
+      {/* Header with Live Time and Profile Menu */}
       <header className="collector-header">
         <h1>💰 Collector Dashboard</h1>
         <div className="header-right">
@@ -361,60 +367,70 @@ export default function Dashboard({
         </div>
       </header>
 
-      {/* Enhanced Stats */}
-      <section aria-labelledby="stats-title">
-        <h2 id="stats-title" className="sr-only">
-          Today&apos;s Collection Stats
-        </h2>
-        <div className="stats-grid">
-          <Stat icon="💵" value={peso(stats.collections)} label="Collections" live />
-          <Stat icon="🎯" value={peso(stats.payouts_tapal)} label="Payouts / Tapal" live />
-          <Stat icon="👥" value={num(stats.tellers)} label="Active Tellers" />
-          <Stat icon="✅" value={num(stats.processed_payouts)} label="Processed Today" />
-        </div>
-      </section>
+      {/* If no child route is active, show the dashboard stats + tiles + schedule */}
+      {!outlet && (
+        <>
+          {/* Enhanced Stats */}
+          <section aria-labelledby="stats-title">
+            <h2 id="stats-title" className="sr-only">
+              Today&apos;s Collection Stats
+            </h2>
+            <div className="stats-grid">
+              <Stat icon="💵" value={peso(stats.collections)} label="Collections" live />
+              <Stat icon="🎯" value={peso(stats.payouts_tapal)} label="Payouts / Tapal" live />
+              <Stat icon="👥" value={num(stats.tellers)} label="Active Tellers" />
+              <Stat icon="✅" value={num(stats.processed_payouts)} label="Processed Today" />
+            </div>
+          </section>
 
-      {/* Cards */}
-      <main className="bento-grid">
-        <Tile
-          to="/collector/sales-collection"
-          icon="💰"
-          title="Sales Collection"
-          desc="Collect remittances from tellers and update ledger records."
-          cta="Collect Sales"
-        />
-        <Tile
-          to="/collector/payouts-tapal"
-          icon="🎯"
-          title="Payouts & Tapal"
-          desc="Process winner payouts or issue tapal for insufficient funds."
-          cta="Process Payouts"
-        />
-        <Tile
-          to="/collector/reports"
-          icon="📊"
-          title="Reports"
-          desc="Generate remittance and combined payouts/tapal reports."
-          cta="View Reports"
-        />
+          {/* Cards + Schedule */}
+          <main className="bento-grid">
+            <Tile
+              to="/collector/sales-collection"
+              icon="💰"
+              title="Sales Collection"
+              desc="Collect remittances from tellers and update ledger records."
+              cta="Collect Sales"
+            />
+            <Tile
+              to="/collector/payouts-tapal"
+              icon="🎯"
+              title="Payouts & Tapal"
+              desc="Process winner payouts or issue tapal for insufficient funds."
+              cta="Process Payouts"
+            />
+            <Tile
+              to="/collector/reports"
+              icon="📊"
+              title="Reports"
+              desc="Generate remittance and combined payouts/tapal reports."
+              cta="View Reports"
+            />
 
-        {/* Enhanced Schedule with Countdown */}
-        <section className="bento-card large" aria-labelledby="schedule-title">
-          <div className="card-icon" aria-hidden="true">
-            📅
-          </div>
-          <div className="card-title" id="schedule-title">
-            Today&apos;s Draw Schedule
-          </div>
-          <div className="card-description">Live countdown and results tracking</div>
+            {/* Enhanced Schedule with Countdown */}
+            <section className="bento-card large" aria-labelledby="schedule-title">
+              <div className="card-icon" aria-hidden="true">📅</div>
+              <div className="card-title" id="schedule-title">
+                Today&apos;s Draw Schedule
+              </div>
+              <div className="card-description">Live countdown and results tracking</div>
 
-          <div className="schedule-grid">
-            {schedule.map((game, i) => (
-              <ScheduleCard key={i} game={game} currentTime={currentTime} />
-            ))}
-          </div>
+              <div className="schedule-grid">
+                {schedule.map((game, i) => (
+                  <ScheduleCard key={i} game={game} currentTime={currentTime} />
+                ))}
+              </div>
+            </section>
+          </main>
+        </>
+      )}
+
+      {/* If a child route is active, render the child INSTEAD of the dashboard content */}
+      {outlet && (
+        <section className="collector-outlet" aria-label="Module Content">
+          {outlet}
         </section>
-      </main>
+      )}
     </div>
   );
 }

@@ -33,7 +33,7 @@ const MOCK_USERS = [
     id: 3,
     username: 'opssupport',
     password: 'admin123',
-    fullName: 'Maria Santos',
+    fullName: 'Jayar Asio',
     email: 'maria.santos@stl.com',
     role: 'operation-support',
     permissions: ['view-balances', 'view-ledgers', 'view-reports'],
@@ -55,6 +55,15 @@ const MOCK_USERS = [
     email: 'ana.garcia@stl.com',
     role: 'teller',
     permissions: ['create-tickets', 'check-winners', 'request-void'],
+  },
+  {
+    id: 6,
+    username: 'opssupport2',
+    password: 'admin123',
+    fullName: 'Ryan Jay Mancera',
+    email: 'maria.santos@stl.com',
+    role: 'operation-support',
+    permissions: ['view-balances', 'view-ledgers', 'view-reports'],
   },
 ];
 

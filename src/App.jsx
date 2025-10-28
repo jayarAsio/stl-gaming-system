@@ -1,19 +1,16 @@
 // ============================================
-// File: src/App.jsx
+// File: src/App.jsx (UPDATED VERSION)
 // Purpose: Main routing with authentication
-// Note: Login is now served at the Home page ("/")
 // ============================================
 
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Home from "./Home";
+import Home from "./Home";                 // <-- Your Login screen
 import ScrollToTop from "./ScrollToTop";
 
-// ============================================
-// Lazy-loaded shells
-// ============================================
+// Dashboards (lazy-loaded from feature folders)
 const SuperAdmin        = lazy(() => import("./features/super-admin/pages/Dashboard"));
 const GameAdministrator = lazy(() => import("./features/game-administrator/pages/Dashboard"));
 const OperationSupport  = lazy(() => import("./features/operation-support/pages/Dashboard"));
@@ -21,7 +18,7 @@ const Collector         = lazy(() => import("./features/collector/pages/Dashboar
 const Teller            = lazy(() => import("./features/teller/pages/Dashboard"));
 
 // ============================================
-// Super Admin — pages
+// Super Admin — Updated Module Structure
 // ============================================
 const SuperAdminDashboard         = lazy(() => import("./features/super-admin/pages/DashboardPage"));
 const SuperAdminModuleControl     = lazy(() => import("./features/super-admin/pages/ModuleControl"));
@@ -35,13 +32,13 @@ const SuperAdminSecurityAudit     = lazy(() => import("./features/super-admin/pa
 // ============================================
 // Game Administrator — pages
 // ============================================
-const GameAdminDashboard      = lazy(() => import("./features/game-administrator/pages/DashboardPage"));
-const GameAdminConfiguration  = lazy(() => import("./features/game-administrator/pages/Configuration"));
-const GameAdminUserManagement = lazy(() => import("./features/game-administrator/pages/UserManagement"));
-const GameAdminDailyOps       = lazy(() => import("./features/game-administrator/pages/DailyOperations"));
-const GameAdminDrawManagement = lazy(() => import("./features/game-administrator/pages/DrawManagement"));
-const GameAdminEnforcement    = lazy(() => import("./features/game-administrator/pages/Enforcement"));
-const GameAdminReports        = lazy(() => import("./features/game-administrator/pages/Reports"));
+const GameAdminDashboard       = lazy(() => import("./features/game-administrator/pages/DashboardPage"));
+const GameAdminConfiguration   = lazy(() => import("./features/game-administrator/pages/Configuration"));
+const GameAdminUserManagement  = lazy(() => import("./features/game-administrator/pages/UserManagement"));
+const GameAdminDailyOps        = lazy(() => import("./features/game-administrator/pages/DailyOperations"));
+const GameAdminDrawManagement  = lazy(() => import("./features/game-administrator/pages/DrawManagement"));
+const GameAdminEnforcement     = lazy(() => import("./features/game-administrator/pages/Enforcement"));
+const GameAdminReports         = lazy(() => import("./features/game-administrator/pages/Reports"));
 
 // ============================================
 // Operation Support — pages
@@ -67,18 +64,18 @@ const CollectorPayoutsTapal    = lazy(() => import("./features/collector/pages/P
 const CollectorReports         = lazy(() => import("./features/collector/pages/Reports"));
 
 // ============================================
-// Loading Fallback
+// Loading Component
 // ============================================
 const LoadingFallback = () => (
   <div style={{
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "100vh",
-    fontSize: "1.25rem",
-    color: "#6b7280"
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    fontSize: '1.5rem',
+    color: '#666',
   }}>
-    Loading…
+    Loading...
   </div>
 );
 
@@ -87,27 +84,26 @@ const LoadingFallback = () => (
 // ============================================
 const Unauthorized = () => (
   <div style={{
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "100vh",
-    gap: "1rem",
-    padding: "2rem",
-    textAlign: "center",
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    gap: '1rem',
+    padding: '2rem',
+    textAlign: 'center',
   }}>
-    <h1 style={{ fontSize: "3rem", margin: 0 }}>⛔</h1>
-    <h2 style={{ fontSize: "1.5rem", margin: 0, color: "#374151" }}>Access Denied</h2>
-    <p style={{ color: "#6b7280" }}>You don't have permission to access this page.</p>
-    {/* Back to Login now points to "/" since Home is Login */}
-    <Link to="/" style={{
-      marginTop: "1rem",
-      padding: "0.75rem 1.5rem",
-      background: "#1976d2",
-      color: "white",
-      borderRadius: "8px",
-      textDecoration: "none",
-      fontWeight: 600
+    <h1 style={{ fontSize: '3rem', margin: 0 }}>⛔</h1>
+    <h2 style={{ fontSize: '1.5rem', margin: 0, color: '#374151' }}>Access Denied</h2>
+    <p style={{ color: '#6b7280' }}>You don't have permission to access this page.</p>
+    <Link to="/login" style={{
+      marginTop: '1rem',
+      padding: '0.75rem 1.5rem',
+      background: '#1976d2',
+      color: 'white',
+      borderRadius: '8px',
+      textDecoration: 'none',
+      fontWeight: '600',
     }}>
       Back to Login
     </Link>
@@ -115,23 +111,35 @@ const Unauthorized = () => (
 );
 
 // ============================================
-// Main App
+// Basename normalization (prevents trailing-slash mismatch)
+// ============================================
+let basename = import.meta.env.BASE_URL || '/';
+if (basename !== '/') basename = basename.replace(/\/+$/, '');
+
+// ============================================
+// Main App Component
 // ============================================
 export default function App() {
   return (
     <AuthProvider>
-      {/* Important: basename matches Vite base without trailing slash */}
-      <BrowserRouter basename="/stl-gaming-system">
+      <BrowserRouter basename={basename}>
         <ScrollToTop />
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* PUBLIC: Home is the Login page */}
-            <Route path="/" element={<Home />} />
+            {/* ============================================
+                PUBLIC ROUTES
+                ============================================ */}
+            {/* Your Login screen is Home */}
+            <Route path="/login" element={<Home />} />
 
-            {/* PUBLIC: Unauthorized helper */}
+            {/* Root -> redirect to /login (keeps login public) */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* PROTECTED: Super Admin */}
+            {/* ============================================
+                SUPER ADMIN - PROTECTED ROUTES
+                ============================================ */}
             <Route
               path="/super-admin"
               element={
@@ -149,8 +157,10 @@ export default function App() {
               <Route path="escalations" element={<SuperAdminEscalations />} />
               <Route path="security-audit" element={<SuperAdminSecurityAudit />} />
             </Route>
-
-            {/* PROTECTED: Game Administrator */}
+            
+            {/* ============================================
+                GAME ADMINISTRATOR - PROTECTED ROUTES
+                ============================================ */}
             <Route
               path="/game-administrator"
               element={
@@ -168,7 +178,9 @@ export default function App() {
               <Route path="reports" element={<GameAdminReports />} />
             </Route>
 
-            {/* PROTECTED: Operation Support */}
+            {/* ============================================
+                OPERATION SUPPORT - PROTECTED ROUTES
+                ============================================ */}
             <Route
               path="/operation-support"
               element={
@@ -183,7 +195,10 @@ export default function App() {
               <Route path="reports" element={<OperationSupportReports />} />
             </Route>
 
-            {/* PROTECTED: Collector */}
+            {/* ============================================
+                COLLECTOR - PROTECTED ROUTES
+                (parent layout renders <Outlet /> inside the dashboard)
+                ============================================ */}
             <Route
               path="/collector"
               element={
@@ -192,13 +207,15 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<CollectorSalesCollection />} />
+              {/* At /collector: show ONLY the dashboard (no child) */}
               <Route path="sales-collection" element={<CollectorSalesCollection />} />
               <Route path="payouts-tapal" element={<CollectorPayoutsTapal />} />
               <Route path="reports" element={<CollectorReports />} />
             </Route>
 
-            {/* PROTECTED: Teller */}
+            {/* ============================================
+                TELLER - PROTECTED ROUTES
+                ============================================ */}
             <Route
               path="/teller"
               element={
@@ -207,15 +224,17 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<TellerCreateTicket />} />
+              {/* At /teller: show dashboard (no index route) */}
               <Route path="create-ticket" element={<TellerCreateTicket />} />
               <Route path="check-winners" element={<TellerCheckWinners />} />
               <Route path="void-request" element={<TellerVoidRequest />} />
               <Route path="sales-report" element={<TellerSalesReport />} />
             </Route>
 
-            {/* Catch-all → back to Home (Login) */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* ============================================
+                CATCH ALL - Redirect to /login
+                ============================================ */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

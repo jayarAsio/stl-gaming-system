@@ -1,5 +1,33 @@
+/* ===========================================
+   TELLER DASHBOARD - UNIFIED STYLES
+   Following Collector structure with Ocean Blue palette
+   Combines common.css + dashboard.css
+   =========================================== */
+
 /* ---------- Reset + Tokens ---------- */
 *{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  /* Ocean Blue palette */
+  --ocean-deep:#02367B; --ocean-medium:#006CA5; --ocean-bright:#0496C7;
+  --ocean-light:#04BADE; --ocean-pale:#55E2E9;
+  
+  /* Lighter tints for backgrounds */
+  --ocean-tint-50:#EDF8FA;
+  --ocean-tint-100:#D4F0F5;
+  
+  /* mapped design tokens */
+  --primary:var(--ocean-deep);
+  --secondary:var(--ocean-medium);
+  --accent:var(--ocean-bright);
+  --light:var(--ocean-pale);
+  
+  --white:#fff; --gray-200:#e0e0e0; --gray-600:#666; --gray-100:#f5f5f5; --ink:#1a1a1a;
+  --success:#4caf50; --error:#f44336;
+  --shadow:0 8px 28px rgba(2,54,123,.1);
+  --shadow-card:0 8px 28px rgba(2,54,123,.08);
+  --shadow-card-hover:0 12px 36px rgba(2,54,123,.13);
+}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -12,7 +40,7 @@ body.teller-bg{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;
   background:
     radial-gradient(1200px 600px at 0% -10%, rgba(255,255,255,.22), transparent 60%),
-    linear-gradient(135deg, var(--ocean-pale) 0%, var(--ocean-light) 35%, var(--ocean-bright) 60%, var(--ocean-medium) 85%, var(--ocean-deep) 100%);
+    linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-medium) 35%, var(--ocean-bright) 60%, var(--ocean-light) 85%, var(--ocean-pale) 100%);
   min-height:100vh;
   color:var(--ink);
   -webkit-font-smoothing: antialiased;
@@ -20,7 +48,7 @@ body.teller-bg{
 }
 
 /* ---------- Container ---------- */
-.container.teller-page{ 
+.teller-container{ 
   max-width:100%; 
   margin:0 auto; 
   padding:12px; 
@@ -28,7 +56,7 @@ body.teller-bg{
 }
 
 /* ---------- Enhanced Header with Live Time ---------- */
-.header.teller-header{
+.teller-header{
   background:var(--white); 
   border-radius:16px; 
   padding:16px 18px; 
@@ -41,7 +69,7 @@ body.teller-bg{
   gap: 12px;
 }
 
-.header.teller-header h1{
+.teller-header h1{
   color:var(--primary); 
   font-size:20px; 
   font-weight:700;
@@ -57,27 +85,40 @@ body.teller-bg{
 }
 
 .datetime-pill {
-  background: var(--light);
+  background: var(--ocean-tint-50);
   color: var(--primary);
   padding: 4px 12px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 500;
   text-align: center;
-  border: 1px solid rgba(4,188,222,0.3);
+  border: 1px solid var(--ocean-tint-100);
 }
 
+/* ---------- Enhanced User Info with Profile Menu ---------- */
 .user-info{
   display:flex; 
   align-items:center; 
   gap:10px;
-  background:rgba(85,226,233,0.1);
+  background:var(--ocean-tint-50);
   padding:8px 12px; 
   border-radius:999px;
   width: 100%;
   max-width: 280px;
   justify-content: center;
-  border: 1px solid rgba(4,188,222,0.2);
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-info:hover {
+  background: var(--ocean-tint-100);
+  box-shadow: 0 2px 8px rgba(2,54,123,.08);
+}
+
+.user-info:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .user-avatar{
@@ -113,7 +154,6 @@ body.teller-bg{
 
 .user-role{
   font-size:11px;
-  color:var(--gray-600);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -129,6 +169,105 @@ body.teller-bg{
   flex-shrink: 0;
 }
 
+/* ---------- Profile Dropdown Arrow (Collector Pattern) ---------- */
+.profile-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.profile-chevron::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--primary);
+  transition: border-color 0.2s ease;
+}
+
+.user-info:hover .profile-chevron::after {
+  border-top-color: var(--accent);
+}
+
+.user-info.menu-open .profile-chevron {
+  transform: rotate(180deg);
+}
+
+/* ---------- Profile Dropdown Menu (Enhanced) ---------- */
+.teller-profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: var(--white);
+  border: 1px solid var(--cambridge-blue);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.teller-profile-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--carmine);
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.teller-profile-menu button span:first-child {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.teller-profile-menu button:hover:not(:disabled) {
+  background: var(--beige);
+  color: var(--red-pantone);
+}
+
+.teller-profile-menu button:active:not(:disabled) {
+  background: var(--cambridge-blue);
+}
+
+.teller-profile-menu button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.teller-profile-menu button:focus-visible {
+  outline: 2px solid var(--red-pantone);
+  outline-offset: -2px;
+  background: var(--beige);
+}
 /* ---------- Enhanced Stats (Support 4 cards) ---------- */
 .stats-grid{
   display:grid;
@@ -147,26 +286,18 @@ body.teller-bg{
   align-items:center;
   text-align:center;
   min-height: 100px;
-  border: 1px solid rgba(255,255,255,0.9);
-  transition: all 0.2s ease;
-}
-
-.stat-card:hover{
-  transform:translateY(-2px);
-  box-shadow:var(--shadow-card-hover);
 }
 
 .stat-icon{
   width:32px;
   height:32px;
   border-radius:8px;
-  background:linear-gradient(135deg,var(--light),rgba(4,188,222,0.7));
+  background:linear-gradient(135deg,var(--ocean-tint-100),var(--ocean-pale));
   display:flex;
   align-items:center;
   justify-content:center;
   margin-bottom:8px;
   font-size:16px;
-  color: var(--primary);
 }
 
 .stat-value{
@@ -183,11 +314,9 @@ body.teller-bg{
   letter-spacing:.4px;
   text-align: center;
   line-height: 1.2;
-  color: var(--gray-600);
-  font-weight: 600;
 }
 
-/* ---------- Enhanced Cards ---------- */
+/* ---------- Enhanced Cards (Collector Pattern) ---------- */
 .bento-grid{
   display:grid;
   grid-template-columns:1fr;
@@ -207,7 +336,6 @@ body.teller-bg{
   text-decoration:none;
   color:inherit;
   min-height: 44px;
-  border: 1px solid rgba(255,255,255,0.9);
 }
 
 .bento-card::before{
@@ -245,7 +373,7 @@ body.teller-bg{
   width:40px;
   height:40px;
   border-radius:12px;
-  background:linear-gradient(135deg,var(--light),rgba(4,188,222,0.7));
+  background:linear-gradient(135deg,var(--ocean-tint-100),#fff);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -266,7 +394,52 @@ body.teller-bg{
   font-size:13px;
   line-height:1.4;
   margin-bottom:12px;
-  color: var(--gray-600);
+}
+
+/* Card CTA - Button Style (Collector Pattern) */
+.card-cta{
+  display:inline-block;
+  margin-top:8px;
+  padding:10px 16px;
+  background:linear-gradient(135deg,var(--secondary),var(--accent));
+  color:#fff;
+  border-radius:999px;
+  font-weight:700;
+  font-size:13px;
+  text-decoration:none;
+  transition: transform .18s ease, box-shadow .18s ease;
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-cta:hover, .card-cta:focus{
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(2,54,123,.25);
+}
+
+/* ---------- Outlet Container for Child Routes ---------- */
+.teller-outlet {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 20px;
+  min-height: 400px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---------- Enhanced Schedule with Countdown ---------- */
@@ -285,9 +458,9 @@ body.teller-bg{
   border: 1px solid rgba(255,255,255,0.1);
 }
 
-.schedule-card.variant-a{background:linear-gradient(135deg,var(--light),var(--ocean-light))}
-.schedule-card.variant-b{background:linear-gradient(135deg,var(--accent),var(--secondary))}
-.schedule-card.variant-c{background:linear-gradient(135deg,var(--secondary),var(--primary))}
+.schedule-card.variant-a{background:linear-gradient(135deg,var(--ocean-pale),var(--ocean-light))}
+.schedule-card.variant-b{background:linear-gradient(135deg,var(--ocean-bright),var(--ocean-medium))}
+.schedule-card.variant-c{background:linear-gradient(135deg,var(--ocean-medium),var(--ocean-deep))}
 
 .schedule-title{
   font-weight:700;
@@ -355,7 +528,6 @@ body.teller-bg{
 
 .draw-time {
   font-weight: 600;
-  font-size: 14px;
 }
 
 .draw-result {
@@ -365,7 +537,6 @@ body.teller-bg{
 }
 
 .result-label {
-  color: var(--white);
   opacity: 0.8;
   font-size: 11px;
 }
@@ -449,63 +620,75 @@ body.teller-bg{
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: modalSlideIn 0.3s ease;
+  overflow: hidden;
 }
 
 .scan-header {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: var(--white);
-  padding: 20px 24px;
-  text-align: center;
+  padding: 24px 24px 20px;
+  background: linear-gradient(135deg, var(--ocean-tint-50), rgba(85,226,233,0.1));
+  border-bottom: 1px solid var(--ocean-tint-100);
   position: relative;
 }
 
 .scan-title {
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
+  color: var(--primary);
   margin-bottom: 4px;
 }
 
 .scan-subtitle {
-  font-size: 14px;
-  opacity: 0.9;
+  font-size: 13px;
+  color: var(--gray-600);
 }
 
 .close-btn {
   position: absolute;
-  right: 24px;
-  background: none;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
   border: none;
-  color: var(--white);
-  font-size: 24px;
+  background: rgba(255,255,255,0.9);
+  color: var(--gray-600);
+  border-radius: 50%;
+  font-size: 28px;
+  line-height: 1;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
   transition: all 0.2s ease;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(2,54,123,0.1);
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--white);
+  color: var(--primary);
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(2,54,123,0.2);
 }
 
 .scan-body {
   padding: 24px;
-  max-height: calc(90vh - 180px);
   overflow-y: auto;
+  flex: 1;
+}
+
+.camera-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .qr-scanner-container {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  background: var(--gray-600);
+  background: var(--gray-100);
 }
 
 .scan-overlay {
@@ -518,125 +701,120 @@ body.teller-bg{
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 10;
   pointer-events: none;
 }
 
 .scan-frame {
   width: 200px;
   height: 200px;
-  border: 3px solid var(--white);
+  border: 3px solid var(--accent);
   border-radius: 12px;
-  position: relative;
-  animation: scanPulse 2s infinite ease-in-out;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  animation: scanPulse 2s ease-in-out infinite;
 }
 
 .scan-instruction {
+  margin-top: 16px;
   color: var(--white);
   font-size: 14px;
   font-weight: 600;
-  margin-top: 20px;
   text-align: center;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  padding: 12px 20px;
   background: rgba(0, 0, 0, 0.6);
-  border-radius: 999px;
-  backdrop-filter: blur(4px);
+  padding: 8px 16px;
+  border-radius: 20px;
 }
 
 .scan-error {
   background: rgba(244, 67, 54, 0.1);
-  border: 2px solid #ffcdd2;
-  color: #d32f2f;
-  padding: 20px;
+  color: var(--error);
+  padding: 16px;
   border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: center;
+  border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
 .retry-btn {
-  background: linear-gradient(135deg, var(--secondary), var(--accent));
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: var(--error);
   color: var(--white);
   border: none;
-  padding: 12px 20px;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .retry-btn:hover {
+  background: #d32f2f;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-card);
-  background: linear-gradient(135deg, var(--accent), var(--ocean-light));
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
 }
 
 .scan-result {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .authenticity-badge {
-  padding: 16px 20px;
+  padding: 12px 20px;
   border-radius: 12px;
-  font-weight: 800;
-  font-size: 16px;
   text-align: center;
+  font-size: 15px;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 
 .authenticity-badge.authentic {
-  background: rgba(76, 175, 80, 0.1);
-  border: 2px solid #c8e6c9;
-  color: var(--success);
+  background: linear-gradient(135deg, var(--success), #66bb6a);
+  color: var(--white);
 }
 
 .authenticity-badge.invalid {
-  background: rgba(244, 67, 54, 0.1);
-  border: 2px solid #ffcdd2;
-  color: #d32f2f;
+  background: linear-gradient(135deg, var(--error), #e57373);
+  color: var(--white);
 }
 
 .ticket-info {
-  background: rgba(85,226,233,0.05);
+  background: var(--ocean-tint-50);
+  padding: 16px;
   border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  border: 1px solid rgba(4,188,222,0.2);
+  border: 1px solid var(--ocean-tint-100);
 }
 
 .ticket-ref {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--primary);
+  margin-bottom: 8px;
 }
 
 .ticket-date {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--gray-600);
+  margin-bottom: 8px;
 }
 
 .ticket-total {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--accent);
 }
 
 .winning-results h3 {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 16px;
   color: var(--primary);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.no-results {
+  text-align: center;
+  padding: 24px;
+  color: var(--gray-600);
+  font-size: 14px;
 }
 
 .results-list {
@@ -647,7 +825,7 @@ body.teller-bg{
 
 .result-item {
   background: var(--white);
-  border: 2px solid rgba(4,188,222,0.2);
+  border: 2px solid var(--ocean-tint-100);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -666,6 +844,21 @@ body.teller-bg{
   opacity: 0.8;
 }
 
+.result-game {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.result-combo, .result-draw {
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+.result-status {
+  margin-top: 8px;
+}
+
 .winner-badge {
   background: linear-gradient(135deg, var(--success), #66bb6a);
   color: var(--white);
@@ -677,12 +870,18 @@ body.teller-bg{
   letter-spacing: 0.5px;
 }
 
+.non-winner-badge {
+  color: var(--gray-600);
+  font-size: 13px;
+  font-style: italic;
+}
+
 .scan-actions {
   display: flex;
   gap: 16px;
   padding: 24px;
-  background: rgba(85,226,233,0.05);
-  border-top: 1px solid rgba(4,188,222,0.2);
+  background: var(--ocean-tint-50);
+  border-top: 1px solid var(--ocean-tint-100);
 }
 
 .scan-btn {
@@ -704,7 +903,7 @@ body.teller-bg{
 }
 
 .scan-btn-close:hover {
-  background: rgba(85,226,233,0.1);
+  background: var(--ocean-tint-50);
   border-color: var(--accent);
   transform: translateY(-2px);
 }
@@ -754,18 +953,18 @@ body.teller-bg{
    =========================================== */
 
 @media (min-width: 768px) {
-  .container.teller-page{ 
+  .teller-container{ 
     padding:16px; 
   }
 
-  .header.teller-header{
+  .teller-header{
     flex-direction: row;
     justify-content: space-between;
     text-align: left;
     padding: 18px 20px;
   }
 
-  .header.teller-header h1{
+  .teller-header h1{
     font-size: 24px;
   }
 
@@ -800,6 +999,29 @@ body.teller-bg{
   .status-badge{
     font-size: 11px;
     padding: 4px 10px;
+  }
+
+  /* Profile Chevron - Tablet */
+  .profile-chevron {
+    width: 18px;
+    height: 18px;
+  }
+
+  .profile-chevron::after {
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5.5px solid var(--primary);
+  }
+
+  /* Profile Menu - Tablet */
+  .teller-profile-menu {
+    margin-top: 10px;
+    border-radius: 14px;
+  }
+
+  .teller-profile-menu button {
+    padding: 14px 18px;
+    font-size: 15px;
   }
 
   /* Stats - 4 columns on tablet */
@@ -857,7 +1079,7 @@ body.teller-bg{
     font-size: 14px;
   }
 
-  .card-action{
+  .card-cta{
     font-size: 14px;
   }
 
@@ -897,6 +1119,11 @@ body.teller-bg{
   .result-numbers {
     padding: 5px 10px;
   }
+
+  /* Outlet */
+  .teller-outlet {
+    padding: 24px;
+  }
 }
 
 /* ===========================================
@@ -904,19 +1131,19 @@ body.teller-bg{
    =========================================== */
 
 @media (min-width: 1024px) {
-  .container.teller-page{ 
+  .teller-container{ 
     max-width: 1200px;
     padding: 20px; 
   }
 
-  .header.teller-header{
+  .teller-header{
     padding: 20px 24px;
     margin-bottom: 24px;
     border-radius: 20px;
-    box-shadow: var(--shadow-card-hover);
+    box-shadow: 0 8px 28px rgba(2,54,123,.1);
   }
 
-  .header.teller-header h1{
+  .teller-header h1{
     font-size: 28px;
   }
 
@@ -940,6 +1167,34 @@ body.teller-bg{
     padding: 4px 12px;
   }
 
+  /* Profile Chevron - Desktop */
+  .profile-chevron {
+    width: 20px;
+    height: 20px;
+    margin-left: 6px;
+  }
+
+  .profile-chevron::after {
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--primary);
+  }
+
+  /* Profile Menu - Desktop */
+  .teller-profile-menu {
+    min-width: 220px;
+    border-radius: 16px;
+  }
+
+  .teller-profile-menu button {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .teller-profile-menu button span:first-child {
+    font-size: 18px;
+  }
+
   .stats-grid{
     gap: 16px;
     margin-bottom: 24px;
@@ -948,7 +1203,7 @@ body.teller-bg{
   .stat-card{
     padding: 18px;
     border-radius: 14px;
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 5px 18px rgba(2,54,123,.07);
   }
 
   .stat-icon{
@@ -1014,14 +1269,14 @@ body.teller-bg{
     margin-bottom: 12px;
   }
 
-  .card-action{
+  .card-cta{
     margin-top: 10px;
     font-size: 14px;
     min-height: auto;
     display: inline-block;
   }
 
-  .card-action:hover{
+  .card-cta:hover{
     transform: scale(1.04);
     box-shadow: 0 6px 18px rgba(2,54,123,.28);
   }
@@ -1085,5 +1340,11 @@ body.teller-bg{
   .scan-icon {
     width: 36px;
     height: 36px;
+  }
+
+  /* Outlet */
+  .teller-outlet {
+    padding: 28px;
+    border-radius: 20px;
   }
 }
