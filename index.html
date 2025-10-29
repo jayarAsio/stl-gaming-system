@@ -2,20 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- ✅ OK to use /stl-gaming-system/ for static assets like the favicon -->
     <link rel="icon" type="image/svg+xml" href="/stl-gaming-system/stl_logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>STL Gaming System</title>
-    <script type="module" crossorigin src="/stl-gaming-system/assets/index-Dt9TJAyj.js"></script>
+    <script type="module" crossorigin src="/stl-gaming-system/assets/index-DANIss5C.js"></script>
     <link rel="stylesheet" crossorigin href="/stl-gaming-system/assets/index-D3k3eJFP.css">
   </head>
   <body>
-    <!-- Page loader shown during full page refresh / navigation until React mounts -->
     <div id="page-loader" aria-hidden="true">
       <div class="page-loader__inner">
         <div class="page-loader__spinner" aria-hidden="true"></div>
-        <!-- label intentionally removed to avoid duplicate / stray text during refresh -->
       </div>
     </div>
     <div id="root"></div>
+
+    <!-- ❌ DO NOT prefix this with /stl-gaming-system/ -->
+    <!-- ✅ Keep it pointing to your real source file so Vite can resolve it -->
   </body>
 </html>
