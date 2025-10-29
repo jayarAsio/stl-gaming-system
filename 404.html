@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <meta name="robots" content="noindex" />
+    <style>
+      html,body { height:100%; margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:#374151; display:grid; place-items:center; }
+      .wrap { text-align:center; padding:2rem }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 style="margin:0 0 .5rem">Redirecting…</h1>
+      <p>If you are not redirected, <a id="link" href="/stl-gaming-system/">click here</a>.</p>
+    </div>
+    <script>
+      (function () {
+        var BASE = '/stl-gaming-system';
+        // Save the original path so index.html can restore it
+        try {
+          sessionStorage.setItem(
+            'gh-spa-redirect',
+            JSON.stringify({
+              // strip the project base from the path (so /stl-gaming-system/x -> /x)
+              path: location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) || '/' : '/',
+              search: location.search || '',
+              hash: location.hash || ''
+            })
+          );
+        } catch (e) {}
+        // Hard redirect back to the SPA entry
+        var target = BASE + '/';
+        document.getElementById('link').href = target;
+        location.replace(target);
+      })();
+    </script>
+  </body>
+</html>

@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- ✅ OK to use /stl-gaming-system/ for static assets like the favicon -->
     <link rel="icon" type="image/svg+xml" href="/stl-gaming-system/stl_logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>STL Gaming System</title>
@@ -17,7 +16,24 @@
     </div>
     <div id="root"></div>
 
-    <!-- ❌ DO NOT prefix this with /stl-gaming-system/ -->
-    <!-- ✅ Keep it pointing to your real source file so Vite can resolve it -->
+    <!-- ✅ GitHub Pages SPA redirect decoder -->
+    <script>
+      (function () {
+        try {
+          var raw = sessionStorage.getItem('gh-spa-redirect');
+          if (!raw) return;
+          sessionStorage.removeItem('gh-spa-redirect');
+          var loc = JSON.parse(raw);
+          // Rebuild the intended in-app URL (relative to current base)
+          var restored = (loc.path || '/') + (loc.search || '') + (loc.hash || '');
+          // Replace the current history entry so refreshes work as expected
+          window.history.replaceState(null, null, restored);
+        } catch (e) {
+          // ignore
+        }
+      })();
+    </script>
+
+    <!-- ❗ Keep this pointing to real source so Vite can resolve it -->
   </body>
 </html>
